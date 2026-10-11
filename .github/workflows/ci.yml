@@ -1,0 +1,27 @@
+name: CI
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  zt_crypto:
+    runs-on: ubuntu-latest
+    defaults: { run: { working-directory: packages/zt_crypto } }
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dart-lang/setup-dart@v1
+      - run: dart pub get
+      - run: dart analyze --fatal-infos
+      - run: dart test
+
+  zero_trust_core:
+    runs-on: ubuntu-latest
+    defaults: { run: { working-directory: packages/zero_trust_core } }
+    steps:
+      - uses: actions/checkout@v4
+      - uses: subosito/flutter-action@v2
+        with: { channel: stable }
+      - run: flutter pub get
+      - run: flutter analyze --fatal-infos
+      - run: flutter test
