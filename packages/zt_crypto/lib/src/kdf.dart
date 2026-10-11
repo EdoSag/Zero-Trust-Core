@@ -57,7 +57,8 @@ abstract final class Kdf {
   /// matching any other service's salt for the same email.
   static Future<Uint8List> saltForEmail(String email) async {
     final normalized = email.trim().toLowerCase();
-    final hash = await Sha256().hash(utf8.encode('zerotrust/kdf-salt/v2/$normalized'));
+    final hash =
+        await Sha256().hash(utf8.encode('zerotrust/kdf-salt/v2/$normalized'));
     return Uint8List.fromList(hash.bytes.sublist(0, saltLength));
   }
 
@@ -88,8 +89,8 @@ abstract final class Kdf {
     List<int> salt = const [],
     int length = keyLength,
   }) async {
-    final derived = await Hkdf(hmac: Hmac.sha256(), outputLength: length)
-        .deriveKey(
+    final derived =
+        await Hkdf(hmac: Hmac.sha256(), outputLength: length).deriveKey(
       secretKey: SecretKey(key),
       nonce: salt,
       info: utf8.encode(info),

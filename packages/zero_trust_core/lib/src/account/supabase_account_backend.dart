@@ -20,7 +20,8 @@ class SupabaseAccountBackend implements AccountBackend {
   @override
   Future<void> signIn(String email, String authPassword) async {
     try {
-      await _client.auth.signInWithPassword(email: email, password: authPassword);
+      await _client.auth
+          .signInWithPassword(email: email, password: authPassword);
     } on AuthException catch (e) {
       if (e.code == 'invalid_credentials' ||
           e.message.contains('Invalid login credentials')) {
@@ -49,6 +50,10 @@ class SupabaseAccountBackend implements AccountBackend {
   Future<void> signOut() => _client.auth.signOut();
 
   @override
+  Future<void> sendPasswordReset(String email, {String? redirectTo}) =>
+      _client.auth.resetPasswordForEmail(email, redirectTo: redirectTo);
+
+  @override
   Future<ProfileRecord?> fetchProfile() async {
     final row = await _client
         .from('profiles')
@@ -60,7 +65,8 @@ class SupabaseAccountBackend implements AccountBackend {
     final kdfSalt = _fromBytea(row['kdf_salt'] as String?);
     final kdfParams = (row['kdf_params'] as Map?)?.cast<String, Object?>();
     final wrappedDek = _fromBytea(row['wrapped_dek'] as String?);
-    final recoveryWrappedDek = _fromBytea(row['recovery_wrapped_dek'] as String?);
+    final recoveryWrappedDek =
+        _fromBytea(row['recovery_wrapped_dek'] as String?);
     final hasKeys = ((row['key_version'] as int?) ?? 1) >= 2 &&
         kdfSalt != null &&
         kdfParams != null &&
@@ -75,7 +81,8 @@ class SupabaseAccountBackend implements AccountBackend {
               wrappedDek: wrappedDek,
               recoveryWrappedDek: recoveryWrappedDek,
               legacyDek: (row['legacy_dek'] as bool?) ?? false,
-              pendingWrappedDek: _fromBytea(row['pending_wrapped_dek'] as String?),
+              pendingWrappedDek:
+                  _fromBytea(row['pending_wrapped_dek'] as String?),
               pendingKdfParams:
                   (row['pending_kdf_params'] as Map?)?.cast<String, Object?>(),
             )
@@ -92,8 +99,9 @@ class SupabaseAccountBackend implements AccountBackend {
         'wrapped_dek': _toBytea(keys.wrappedDek),
         'recovery_wrapped_dek': _toBytea(keys.recoveryWrappedDek),
         'legacy_dek': keys.legacyDek,
-        'pending_wrapped_dek':
-            keys.pendingWrappedDek == null ? null : _toBytea(keys.pendingWrappedDek!),
+        'pending_wrapped_dek': keys.pendingWrappedDek == null
+            ? null
+            : _toBytea(keys.pendingWrappedDek!),
         'pending_kdf_params': keys.pendingKdfParams,
         'updated_at': DateTime.now().toUtc().toIso8601String(),
       });

@@ -7,14 +7,18 @@ import 'package:zt_crypto/zt_crypto.dart';
 
 const fast = KdfParams(iterations: 1000);
 
-String hex(List<int> b) => b.map((x) => x.toRadixString(16).padLeft(2, '0')).join();
-Uint8List unhex(String s) => Uint8List.fromList(
-    [for (var i = 0; i < s.length; i += 2) int.parse(s.substring(i, i + 2), radix: 16)]);
+String hex(List<int> b) =>
+    b.map((x) => x.toRadixString(16).padLeft(2, '0')).join();
+Uint8List unhex(String s) => Uint8List.fromList([
+      for (var i = 0; i < s.length; i += 2)
+        int.parse(s.substring(i, i + 2), radix: 16)
+    ]);
 
 void main() {
   group('ZtBase64', () {
     // Bytes chosen so every dialect differs: '-'/'_' vs '+'/'/', and padding.
-    final bytes = List<int>.generate(16, (i) => [0xfb, 0xff, 0xfe, 0x3e, 0x3f][i % 5]);
+    final bytes =
+        List<int>.generate(16, (i) => [0xfb, 0xff, 0xfe, 0x3e, 0x3f][i % 5]);
 
     test('encodes unpadded base64url', () {
       expect(ZtBase64.encode(bytes), '-__-Pj_7__4-P_v__j4_-w');
@@ -37,7 +41,8 @@ void main() {
   });
 
   group('Kdf', () {
-    test('PBKDF2-HMAC-SHA256 matches RFC 7914 vector (first 32 bytes)', () async {
+    test('PBKDF2-HMAC-SHA256 matches RFC 7914 vector (first 32 bytes)',
+        () async {
       final key = await Kdf.deriveMasterKey(
         password: 'passwd',
         salt: utf8.encode('salt'),
@@ -93,18 +98,29 @@ void main() {
     test('signs and verifies', () async {
       final keys = await Signing.generate();
       final sig = await Signing.sign([1, 2, 3], keys);
-      expect(await Signing.verify([1, 2, 3], signature: sig, publicKey: keys.publicKeyBytes), isTrue);
-      expect(await Signing.verify([1, 2, 4], signature: sig, publicKey: keys.publicKeyBytes), isFalse);
+      expect(
+          await Signing.verify([1, 2, 3],
+              signature: sig, publicKey: keys.publicKeyBytes),
+          isTrue);
+      expect(
+          await Signing.verify([1, 2, 4],
+              signature: sig, publicKey: keys.publicKeyBytes),
+          isFalse);
     });
   });
 
   group('RecoveryKey', () {
-    test('format/parse round-trip, tolerant of case, spaces and look-alikes', () async {
+    test('format/parse round-trip, tolerant of case, spaces and look-alikes',
+        () async {
       final key = RecoveryKey.generate();
       final text = await key.format();
       expect(text, startsWith('ZT-'));
       expect((await RecoveryKey.parse(text)).bytes, key.bytes);
-      final sloppy = text.toLowerCase().replaceAll('-', ' ').replaceAll('1', 'l').replaceAll('0', 'o');
+      final sloppy = text
+          .toLowerCase()
+          .replaceAll('-', ' ')
+          .replaceAll('1', 'l')
+          .replaceAll('0', 'o');
       expect((await RecoveryKey.parse(sloppy)).bytes, key.bytes);
     });
 
@@ -117,61 +133,102 @@ void main() {
   });
 
   group('KeyHierarchy', () {
-    test('new account unlocks with the password, not with a wrong one', () async {
-      final acct = await KeyHierarchy.createAccount(password: 'correct horse', salt: Kdf.newSalt(), params: fast);
-      expect(await KeyHierarchy.unlockWithPassword(password: 'correct horse', stored: acct.stored), acct.dek);
-      expect(() => KeyHierarchy.unlockWithPassword(password: 'wrong', stored: acct.stored),
+    test('new account unlocks with the password, not with a wrong one',
+        () async {
+      final acct = await KeyHierarchy.createAccount(
+          password: 'correct horse', salt: Kdf.newSalt(), params: fast);
+      expect(
+          await KeyHierarchy.unlockWithPassword(
+              password: 'correct horse', stored: acct.stored),
+          acct.dek);
+      expect(
+          () => KeyHierarchy.unlockWithPassword(
+              password: 'wrong', stored: acct.stored),
           throwsA(isA<SecretBoxAuthenticationError>()));
     });
 
-    test('auth secret is deterministic but is not the KEK or the password', () async {
+    test('auth secret is deterministic but is not the KEK or the password',
+        () async {
       final salt = Kdf.newSalt();
-      final a = await KeyHierarchy.deriveCredentials(password: 'pw', salt: salt, params: fast);
-      final b = await KeyHierarchy.deriveCredentials(password: 'pw', salt: salt, params: fast);
+      final a = await KeyHierarchy.deriveCredentials(
+          password: 'pw', salt: salt, params: fast);
+      final b = await KeyHierarchy.deriveCredentials(
+          password: 'pw', salt: salt, params: fast);
       expect(a.authSecret, b.authSecret);
       expect(a.authSecret, isNot(ZtBase64.encode(a.kek)));
       expect(a.authSecret, isNot('pw'));
     });
 
     test('recovery key unlocks the same DEK', () async {
-      final acct = await KeyHierarchy.createAccount(password: 'pw', salt: Kdf.newSalt(), params: fast);
+      final acct = await KeyHierarchy.createAccount(
+          password: 'pw', salt: Kdf.newSalt(), params: fast);
       final parsed = await RecoveryKey.parse(await acct.recoveryKey.format());
-      expect(await KeyHierarchy.unlockWithRecoveryKey(recoveryKey: parsed, stored: acct.stored), acct.dek);
+      expect(
+          await KeyHierarchy.unlockWithRecoveryKey(
+              recoveryKey: parsed, stored: acct.stored),
+          acct.dek);
     });
 
     test('password change keeps the DEK and the recovery key', () async {
-      final acct = await KeyHierarchy.createAccount(password: 'old', salt: Kdf.newSalt(), params: fast);
+      final acct = await KeyHierarchy.createAccount(
+          password: 'old', salt: Kdf.newSalt(), params: fast);
       final changed = await KeyHierarchy.rewrapForNewPassword(
-          dek: acct.dek, newPassword: 'new', stored: acct.stored, salt: acct.stored.kdfSalt, params: fast);
-      expect(await KeyHierarchy.unlockWithPassword(password: 'new', stored: changed.stored), acct.dek);
-      expect(() => KeyHierarchy.unlockWithPassword(password: 'old', stored: changed.stored),
+          dek: acct.dek,
+          newPassword: 'new',
+          stored: acct.stored,
+          salt: acct.stored.kdfSalt,
+          params: fast);
+      expect(
+          await KeyHierarchy.unlockWithPassword(
+              password: 'new', stored: changed.stored),
+          acct.dek);
+      expect(
+          () => KeyHierarchy.unlockWithPassword(
+              password: 'old', stored: changed.stored),
           throwsA(isA<SecretBoxAuthenticationError>()));
-      expect(await KeyHierarchy.unlockWithRecoveryKey(recoveryKey: acct.recoveryKey, stored: changed.stored),
+      expect(
+          await KeyHierarchy.unlockWithRecoveryKey(
+              recoveryKey: acct.recoveryKey, stored: changed.stored),
           acct.dek);
       expect(changed.authSecret, isNot(acct.authSecret));
     });
 
     test('rotating the recovery key invalidates the old one', () async {
-      final acct = await KeyHierarchy.createAccount(password: 'pw', salt: Kdf.newSalt(), params: fast);
-      final rotated = await KeyHierarchy.rotateRecoveryKey(dek: acct.dek, stored: acct.stored);
-      expect(await KeyHierarchy.unlockWithRecoveryKey(recoveryKey: rotated.recoveryKey, stored: rotated.stored),
+      final acct = await KeyHierarchy.createAccount(
+          password: 'pw', salt: Kdf.newSalt(), params: fast);
+      final rotated = await KeyHierarchy.rotateRecoveryKey(
+          dek: acct.dek, stored: acct.stored);
+      expect(
+          await KeyHierarchy.unlockWithRecoveryKey(
+              recoveryKey: rotated.recoveryKey, stored: rotated.stored),
           acct.dek);
-      expect(() => KeyHierarchy.unlockWithRecoveryKey(recoveryKey: acct.recoveryKey, stored: rotated.stored),
+      expect(
+          () => KeyHierarchy.unlockWithRecoveryKey(
+              recoveryKey: acct.recoveryKey, stored: rotated.stored),
           throwsA(isA<SecretBoxAuthenticationError>()));
     });
 
-    test('legacy migration adopts the exact key today\'s apps derive', () async {
+    test('legacy migration adopts the exact key today\'s apps derive',
+        () async {
       // Today Fitness/Contacts/Tasks/Notes all do PBKDF2-SHA256(password, salt).
       final legacySalt = Kdf.newSalt();
-      final todaysKey = await Kdf.deriveMasterKey(password: 'pw', salt: legacySalt, params: fast);
+      final todaysKey = await Kdf.deriveMasterKey(
+          password: 'pw', salt: legacySalt, params: fast);
       for (final saltText in [
         ZtBase64.encode(legacySalt), // written by Contacts/Tasks
         base64.encode(legacySalt), // written by Notes
       ]) {
         final migrated = await KeyHierarchy.migrateLegacyAccount(
-            password: 'pw', legacySalt: saltText, salt: Kdf.newSalt(), legacyParams: fast, params: fast);
+            password: 'pw',
+            legacySalt: saltText,
+            salt: Kdf.newSalt(),
+            legacyParams: fast,
+            params: fast);
         expect(migrated.dek, todaysKey);
-        expect(await KeyHierarchy.unlockWithPassword(password: 'pw', stored: migrated.stored), todaysKey);
+        expect(
+            await KeyHierarchy.unlockWithPassword(
+                password: 'pw', stored: migrated.stored),
+            todaysKey);
       }
     });
 
@@ -184,9 +241,13 @@ void main() {
     });
 
     test('production parameters (600k iterations) round-trip', () async {
-      final acct = await KeyHierarchy.createAccount(password: 'pw', salt: Kdf.newSalt());
+      final acct =
+          await KeyHierarchy.createAccount(password: 'pw', salt: Kdf.newSalt());
       expect(acct.stored.kdfParams.iterations, 600000);
-      expect(await KeyHierarchy.unlockWithPassword(password: 'pw', stored: acct.stored), acct.dek);
+      expect(
+          await KeyHierarchy.unlockWithPassword(
+              password: 'pw', stored: acct.stored),
+          acct.dek);
     }, timeout: const Timeout(Duration(minutes: 2)));
   });
 }

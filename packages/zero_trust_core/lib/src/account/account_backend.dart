@@ -83,6 +83,10 @@ abstract interface class AccountBackend {
   Future<void> updateAuthPassword(String authPassword);
   Future<void> signOut();
 
+  /// Emails a sign-in link for "forgot password". Opening it gives a session
+  /// in which `AccountService.recover` can run.
+  Future<void> sendPasswordReset(String email, {String? redirectTo});
+
   Future<ProfileRecord?> fetchProfile();
   Future<void> writeKeys(StoredKeys keys);
 

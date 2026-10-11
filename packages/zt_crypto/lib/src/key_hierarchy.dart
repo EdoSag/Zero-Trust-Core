@@ -4,6 +4,7 @@ import 'dart:typed_data';
 import 'kdf.dart';
 import 'recovery_key.dart';
 import 'sealed_box.dart';
+import 'signing.dart';
 import 'zt_base64.dart';
 
 /// What the client derives from the password. Only [authSecret] is ever sent
@@ -85,8 +86,8 @@ abstract final class KeyHierarchy {
     required List<int> salt,
     KdfParams params = KdfParams.current,
   }) async {
-    final master =
-        await Kdf.deriveMasterKey(password: password, salt: salt, params: params);
+    final master = await Kdf.deriveMasterKey(
+        password: password, salt: salt, params: params);
     try {
       return PasswordCredentials(
         authSecret: ZtBase64.encode(await Kdf.hkdf(master, _authInfo)),
@@ -128,7 +129,8 @@ abstract final class KeyHierarchy {
       salt: ZtBase64.decode(legacySalt),
       params: legacyParams,
     );
-    return _wrapDek(dek: legacyKey, password: password, salt: salt, params: params);
+    return _wrapDek(
+        dek: legacyKey, password: password, salt: salt, params: params);
   }
 
   /// Unlock with the password. Throws `SecretBoxAuthenticationError` when the
@@ -155,7 +157,8 @@ abstract final class KeyHierarchy {
   /// Change password (or set a new one after recovery). Same DEK, new KEK,
   /// new auth secret. The recovery wrapping is left unchanged. [salt] stays
   /// [Kdf.saltForEmail] unless the email itself changed.
-  static Future<({WrappedKeys stored, String authSecret})> rewrapForNewPassword({
+  static Future<({WrappedKeys stored, String authSecret})>
+      rewrapForNewPassword({
     required Uint8List dek,
     required String newPassword,
     required WrappedKeys stored,
@@ -202,6 +205,11 @@ abstract final class KeyHierarchy {
     }
     return Kdf.hkdf(dek, 'zt/app/$appId/v1');
   }
+
+  /// The app's sync signing identity, derived from its app key so every
+  /// device signs and verifies with the same pair.
+  static Future<Ed25519KeyMaterial> signingKeys(Uint8List appKey) async =>
+      Signing.fromSeed(await Kdf.hkdf(appKey, 'zt/sign/v1'));
 
   static Future<NewAccountKeys> _wrapDek({
     required Uint8List dek,
