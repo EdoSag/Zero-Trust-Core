@@ -1,6 +1,8 @@
 import 'dart:convert';
 import 'dart:typed_data';
 
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+
 import 'package:flutter_test/flutter_test.dart';
 import 'package:zero_trust_core/zero_trust_core.dart';
 
@@ -15,6 +17,9 @@ class FakeBackend implements AccountBackend {
   final List<String> passwordsSeenByServer = [];
   String? _user;
   bool failNextPasswordUpdate = false;
+
+  /// Fail the Nth next key write (0 = the very next one); -1 = never.
+  int failWritesAfter = -1;
 
   @override
   String? get currentUserId => _user;
@@ -52,20 +57,13 @@ class FakeBackend implements AccountBackend {
   Future<ProfileRecord?> fetchProfile() async => profiles[_user];
 
   @override
-  Future<void> writeV2Keys({
-    required Uint8List kdfSalt,
-    required Map<String, Object?> kdfParams,
-    required Uint8List wrappedDek,
-    required Uint8List recoveryWrappedDek,
-  }) async {
-    profiles[_user!] = ProfileRecord(
-      legacySalt: profiles[_user]?.legacySalt,
-      keyVersion: 2,
-      kdfSalt: kdfSalt,
-      kdfParams: kdfParams,
-      wrappedDek: wrappedDek,
-      recoveryWrappedDek: recoveryWrappedDek,
-    );
+  Future<void> writeKeys(StoredKeys keys) async {
+    if (failWritesAfter == 0) {
+      failWritesAfter = -1;
+      throw Exception('network');
+    }
+    if (failWritesAfter > 0) failWritesAfter--;
+    profiles[_user!] = ProfileRecord(legacySalt: profiles[_user]?.legacySalt, keys: keys);
   }
 
   @override
@@ -123,6 +121,7 @@ void main() {
 
     final upgraded = await service.signIn(email: email, password: password);
     expect(upgraded.dek, todaysKey);
+    expect(upgraded.legacyDek, isTrue);
     expect(upgraded.newRecoveryKey, isNotNull);
     expect(backend.authPasswords[email], isNot(password));
 
@@ -196,6 +195,87 @@ void main() {
   test('short passwords are refused before anything is sent', () async {
     expect(() => service.signUp(email: email, password: 'short'), throwsArgumentError);
     expect(backend.passwordsSeenByServer, isEmpty);
+  });
+
+  test('upgraded account: the vault exposes the legacy key for old data', () async {
+    final legacySalt = Kdf.newSalt();
+    final todaysKey =
+        await Kdf.deriveMasterKey(password: password, salt: legacySalt, params: fast);
+    backend.authPasswords[email] = password;
+    backend.profiles[email] = ProfileRecord(legacySalt: ZtBase64.encode(legacySalt));
+    await service.signIn(email: email, password: password);
+    await service.signOut();
+    final again = await service.signIn(email: email, password: password);
+    expect(again.legacyDek, isTrue);
+
+    final c = ProviderContainer(overrides: [
+      ztAppConfigProvider.overrideWithValue(
+          const ZtAppConfig(appId: 'tasks', displayName: 'Zero-Trust Tasks')),
+    ]);
+    addTearDown(c.dispose);
+    await c.read(vaultControllerProvider.notifier).unlock(again.dek, legacyDek: again.legacyDek);
+    final state = c.read(vaultControllerProvider) as VaultUnlocked;
+    expect(state.legacyKey, todaysKey);
+    expect(state.appKey, isNot(todaysKey));
+  });
+
+  test('new accounts have no legacy key', () async {
+    final created = await service.signUp(email: email, password: password);
+    expect(created.legacyDek, isFalse);
+  });
+
+  test('password change interrupted after the auth switch completes on next sign-in', () async {
+    final created = await service.signUp(email: email, password: password);
+    backend.failWritesAfter = 1; // pending write ok, final promote fails
+    await expectLater(
+        service.changePassword(currentPassword: password, newPassword: 'a brand new password'),
+        throwsException);
+    await service.signOut();
+
+    final again = await service.signIn(email: email, password: 'a brand new password');
+    expect(again.dek, created.dek);
+    expect(backend.profiles[email]!.keys!.pendingWrappedDek, isNull);
+    await service.signOut();
+    expect((await service.signIn(email: email, password: 'a brand new password')).dek,
+        created.dek);
+  });
+
+  test('password change interrupted before the auth switch keeps the old password', () async {
+    final created = await service.signUp(email: email, password: password);
+    backend.failNextPasswordUpdate = true;
+    await expectLater(
+        service.changePassword(currentPassword: password, newPassword: 'a brand new password'),
+        throwsException);
+    await service.signOut();
+    expect((await service.signIn(email: email, password: password)).dek, created.dek);
+  });
+
+  test('sign-up interrupted before keys were stored is finished by sign-in', () async {
+    backend.failWritesAfter = 0;
+    await expectLater(service.signUp(email: email, password: password), throwsException);
+    await service.signOut();
+
+    final finished = await service.signIn(email: email, password: password);
+    expect(finished.newRecoveryKey, isNotNull);
+    await service.signOut();
+    expect((await service.signIn(email: email, password: password)).dek, finished.dek);
+  });
+
+  test('raising KDF params later does not lock out existing accounts', () async {
+    const older = KdfParams(iterations: 1000);
+    const newer = KdfParams(iterations: 2000);
+    final created = await AccountService(backend, params: older)
+        .signUp(email: email, password: password);
+    await backend.signOut();
+
+    final upgraded = AccountService(backend, params: newer, previousParams: const [older]);
+    expect((await upgraded.signIn(email: email, password: password)).dek, created.dek);
+    expect(backend.profiles[email]!.keys!.kdfParams, newer.toJson());
+    await backend.signOut();
+
+    // Moved forward: the newest release alone can now sign in.
+    expect((await AccountService(backend, params: newer).signIn(email: email, password: password)).dek,
+        created.dek);
   });
 
   test('delete account removes auth user and profile', () async {

@@ -14,20 +14,40 @@ Deno.serve(async (req) => {
   const { data: { user }, error } = await admin.auth.getUser(jwt);
   if (error || !user) return new Response("Unauthorized", { status: 401 });
 
-  // Remove every object under {user_id}/ in every bucket, recursing into
-  // folders (list() returns folders as entries with a null id).
-  const removeUnder = async (bucket: string, prefix: string) => {
-    const { data: entries } = await admin.storage.from(bucket).list(prefix, { limit: 1000 });
-    const files: string[] = [];
-    for (const entry of entries ?? []) {
-      const path = `${prefix}/${entry.name}`;
-      if (entry.id === null) await removeUnder(bucket, path);
-      else files.push(path);
+  // Remove every object under {user_id}/ in every bucket. Each round lists
+  // the first page, recurses into folders (entries with a null id) and
+  // removes the files, until the prefix is empty, so folders of any size
+  // are covered. Any storage error aborts before the auth user is deleted,
+  // so a retry can finish the cleanup instead of orphaning files.
+  const PAGE = 1000;
+  const MAX_ROUNDS = 10_000;
+  const removeUnder = async (bucket: string, prefix: string): Promise<void> => {
+    for (let round = 0; round < MAX_ROUNDS; round++) {
+      const { data: entries, error } = await admin.storage.from(bucket)
+        .list(prefix, { limit: PAGE });
+      if (error) throw error;
+      if (!entries || entries.length === 0) return;
+      const files: string[] = [];
+      for (const entry of entries) {
+        const path = `${prefix}/${entry.name}`;
+        if (entry.id === null) await removeUnder(bucket, path);
+        else files.push(path);
+      }
+      if (files.length) {
+        const { error: removeError } = await admin.storage.from(bucket).remove(files);
+        if (removeError) throw removeError;
+      }
     }
-    if (files.length) await admin.storage.from(bucket).remove(files);
+    throw new Error(`Could not empty ${bucket}/${prefix}`);
   };
-  const { data: buckets } = await admin.storage.listBuckets();
-  for (const bucket of buckets ?? []) await removeUnder(bucket.id, user.id);
+
+  try {
+    const { data: buckets, error: bucketsError } = await admin.storage.listBuckets();
+    if (bucketsError) throw bucketsError;
+    for (const bucket of buckets ?? []) await removeUnder(bucket.id, user.id);
+  } catch (e) {
+    return new Response(`Storage cleanup failed: ${(e as Error).message}`, { status: 500 });
+  }
 
   const { error: deleteError } = await admin.auth.admin.deleteUser(user.id);
   if (deleteError) return new Response(deleteError.message, { status: 500 });

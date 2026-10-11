@@ -7,32 +7,65 @@ class InvalidCredentials implements Exception {
   String toString() => 'InvalidCredentials';
 }
 
-/// The `profiles` row as the core reads it. Byte columns are raw bytes here;
+/// The v2 key columns of a `profiles` row. Byte columns are raw bytes here;
 /// the Supabase implementation handles PostgREST's `\x…` hex encoding.
-class ProfileRecord {
-  const ProfileRecord({
-    this.legacySalt,
-    this.keyVersion = 1,
-    this.kdfSalt,
-    this.kdfParams,
-    this.wrappedDek,
-    this.recoveryWrappedDek,
+class StoredKeys {
+  const StoredKeys({
+    required this.kdfSalt,
+    required this.kdfParams,
+    required this.wrappedDek,
+    required this.recoveryWrappedDek,
+    this.legacyDek = false,
+    this.pendingWrappedDek,
+    this.pendingKdfParams,
   });
+
+  final Uint8List kdfSalt;
+  final Map<String, Object?> kdfParams;
+  final Uint8List wrappedDek;
+  final Uint8List recoveryWrappedDek;
+
+  /// The DEK is a pre-core PBKDF2 key adopted at upgrade, so existing
+  /// ciphertext was written with it directly rather than with an app key.
+  final bool legacyDek;
+
+  /// The DEK wrapped for a password change that may not have finished:
+  /// written before the auth password changes, promoted after. Lets an
+  /// interrupted change complete on the next unlock instead of locking the
+  /// user out.
+  final Uint8List? pendingWrappedDek;
+  final Map<String, Object?>? pendingKdfParams;
+
+  StoredKeys copyWith({
+    Map<String, Object?>? kdfParams,
+    Uint8List? wrappedDek,
+    Uint8List? recoveryWrappedDek,
+    Uint8List? pendingWrappedDek,
+    Map<String, Object?>? pendingKdfParams,
+    bool clearPending = false,
+  }) =>
+      StoredKeys(
+        kdfSalt: kdfSalt,
+        kdfParams: kdfParams ?? this.kdfParams,
+        wrappedDek: wrappedDek ?? this.wrappedDek,
+        recoveryWrappedDek: recoveryWrappedDek ?? this.recoveryWrappedDek,
+        legacyDek: legacyDek,
+        pendingWrappedDek:
+            clearPending ? null : pendingWrappedDek ?? this.pendingWrappedDek,
+        pendingKdfParams:
+            clearPending ? null : pendingKdfParams ?? this.pendingKdfParams,
+      );
+}
+
+/// The `profiles` row as the core reads it.
+class ProfileRecord {
+  const ProfileRecord({this.legacySalt, this.keys});
 
   /// Pre-core `salt` column, any base64 dialect.
   final String? legacySalt;
-  final int keyVersion;
-  final Uint8List? kdfSalt;
-  final Map<String, Object?>? kdfParams;
-  final Uint8List? wrappedDek;
-  final Uint8List? recoveryWrappedDek;
 
-  bool get isV2 =>
-      keyVersion >= 2 &&
-      kdfSalt != null &&
-      kdfParams != null &&
-      wrappedDek != null &&
-      recoveryWrappedDek != null;
+  /// Null until the account has v2 keys.
+  final StoredKeys? keys;
 }
 
 /// Everything the account layer needs from the server. Supabase in
@@ -51,12 +84,7 @@ abstract interface class AccountBackend {
   Future<void> signOut();
 
   Future<ProfileRecord?> fetchProfile();
-  Future<void> writeV2Keys({
-    required Uint8List kdfSalt,
-    required Map<String, Object?> kdfParams,
-    required Uint8List wrappedDek,
-    required Uint8List recoveryWrappedDek,
-  });
+  Future<void> writeKeys(StoredKeys keys);
 
   /// Deletes the auth user server-side; every user row cascades.
   Future<void> deleteAccount();

@@ -8,6 +8,9 @@ alter table public.profiles
   add column if not exists key_version int not null default 1,
   add column if not exists wrapped_dek bytea,
   add column if not exists recovery_wrapped_dek bytea,
+  add column if not exists legacy_dek boolean not null default false,  -- DEK is the adopted pre-core key
+  add column if not exists pending_wrapped_dek bytea,                   -- in-flight password change
+  add column if not exists pending_kdf_params jsonb,
   add column if not exists created_at timestamptz not null default now();
 
 -- Legacy rows without a salt must stay valid once v2 rows stop writing it.

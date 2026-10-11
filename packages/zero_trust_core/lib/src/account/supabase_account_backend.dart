@@ -52,35 +52,49 @@ class SupabaseAccountBackend implements AccountBackend {
   Future<ProfileRecord?> fetchProfile() async {
     final row = await _client
         .from('profiles')
-        .select(
-            'salt, key_version, kdf_salt, kdf_params, wrapped_dek, recovery_wrapped_dek')
+        .select('salt, key_version, kdf_salt, kdf_params, wrapped_dek, '
+            'recovery_wrapped_dek, legacy_dek, pending_wrapped_dek, pending_kdf_params')
         .eq('id', _requireUserId())
         .maybeSingle();
     if (row == null) return null;
+    final kdfSalt = _fromBytea(row['kdf_salt'] as String?);
+    final kdfParams = (row['kdf_params'] as Map?)?.cast<String, Object?>();
+    final wrappedDek = _fromBytea(row['wrapped_dek'] as String?);
+    final recoveryWrappedDek = _fromBytea(row['recovery_wrapped_dek'] as String?);
+    final hasKeys = ((row['key_version'] as int?) ?? 1) >= 2 &&
+        kdfSalt != null &&
+        kdfParams != null &&
+        wrappedDek != null &&
+        recoveryWrappedDek != null;
     return ProfileRecord(
       legacySalt: row['salt'] as String?,
-      keyVersion: (row['key_version'] as int?) ?? 1,
-      kdfSalt: _fromBytea(row['kdf_salt'] as String?),
-      kdfParams: (row['kdf_params'] as Map?)?.cast<String, Object?>(),
-      wrappedDek: _fromBytea(row['wrapped_dek'] as String?),
-      recoveryWrappedDek: _fromBytea(row['recovery_wrapped_dek'] as String?),
+      keys: hasKeys
+          ? StoredKeys(
+              kdfSalt: kdfSalt,
+              kdfParams: kdfParams,
+              wrappedDek: wrappedDek,
+              recoveryWrappedDek: recoveryWrappedDek,
+              legacyDek: (row['legacy_dek'] as bool?) ?? false,
+              pendingWrappedDek: _fromBytea(row['pending_wrapped_dek'] as String?),
+              pendingKdfParams:
+                  (row['pending_kdf_params'] as Map?)?.cast<String, Object?>(),
+            )
+          : null,
     );
   }
 
   @override
-  Future<void> writeV2Keys({
-    required Uint8List kdfSalt,
-    required Map<String, Object?> kdfParams,
-    required Uint8List wrappedDek,
-    required Uint8List recoveryWrappedDek,
-  }) =>
-      _client.from('profiles').upsert({
+  Future<void> writeKeys(StoredKeys keys) => _client.from('profiles').upsert({
         'id': _requireUserId(),
         'key_version': 2,
-        'kdf_salt': _toBytea(kdfSalt),
-        'kdf_params': kdfParams,
-        'wrapped_dek': _toBytea(wrappedDek),
-        'recovery_wrapped_dek': _toBytea(recoveryWrappedDek),
+        'kdf_salt': _toBytea(keys.kdfSalt),
+        'kdf_params': keys.kdfParams,
+        'wrapped_dek': _toBytea(keys.wrappedDek),
+        'recovery_wrapped_dek': _toBytea(keys.recoveryWrappedDek),
+        'legacy_dek': keys.legacyDek,
+        'pending_wrapped_dek':
+            keys.pendingWrappedDek == null ? null : _toBytea(keys.pendingWrappedDek!),
+        'pending_kdf_params': keys.pendingKdfParams,
         'updated_at': DateTime.now().toUtc().toIso8601String(),
       });
 
