@@ -22,9 +22,10 @@ class SupabaseSyncBackend implements SyncBackend {
   @override
   Future<List<RemoteItem>> pull(String app, {DateTime? since}) async {
     final out = <RemoteItem>[];
-    final seen = <String>{};
-    var cursor = since;
-    var firstPage = true;
+    // Keyset cursor on (synced_at, item_id): rows sharing a timestamp (a
+    // backfill, one transaction) page correctly however many there are.
+    String? afterAt = since?.toUtc().toIso8601String();
+    String? afterId;
     while (true) {
       var query = _client
           .from(_table)
@@ -32,42 +33,40 @@ class SupabaseSyncBackend implements SyncBackend {
               'item_id, data_blob, signature, device_id, updated_at, deleted, synced_at')
           .eq('user_id', _userId)
           .eq('app', app);
-      if (cursor != null) {
-        // Later pages use >= so rows sharing the boundary timestamp are not
-        // skipped; `seen` drops the ones already returned.
-        final at = cursor.toUtc().toIso8601String();
-        query =
-            firstPage ? query.gt('synced_at', at) : query.gte('synced_at', at);
+      if (afterAt != null && afterId == null) {
+        query = query.gt('synced_at', afterAt);
+      } else if (afterAt != null) {
+        query = query.or('synced_at.gt."$afterAt",'
+            'and(synced_at.eq."$afterAt",item_id.gt."$afterId")');
       }
       final rows =
           await query.order('synced_at').order('item_id').limit(_pageSize);
-      firstPage = false;
-      var added = 0;
-      for (final row in rows) {
-        final item = _fromRow(row);
-        if (seen
-            .add('${item.itemId}@${item.syncedAt?.microsecondsSinceEpoch}')) {
-          out.add(item);
-          added++;
-        }
-      }
-      if (rows.length < _pageSize || added == 0) return out;
-      cursor = out.last.syncedAt;
+      out.addAll(rows.map(_fromRow));
+      if (rows.length < _pageSize) return out;
+      // Normalised to `...Z` so no `+00:00` ends up in the filter string.
+      afterAt = DateTime.parse(rows.last['synced_at'] as String)
+          .toUtc()
+          .toIso8601String();
+      afterId = rows.last['item_id'] as String;
     }
   }
 
   @override
-  Future<void> push(String app, RemoteItem item) =>
-      _client.from(_table).upsert({
-        'user_id': _userId,
-        'app': app,
-        'item_id': item.itemId,
-        'data_blob': item.dataBlob == null ? null : _toBytea(item.dataBlob!),
-        'signature': item.signature == null ? null : _toBytea(item.signature!),
-        'device_id': item.deviceId,
-        'updated_at': item.updatedAt.toUtc().toIso8601String(),
-        'deleted': item.deleted,
-      }, onConflict: 'user_id,app,item_id');
+  Future<bool> push(String app, RemoteItem item) async {
+    // The vault_items trigger silently skips a write older than the stored
+    // row; it then returns no row, which is how a stale push is detected.
+    final rows = await _client.from(_table).upsert({
+      'user_id': _userId,
+      'app': app,
+      'item_id': item.itemId,
+      'data_blob': item.dataBlob == null ? null : _toBytea(item.dataBlob!),
+      'signature': item.signature == null ? null : _toBytea(item.signature!),
+      'device_id': item.deviceId,
+      'updated_at': item.updatedAt.toUtc().toIso8601String(),
+      'deleted': item.deleted,
+    }, onConflict: 'user_id,app,item_id').select('item_id');
+    return rows.isNotEmpty;
+  }
 
   @override
   Future<void> Function() subscribe(

@@ -122,7 +122,11 @@ class _ZtSignInScreenState extends ConsumerState<ZtSignInScreen> {
                             ? AutofillHints.newPassword
                             : AutofillHints.password,
                       ],
-                      validator: ztValidatePassword,
+                      // Accounts from pre-core app versions may have shorter passwords;
+                      // they must still be able to sign in and upgrade.
+                      validator: (v) => _creating
+                          ? ztValidatePassword(v)
+                          : ((v ?? '').isEmpty ? 'Enter your password.' : null),
                       onFieldSubmitted: (_) => _creating ? null : _submit(),
                     ),
                     if (_creating) ...[

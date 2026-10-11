@@ -126,7 +126,9 @@ class ItemSyncEngine {
     var pushed = 0;
     for (final item in await store.all()) {
       if (!item.dirty) continue;
-      await backend.push(appId, await _seal(item));
+      // Rejected as stale: stay dirty so the next pull reports the conflict
+      // instead of silently replacing this edit.
+      if (!await backend.push(appId, await _seal(item))) continue;
       // Leave it dirty if it was edited again while the push was in flight.
       final current = await store.get(item.itemId);
       if (current != null && current.updatedAt == item.updatedAt) {

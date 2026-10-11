@@ -69,7 +69,7 @@ void main() {
     await tester.tap(find.widgetWithText(FilledButton, 'Sign in'));
     await tester.pump();
     expect(find.text('Enter a valid email address.'), findsOneWidget);
-    expect(find.text('Use at least 12 characters.'), findsOneWidget);
+    expect(find.text('Enter your password.'), findsOneWidget);
 
     await tester.enterText(find.widgetWithText(TextFormField, 'Email'), email);
     await tester.enterText(
@@ -85,6 +85,25 @@ void main() {
     await settle(tester);
     expect(result, isNotNull);
     expect(result!.newRecoveryKey, isNull);
+  });
+
+  testWidgets('pre-core accounts with short passwords can still sign in',
+      (tester) async {
+    await tester.pumpWidget(app(ZtSignInScreen(onUnlocked: (_) {})));
+    await tester.enterText(find.widgetWithText(TextFormField, 'Email'), email);
+    await tester.enterText(
+        find.widgetWithText(TextFormField, 'Password'), 'short');
+    await tester.tap(find.widgetWithText(FilledButton, 'Sign in'));
+    await settle(tester);
+    expect(find.text('Use at least 12 characters.'), findsNothing);
+    // It reached the server, which rejected the unknown account.
+    expect(find.text('That email and password don\'t match.'), findsOneWidget);
+
+    await tester.tap(find.text('Create a Zero-Trust account'));
+    await tester.pump();
+    await tester.tap(find.widgetWithText(FilledButton, 'Create account'));
+    await tester.pump();
+    expect(find.text('Use at least 12 characters.'), findsOneWidget);
   });
 
   testWidgets('recovery key screen blocks Continue until the user confirms',

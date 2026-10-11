@@ -22,17 +22,26 @@ class FakeSyncBackend implements SyncBackend {
     return out;
   }
 
+  /// Runs before each push lands, to interleave another device's write.
+  Future<void> Function()? beforePush;
+
   @override
-  Future<void> push(String app, RemoteItem item) async {
+  Future<bool> push(String app, RemoteItem item) async {
+    final hook = beforePush;
+    beforePush = null;
+    if (hook != null) await hook();
     // Mirrors the vault_items guard trigger: an older write never replaces
     // a newer row.
     final existing = rows['$app/${item.itemId}'];
-    if (existing != null && item.updatedAt.isBefore(existing.updatedAt)) return;
+    if (existing != null && item.updatedAt.isBefore(existing.updatedAt)) {
+      return false;
+    }
     final stored = _withSyncedAt(item);
     rows['$app/${item.itemId}'] = stored;
     for (final l in List.of(_listeners)) {
       l(stored);
     }
+    return true;
   }
 
   /// Writes a row as a hostile server or another user could.
@@ -152,6 +161,32 @@ void main() {
     expect((await phone.store.get('n1'))!.json, {'v': 'phone'});
   });
 
+  test('a push rejected as stale stays dirty and is reported next sync',
+      () async {
+    final phone = await device('phone');
+    final laptop = await device('laptop');
+    await phone.save('n1', {'v': 0});
+    await phone.sync();
+    await laptop.sync();
+
+    now = now.add(const Duration(minutes: 1));
+    await laptop.save('n1', {'v': 'laptop'});
+    // The phone writes a newer version after the laptop pulled, before its
+    // push lands.
+    server.beforePush = () async {
+      now = now.add(const Duration(minutes: 1));
+      await phone.save('n1', {'v': 'phone'});
+      await phone.sync();
+    };
+    final first = await laptop.sync();
+    expect(first.pushed, 0);
+    expect((await laptop.store.get('n1'))!.dirty, isTrue);
+
+    final second = await laptop.sync();
+    expect(second.conflicts.single.lostLocal.json, {'v': 'laptop'});
+    expect((await laptop.store.get('n1'))!.json, {'v': 'phone'});
+  });
+
   test('a blob moved to another item id is rejected', () async {
     final phone = await device('phone');
     final laptop = await device('laptop');
@@ -258,10 +293,10 @@ class _CountingBackend implements SyncBackend {
       _inner.pull(app, since: since);
 
   @override
-  Future<void> push(String app, RemoteItem item) async {
+  Future<bool> push(String app, RemoteItem item) async {
     _onPush();
     await Future<void>.delayed(Duration.zero);
-    await _inner.push(app, item);
+    return _inner.push(app, item);
   }
 
   @override

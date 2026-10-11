@@ -37,7 +37,10 @@ abstract interface class SyncBackend {
   /// ordered by `synced_at`.
   Future<List<RemoteItem>> pull(String app, {DateTime? since});
 
-  Future<void> push(String app, RemoteItem item);
+  /// Returns false when the server kept a newer row instead (another device
+  /// wrote after this one last pulled). The caller keeps its edit dirty and
+  /// the next pull reports it as a conflict.
+  Future<bool> push(String app, RemoteItem item);
 
   /// Live changes from other devices. Returns a cancel function.
   Future<void> Function() subscribe(
