@@ -1,6 +1,6 @@
 name: zero_trust_core
 description: Account, keys, vault lock and shared UI for every Zero-Trust app.
-version: 0.1.0
+version: 0.2.0
 publish_to: none
 
 environment:

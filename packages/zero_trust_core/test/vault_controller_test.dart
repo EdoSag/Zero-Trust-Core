@@ -11,11 +11,14 @@ ProviderContainer containerFor(ZtAppConfig config) => ProviderContainer(
     );
 
 void main() {
-  test('unlock derives the app key, zeroes the DEK, lock zeroes the key', () async {
-    final c = containerFor(const ZtAppConfig(appId: 'notes', displayName: 'Zero-Trust Notes'));
+  test('unlock derives the app key, zeroes the DEK, lock zeroes the key',
+      () async {
+    final c = containerFor(
+        const ZtAppConfig(appId: 'notes', displayName: 'Zero-Trust Notes'));
     addTearDown(c.dispose);
     final dek = Uint8List.fromList(List.filled(32, 9));
-    final expected = await KeyHierarchy.appKey(Uint8List.fromList(dek), 'notes');
+    final expected =
+        await KeyHierarchy.appKey(Uint8List.fromList(dek), 'notes');
 
     await c.read(vaultControllerProvider.notifier).unlock(dek);
     final state = c.read(vaultControllerProvider) as VaultUnlocked;
@@ -31,7 +34,9 @@ void main() {
   test('auto-locks after inactivity and touch() postpones it', () {
     fakeAsync((async) {
       final c = containerFor(const ZtAppConfig(
-          appId: 'tasks', displayName: 'Zero-Trust Tasks', autoLockAfter: Duration(minutes: 5)));
+          appId: 'tasks',
+          displayName: 'Zero-Trust Tasks',
+          autoLockAfter: Duration(minutes: 5)));
       c.read(vaultControllerProvider.notifier).unlock(Uint8List(32));
       async.flushMicrotasks();
       expect(c.read(vaultControllerProvider), isA<VaultUnlocked>());

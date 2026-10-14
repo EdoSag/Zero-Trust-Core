@@ -27,5 +27,6 @@ class ZtAppConfig {
 
 /// Apps override this in their root `ProviderScope`.
 final ztAppConfigProvider = Provider<ZtAppConfig>(
-  (ref) => throw UnimplementedError('Override ztAppConfigProvider in ProviderScope'),
+  (ref) =>
+      throw UnimplementedError('Override ztAppConfigProvider in ProviderScope'),
 );

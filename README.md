@@ -38,6 +38,36 @@ ProviderScope(
 );
 ```
 
+### Shared screens
+
+`ZtSignInScreen`, `ZtUnlockScreen`, `ZtRecoveryKeyScreen`,
+`ZtForgotPasswordScreen`, `ZtResetPasswordScreen` and `ZtSettingsPage` are the
+same in every app. Each auth screen hands back an `UnlockResult`; pass its
+`dek` to `vaultControllerProvider.notifier.unlock`, and when
+`newRecoveryKey` is set, show `ZtRecoveryKeyScreen` first. Apps add their own
+settings rows through `ZtSettingsPage(appSection: [...], backupSection: [...])`.
+
+### Sync
+
+```dart
+final vault = ref.read(vaultControllerProvider) as VaultUnlocked;
+final sync = ItemSyncEngine(
+  appId: 'notes',
+  appKey: vault.appKey,
+  deviceId: deviceId,                 // stable per install
+  store: myDriftOrIsarStore,          // implements LocalItemStore
+  backend: SupabaseSyncBackend(),
+  signingKeys: await KeyHierarchy.signingKeys(vault.appKey),
+);
+await sync.save(note.id, note.toJson());
+final result = await sync.sync();     // pull, then push
+sync.startLive();                     // realtime from other devices
+```
+
+Every item is its own encrypted, signed row in `vault_items`; conflicts are
+last-writer-wins and the losing local edit comes back in
+`result.conflicts`, so the app can offer to restore it.
+
 ## Tests
 
 ```bash

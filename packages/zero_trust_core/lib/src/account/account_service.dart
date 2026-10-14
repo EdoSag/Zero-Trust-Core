@@ -179,6 +179,13 @@ class AccountService {
 
   Future<void> signOut() => _backend.signOut();
 
+  /// The signed-in account's email, if any.
+  String? get currentEmail => _backend.currentEmail;
+
+  /// First half of "forgot password". [redirectTo] is the app's deep link.
+  Future<void> sendPasswordReset(String email, {String? redirectTo}) =>
+      _backend.sendPasswordReset(email.trim(), redirectTo: redirectTo);
+
   Future<void> deleteAccount() => _backend.deleteAccount();
 
   Future<UnlockResult> _afterAuth(
@@ -198,7 +205,8 @@ class AccountService {
           password: password, salt: salt, params: authParams);
       await _backend.writeKeys(_toStored(created.stored));
       if (authParams != params) await _setPassword(created.dek, password);
-      return UnlockResult(dek: created.dek, newRecoveryKey: created.recoveryKey);
+      return UnlockResult(
+          dek: created.dek, newRecoveryKey: created.recoveryKey);
     }
 
     final unlocked = await _unlock(password, keys);

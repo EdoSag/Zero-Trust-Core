@@ -23,7 +23,21 @@ abstract final class Signing {
     final keyPair = await _ed25519.newKeyPair();
     final publicKey = await keyPair.extractPublicKey();
     return Ed25519KeyMaterial(
-      privateKeyBytes: Uint8List.fromList(await keyPair.extractPrivateKeyBytes()),
+      privateKeyBytes:
+          Uint8List.fromList(await keyPair.extractPrivateKeyBytes()),
+      publicKeyBytes: Uint8List.fromList(publicKey.bytes),
+    );
+  }
+
+  /// Deterministic key pair from a 32-byte seed, so every device of a user
+  /// derives the same identity (see `KeyHierarchy.signingKeys`).
+  static Future<Ed25519KeyMaterial> fromSeed(List<int> seed) async {
+    if (seed.length != 32) throw ArgumentError('Ed25519 seed must be 32 bytes');
+    final keyPair = await _ed25519.newKeyPairFromSeed(seed);
+    final publicKey = await keyPair.extractPublicKey();
+    return Ed25519KeyMaterial(
+      privateKeyBytes:
+          Uint8List.fromList(await keyPair.extractPrivateKeyBytes()),
       publicKeyBytes: Uint8List.fromList(publicKey.bytes),
     );
   }
@@ -34,7 +48,8 @@ abstract final class Signing {
   ) async {
     final keyPair = SimpleKeyPairData(
       keys.privateKeyBytes,
-      publicKey: SimplePublicKey(keys.publicKeyBytes, type: KeyPairType.ed25519),
+      publicKey:
+          SimplePublicKey(keys.publicKeyBytes, type: KeyPairType.ed25519),
       type: KeyPairType.ed25519,
     );
     final signature = await _ed25519.sign(message, keyPair: keyPair);
