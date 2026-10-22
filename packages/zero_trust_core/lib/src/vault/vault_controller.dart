@@ -52,6 +52,18 @@ class VaultController extends Notifier<VaultState> {
     touch();
   }
 
+  /// Zeroes and drops [VaultUnlocked.legacyKey] once the app no longer needs
+  /// it (its legacy import finished), so it isn't kept in memory for the
+  /// rest of the session.
+  void forgetLegacyKey() {
+    final s = state;
+    if (s is! VaultUnlocked) return;
+    final legacy = s.legacyKey;
+    if (legacy == null) return;
+    legacy.fillRange(0, legacy.length, 0);
+    state = VaultUnlocked(appKey: s.appKey);
+  }
+
   void touch() {
     _timer?.cancel();
     final after = _config.autoLockAfter;

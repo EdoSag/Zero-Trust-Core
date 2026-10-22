@@ -5,7 +5,9 @@ import '../../config/zt_app_config.dart';
 import '../../core_providers.dart';
 import '../../vault/vault_controller.dart';
 import '../auth/zt_auth_messages.dart';
+import '../../sync/zt_local_store.dart';
 import '../auth/zt_recovery_key_screen.dart';
+import 'zt_sync_status_tile.dart';
 
 /// The settings screen every Zero-Trust app shows. Sections and their order
 /// are fixed so the apps feel like one product; apps add their own rows
@@ -19,6 +21,7 @@ class ZtSettingsPage extends ConsumerWidget {
     this.version,
     this.privacyPolicyUrl,
     this.onOpenUrl,
+    this.showSyncStatus = false,
   });
 
   /// Called after sign-out and after account deletion. Route to sign-in.
@@ -33,6 +36,10 @@ class ZtSettingsPage extends ConsumerWidget {
   final String? version;
   final Uri? privacyPolicyUrl;
   final void Function(Uri url)? onOpenUrl;
+
+  /// Shows [ZtSyncStatusTile] under the account. Needs the core's sync
+  /// providers (`ztSyncControllerProvider`).
+  final bool showSyncStatus;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -51,6 +58,7 @@ class ZtSettingsPage extends ConsumerWidget {
             title: Text(account.currentEmail ?? 'Not signed in'),
             subtitle: const Text('One account for every Zero-Trust app'),
           ),
+          if (showSyncStatus) const ZtSyncStatusTile(),
           ListTile(
             leading: const Icon(Icons.password),
             title: const Text('Change password'),
@@ -185,6 +193,18 @@ class ZtSettingsPage extends ConsumerWidget {
     }
   }
 
+  /// Removes this app's local store for a deleted account. Best effort: the
+  /// file is encrypted under keys that no longer exist anywhere.
+  static Future<void> _deleteLocalData(WidgetRef ref, String userId) async {
+    try {
+      final appId = ref.read(ztAppConfigProvider).appId;
+      await ZtLocalStore.deleteFiles(
+          await ZtLocalStore.pathFor(appId: appId, userId: userId));
+    } on Object {
+      // No platform storage (tests), or already gone.
+    }
+  }
+
   Future<void> _deleteAccount(BuildContext context, WidgetRef ref) async {
     final password = await showDialog<String>(
       context: context,
@@ -202,8 +222,10 @@ class ZtSettingsPage extends ConsumerWidget {
       // Re-check the password so an unattended unlocked phone can't do this.
       final unlocked = await account.unlock(password);
       unlocked.dek.fillRange(0, unlocked.dek.length, 0);
+      final userId = account.currentUserId;
       await account.deleteAccount();
       ref.read(vaultControllerProvider.notifier).lock();
+      if (userId != null) await _deleteLocalData(ref, userId);
       onSignedOut();
     } catch (e) {
       if (context.mounted) {

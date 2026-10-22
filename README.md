@@ -28,7 +28,7 @@ dependencies:
     git:
       url: https://github.com/EdoSag/Zero-Trust-Core.git
       path: packages/zero_trust_core
-      ref: v0.4.0   # always pin a release tag; see CHANGELOG.md
+      ref: v0.5.0   # always pin a release tag; see CHANGELOG.md
 ```
 
 ```dart
@@ -79,38 +79,79 @@ downgraded, and every replaced key row is kept in `profile_key_history`
 
 ### Sync
 
-```dart
-final vault = ref.read(vaultControllerProvider) as VaultUnlocked;
-final sync = ItemSyncEngine(
-  appId: 'notes',
-  appKey: vault.appKey,
-  deviceId: deviceId,                 // stable per install
-  store: myDriftOrIsarStore,          // implements LocalItemStore
-  backend: SupabaseSyncBackend(),
-  signingKeys: await KeyHierarchy.signingKeys(vault.appKey),
-);
-await sync.save(note.id, note.toJson());
-final result = await sync.sync();     // pull, then push
-sync.startLive();                     // realtime from other devices
+Add the encrypted SQLite build to the app's `pubspec.yaml` once:
+
+```yaml
+hooks:
+  user_defines:
+    sqlite3:
+      source: sqlite3mc
 ```
 
-Every item is its own encrypted, signed row in `vault_items`; conflicts are
-last-writer-wins and the losing local edit comes back in
-`result.conflicts`, so the app can offer to restore it.
+Then the core runs sync for the app. While the vault is unlocked,
+`ztSyncControllerProvider` opens the account's encrypted local store, syncs
+on unlock, on resume, 2 s after edits and every 5 minutes, retries with
+backoff after failures, and applies other devices' changes live:
 
+```dart
+final sync = ref.read(ztSyncControllerProvider.notifier);
+await sync.save(note.id, note.toJson());   // pushed shortly after
+await sync.delete(note.id);
+final store = await ref.read(ztLocalStoreProvider.future) as ZtLocalStore;
+final notes = await store.liveItems();     // store.changes to refresh
+ref.watch(ztSyncControllerProvider);       // SyncStatus: lastSyncedAt,
+                                           // error, rejected, conflicts
+```
+
+`ZtSettingsPage(showSyncStatus: true)` shows the shared "Synced 2 min ago"
+row. Keep a provider listening to `ztSyncControllerProvider` (the app's root
+widget, for example) so sync runs while the app is open.
+
+- **Local store** (`ZtLocalStore`): one SQLite file per account, encrypted as
+  a whole (ChaCha20-Poly1305) under a key derived from the app key, so item
+  text, ids and timestamps are unreadable while locked. It closes when the
+  vault locks. A file the key can't open is renamed `.unreadable` and the
+  store re-syncs. Apps with their own store override `ztLocalStoreProvider`
+  with any `LocalItemStore`.
+- **Device id** (`ztDeviceIdProvider`): random per install, kept in secure
+  storage.
+- **Rows**: every item is its own encrypted, signed row in `vault_items`;
+  conflicts are last-writer-wins, and the losing local edit is kept in
+  `SyncStatus.conflicts` so the app can offer to restore it.
 - **Edit times** come from a hybrid logical clock: never earlier than any
   version the device has seen, so a phone whose clock is behind still wins
   with a later edit. The server skips writes dated more than 10 minutes
   ahead of its own time; they stay dirty and go up once that time arrives.
-- **Pulls** reach back `pullOverlap` (30 s) behind the last high-water mark,
-  so rows that committed out of order aren't missed.
+- **Pulls** reach back 30 s behind the last high-water mark, so rows that
+  committed out of order aren't missed.
 - **Unreadable rows** (bad signature, failed decryption) are listed in
-  `result.rejected` and retried on every sync; show a warning while it's
-  non-empty.
-- **Uploads** go `pushBatchSize` (200) rows per request.
+  `SyncStatus.rejected` and retried on every sync; the status row says so.
+- **Uploads** go 200 rows per request.
 
-A `LocalItemStore` needs `dirtyItems()` (an indexed query) and
-`rejectedIds()` / `setRejectedIds()` besides the basics.
+To drive sync by hand instead, build `ItemSyncEngine.fromVault(...)` and call
+`sync()`, `startLive()` and `close()` yourself.
+
+### Data from before the core
+
+Accounts upgraded from a pre-core app version unlock with
+`VaultUnlocked.legacyKey`, the key the old data was encrypted with. Move
+that data across once per device, then the key is dropped:
+
+```dart
+await ref.read(ztSyncControllerProvider.notifier).importLegacy([
+  LegacyImporter(
+    source: 'notes-drive-v1',
+    read: (legacyKey) async => [
+      for (final old in await readOldNotes(legacyKey))
+        LegacyRecord(itemId: old.id, json: old.toJson()),
+    ],
+  ),
+]);
+```
+
+It syncs first and never replaces an item that already exists (another
+device may have imported and edited it), so use the old record's own id.
+A failure leaves the import to run again on the next call.
 
 ## Tests
 

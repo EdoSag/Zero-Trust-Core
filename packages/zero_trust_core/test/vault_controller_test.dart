@@ -31,6 +31,24 @@ void main() {
     expect(heldKey.every((b) => b == 0), isTrue);
   });
 
+  test('forgetLegacyKey zeroes the legacy key and keeps the app key', () async {
+    final c = containerFor(
+        const ZtAppConfig(appId: 'notes', displayName: 'Zero-Trust Notes'));
+    addTearDown(c.dispose);
+    await c
+        .read(vaultControllerProvider.notifier)
+        .unlock(Uint8List.fromList(List.filled(32, 7)), legacyDek: true);
+    final before = c.read(vaultControllerProvider) as VaultUnlocked;
+    final legacy = before.legacyKey!;
+    expect(legacy.every((b) => b == 7), isTrue);
+
+    c.read(vaultControllerProvider.notifier).forgetLegacyKey();
+    final after = c.read(vaultControllerProvider) as VaultUnlocked;
+    expect(after.legacyKey, isNull);
+    expect(identical(after.appKey, before.appKey), isTrue);
+    expect(legacy.every((b) => b == 0), isTrue);
+  });
+
   test('auto-locks after inactivity and touch() postpones it', () {
     fakeAsync((async) {
       final c = containerFor(const ZtAppConfig(
