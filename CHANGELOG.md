@@ -45,7 +45,7 @@ Sync reliability.
 
 - Edit times use a hybrid logical clock, so a phone whose clock is behind no
   longer loses with a later edit.
-- Database (`20261023000000_vault_items_future_guard.sql`): `vault_items`
+- Database (`20261022180100_vault_items_future_guard.sql`): `vault_items`
   skips writes dated more than 10 minutes ahead of the server.
 - Pulls overlap the last 30 s, so out-of-order commits aren't missed.
 - Rows that fail verification or decryption are retried on every sync
@@ -56,7 +56,7 @@ Sync reliability.
   the deferred Fitness policy fix moved to `supabase/deferred/`.
 
 Upgrade notes: implement `LocalItemStore.dirtyItems`, `rejectedIds` and
-`setRejectedIds`. Apply the new migration before shipping.
+`setRejectedIds`. The migration is live since 2026-10-22.
 
 ## 0.3.0
 
