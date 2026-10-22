@@ -92,6 +92,9 @@ class FakeSyncBackend implements SyncBackend {
         _withSyncedAt(row, syncedAt: row.syncedAt!.subtract(by));
   }
 
+  /// Live subscriptions still open.
+  int get subscribers => _listeners.length;
+
   @override
   Future<void> Function() subscribe(
       String app, void Function(RemoteItem) onChange) {

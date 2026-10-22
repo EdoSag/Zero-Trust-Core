@@ -3,6 +3,14 @@
 Apps depend on the core by git tag (`ref: vX.Y.Z`). Upgrade notes list what
 an app must change.
 
+## 0.5.1
+
+- Locking the vault now really stops sync. Before, `SyncController` picked
+  up the engine that had just been closed and kept retrying with it (and
+  reopened its realtime subscription) until the next unlock.
+
+No app changes needed.
+
 ## 0.5.0
 
 Shared app plumbing, so each app stops building its own.
