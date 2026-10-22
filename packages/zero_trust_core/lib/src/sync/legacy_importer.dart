@@ -42,7 +42,9 @@ class LegacyImportResult {
 /// 1. syncs first, so items another device already imported (and maybe
 ///    edited since) are known and never overwritten with older content;
 /// 2. saves each record not yet present through the sync engine, sealed
-///    under the app key;
+///    under the app key and dated [importedAt], so any real edit, from any
+///    device and at any time, wins over imported content (two devices
+///    importing at once can't overwrite each other's later edits);
 /// 3. records completion, after which the legacy key isn't needed and
 ///    `VaultController.forgetLegacyKey` drops it.
 ///
@@ -50,6 +52,9 @@ class LegacyImportResult {
 /// it up again; stable item ids make that safe.
 class LegacyImporter {
   const LegacyImporter({required this.source, required this.read});
+
+  /// The edit time of every imported item: before any real edit.
+  static final DateTime importedAt = DateTime.utc(2000);
 
   /// Names the old data, for example `notes-drive-v1`. A new source (a
   /// second legacy format) runs on its own.
@@ -89,7 +94,7 @@ class LegacyImporter {
         skipped++;
         continue;
       }
-      await engine.save(record.itemId, record.json);
+      await engine.save(record.itemId, record.json, at: importedAt);
       imported++;
     }
     await ledger.markLegacyImportDone(source);

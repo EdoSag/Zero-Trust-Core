@@ -110,7 +110,7 @@ widget, for example) so sync runs while the app is open.
 - **Local store** (`ZtLocalStore`): one SQLite file per account, encrypted as
   a whole (ChaCha20-Poly1305) under a key derived from the app key, so item
   text, ids and timestamps are unreadable while locked. It closes when the
-  vault locks. A file the key can't open is renamed `.unreadable` and the
+  vault locks. A file the key can't open is renamed `.unreadable-<time>` and the
   store re-syncs. Apps with their own store override `ztLocalStoreProvider`
   with any `LocalItemStore`.
 - **Device id** (`ztDeviceIdProvider`): random per install, kept in secure

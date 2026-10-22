@@ -21,8 +21,10 @@ Shared app plumbing, so each app stops building its own.
   keeps its own copy of the app key and refuses to run after `close()`, so a
   sync still running when the vault locks can't seal data with a zeroed key.
 - `LegacyImporter` and `SyncController.importLegacy`: moves pre-core data
-  into synced items once per device, never over newer items, then drops the
-  legacy key (`VaultController.forgetLegacyKey`).
+  into synced items once per device, then drops the legacy key
+  (`VaultController.forgetLegacyKey`). Imported items are dated 2000-01-01,
+  so any real edit wins over them, even one made while another device was
+  importing. `ItemSyncEngine.save` takes an optional `at` for this.
 - Deleting the account also deletes this app's local store.
 
 Upgrade notes: add to the app's `pubspec.yaml`

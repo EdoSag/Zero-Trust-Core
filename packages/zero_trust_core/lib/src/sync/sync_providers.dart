@@ -43,20 +43,34 @@ final ztSyncBackendProvider =
 /// and closed when it locks. A [ZtLocalStore] unless an app overrides it.
 ///
 /// A file this account's key can't open (damaged) is set aside as
-/// `.unreadable` and a fresh store syncs everything down again.
+/// `.unreadable-<time>` and a fresh store syncs everything down again.
 final ztLocalStoreProvider = FutureProvider<LocalItemStore>((ref) async {
-  final appKey = ref.watch(_appKeyProvider);
-  if (appKey == null) throw const VaultIsLocked();
+  final unlocked = ref.watch(_appKeyProvider);
+  if (unlocked == null) throw const VaultIsLocked();
+  // Copy before any await: locking zeroes the vault's buffer, and a store
+  // opened with a zeroed key would look unreadable and be moved aside.
+  final appKey = Uint8List.fromList(unlocked);
+  var disposed = false;
+  ref.onDispose(() {
+    disposed = true;
+    appKey.fillRange(0, appKey.length, 0);
+  });
   final appId = ref.watch(ztAppConfigProvider.select((c) => c.appId));
   final userId = ref.watch(accountServiceProvider).currentUserId;
   if (userId == null) throw StateError('Not signed in');
   final path = await ZtLocalStore.pathFor(appId: appId, userId: userId);
+  if (disposed) throw const VaultIsLocked();
   ZtLocalStore store;
   try {
     store = await ZtLocalStore.open(appKey: appKey, path: path);
   } on LocalStoreUnreadable {
+    if (disposed) throw const VaultIsLocked();
     await ZtLocalStore.moveAside(path);
     store = await ZtLocalStore.open(appKey: appKey, path: path);
+  }
+  if (disposed) {
+    await store.close();
+    throw const VaultIsLocked();
   }
   ref.onDispose(store.close);
   return store;
@@ -64,12 +78,19 @@ final ztLocalStoreProvider = FutureProvider<LocalItemStore>((ref) async {
 
 /// The sync engine for the unlocked vault, closed when it locks.
 final ztSyncEngineProvider = FutureProvider<ItemSyncEngine>((ref) async {
-  final appKey = ref.watch(_appKeyProvider);
-  if (appKey == null) throw const VaultIsLocked();
+  final unlocked = ref.watch(_appKeyProvider);
+  if (unlocked == null) throw const VaultIsLocked();
+  final appKey = Uint8List.fromList(unlocked); // see ztLocalStoreProvider
+  var disposed = false;
+  ref.onDispose(() {
+    disposed = true;
+    appKey.fillRange(0, appKey.length, 0);
+  });
   final appId = ref.watch(ztAppConfigProvider.select((c) => c.appId));
   final backend = ref.watch(ztSyncBackendProvider);
   final store = await ref.watch(ztLocalStoreProvider.future);
   final deviceId = await ref.watch(ztDeviceIdProvider.future);
+  if (disposed) throw const VaultIsLocked();
   final engine = await ItemSyncEngine.fromVault(
     appId: appId,
     appKey: appKey,
@@ -77,6 +98,10 @@ final ztSyncEngineProvider = FutureProvider<ItemSyncEngine>((ref) async {
     store: store,
     backend: backend,
   );
+  if (disposed) {
+    await engine.close();
+    throw const VaultIsLocked();
+  }
   ref.onDispose(engine.close);
   return engine;
 });

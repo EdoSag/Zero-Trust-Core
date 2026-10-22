@@ -96,6 +96,35 @@ void main() {
         (await laptop.store.get('old-1'))!.json, {'title': 'Edited on phone'});
   });
 
+  test('two devices importing at once: a later edit is never overwritten',
+      () async {
+    final records = [
+      const LegacyRecord(itemId: 'old-1', json: {'title': 'Original'}),
+    ];
+    final phone = await device('phone');
+    final laptop = await device('laptop');
+    // The laptop's import has synced (nothing there yet) and is reading the
+    // old data when the phone imports, the user edits, and it uploads.
+    final result = await LegacyImporter(
+      source: 'notes-v1',
+      read: (_) async {
+        await importer(records)
+            .run(engine: phone, ledger: _Ledger(), legacyKey: legacyKey);
+        await phone.save('old-1', {'title': 'Edited on phone'});
+        await phone.sync();
+        return records;
+      },
+    ).run(engine: laptop, ledger: _Ledger(), legacyKey: legacyKey);
+    expect(result.imported, 1); // it hadn't seen the phone's copy
+
+    await laptop.sync();
+    await phone.sync();
+    expect(
+        (await laptop.store.get('old-1'))!.json, {'title': 'Edited on phone'});
+    expect(
+        (await phone.store.get('old-1'))!.json, {'title': 'Edited on phone'});
+  });
+
   test('an account without a legacy key has nothing to import', () async {
     final ledger = _Ledger();
     final result = await LegacyImporter(

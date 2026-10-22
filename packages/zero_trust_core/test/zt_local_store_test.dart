@@ -78,7 +78,8 @@ void main() {
         throwsA(isA<LocalStoreUnreadable>()));
 
     await ZtLocalStore.moveAside(path());
-    expect(File('${path()}.unreadable').existsSync(), isTrue);
+    expect(dir.listSync().where((f) => f.path.contains('.db.unreadable-')),
+        isNotEmpty);
     final fresh = await ZtLocalStore.open(appKey: other, path: path());
     expect(await fresh.all(), isEmpty);
     await fresh.close();

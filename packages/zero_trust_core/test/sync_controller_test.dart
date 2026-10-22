@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:typed_data';
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -89,6 +90,40 @@ void main() {
     expect(c.read(ztSyncControllerProvider).lastSyncedAt, isNull);
     // The store closed with the vault.
     await expectLater(stores.single.all(), throwsA(anything));
+  });
+
+  test('locking while the engine is being built leaves no live engine',
+      () async {
+    final gate = Completer<void>();
+    final c = ProviderContainer(overrides: [
+      ztAppConfigProvider.overrideWithValue(
+          const ZtAppConfig(appId: 'notes', displayName: 'Zero-Trust Notes')),
+      ztSyncBackendProvider.overrideWithValue(server),
+      ztDeviceIdStoreProvider.overrideWithValue(ids),
+      ztLocalStoreProvider.overrideWith((ref) async {
+        await gate.future; // a slow open
+        return InMemoryItemStore();
+      }),
+    ]);
+    addTearDown(c.dispose);
+    c.listen(ztSyncEngineProvider, (_, __) {});
+    await c
+        .read(vaultControllerProvider.notifier)
+        .unlock(Uint8List.fromList(List.filled(32, 3)));
+    final building = c.read(ztSyncEngineProvider.future);
+    c.read(vaultControllerProvider.notifier).lock();
+    gate.complete();
+    // Whether the build finished first or not, nothing outlives the lock
+    // and nothing ever runs with the zeroed vault key.
+    final stale = await building.then<ItemSyncEngine?>((e) => e,
+        onError: (Object e) => e is VaultIsLocked ? null : throw e);
+    await Future<void>.delayed(const Duration(milliseconds: 20));
+    expect(c.read(ztSyncEngineProvider).error, isA<VaultIsLocked>());
+    if (stale != null) {
+      await stale.save('n1', {});
+      await expectLater(stale.sync(), throwsStateError);
+    }
+    expect(server.rows, isEmpty);
   });
 
   test('imports legacy data once, then drops the legacy key', () async {

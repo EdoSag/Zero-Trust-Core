@@ -127,13 +127,14 @@ class ZtLocalStore implements LocalItemStore, LegacyImportLedger {
     }
   }
 
-  /// Renames a store that can't be opened to `<path>.unreadable` (replacing
-  /// an older one), so a fresh store can take its place without destroying
-  /// what might still be recovered.
+  /// Renames a store that can't be opened to `<path>.unreadable-<time>`, so
+  /// a fresh store can take its place without destroying what might still
+  /// be recovered. Earlier set-aside copies are never replaced.
   static Future<void> moveAside(String path) async {
+    final stamp = DateTime.now().toUtc().microsecondsSinceEpoch;
     for (final suffix in ['', '-wal', '-shm']) {
       final f = File('$path$suffix');
-      if (await f.exists()) await f.rename('$path.unreadable$suffix');
+      if (await f.exists()) await f.rename('$path.unreadable-$stamp$suffix');
     }
   }
 

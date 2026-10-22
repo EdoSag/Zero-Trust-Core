@@ -132,9 +132,16 @@ class ItemSyncEngine {
   }
 
   /// Create or update an item locally; [sync] pushes it.
-  Future<void> save(String itemId, Map<String, Object?> json) async =>
+  ///
+  /// [at] overrides the edit time. Only for content that must lose to every
+  /// real edit, such as an import (see `LegacyImporter`).
+  Future<void> save(String itemId, Map<String, Object?> json,
+          {DateTime? at}) async =>
       store.put(LocalItem(
-          itemId: itemId, updatedAt: await _stamp(), json: json, dirty: true));
+          itemId: itemId,
+          updatedAt: at?.toUtc() ?? await _stamp(),
+          json: json,
+          dirty: true));
 
   Future<void> delete(String itemId) async => store.put(LocalItem(
       itemId: itemId, updatedAt: await _stamp(), deleted: true, dirty: true));
