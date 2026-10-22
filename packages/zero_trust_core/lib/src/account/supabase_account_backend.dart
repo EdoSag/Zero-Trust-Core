@@ -32,6 +32,17 @@ class SupabaseAccountBackend implements AccountBackend {
   }
 
   @override
+  Future<bool> needsLegacySignIn(String email) async =>
+      await _client
+          .rpc<bool?>('zt_needs_legacy_sign_in', params: {'p_email': email}) ??
+      false;
+
+  @override
+  Future<void> markAuthUpgraded() => _client.from('profiles').update({
+        'auth_upgraded_at': DateTime.now().toUtc().toIso8601String()
+      }).eq('id', _requireUserId());
+
+  @override
   Future<void> signUp(String email, String authPassword) async {
     final res = await _client.auth.signUp(email: email, password: authPassword);
     if (res.session == null) {
@@ -58,7 +69,8 @@ class SupabaseAccountBackend implements AccountBackend {
     final row = await _client
         .from('profiles')
         .select('salt, key_version, kdf_salt, kdf_params, wrapped_dek, '
-            'recovery_wrapped_dek, legacy_dek, pending_wrapped_dek, pending_kdf_params')
+            'recovery_wrapped_dek, legacy_dek, pending_wrapped_dek, pending_kdf_params, '
+            'auth_upgraded_at')
         .eq('id', _requireUserId())
         .maybeSingle();
     if (row == null) return null;
@@ -74,6 +86,7 @@ class SupabaseAccountBackend implements AccountBackend {
         recoveryWrappedDek != null;
     return ProfileRecord(
       legacySalt: row['salt'] as String?,
+      authUpgraded: row['auth_upgraded_at'] != null,
       keys: hasKeys
           ? StoredKeys(
               kdfSalt: kdfSalt,

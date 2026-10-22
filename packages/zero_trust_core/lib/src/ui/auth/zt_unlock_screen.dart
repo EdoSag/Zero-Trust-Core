@@ -7,17 +7,22 @@ import '../../core_providers.dart';
 import 'zt_auth_messages.dart';
 
 /// Unlock an already signed-in session (app relaunch, after auto-lock).
+/// Works offline, and offers biometrics when the user turned them on.
 class ZtUnlockScreen extends ConsumerStatefulWidget {
   const ZtUnlockScreen({
     super.key,
     required this.onUnlocked,
     this.email,
     this.onSignOut,
+    this.autoPromptBiometrics = true,
   });
 
   final void Function(UnlockResult result) onUnlocked;
   final String? email;
   final VoidCallback? onSignOut;
+
+  /// Show the biometric prompt as soon as the screen opens.
+  final bool autoPromptBiometrics;
 
   @override
   ConsumerState<ZtUnlockScreen> createState() => _ZtUnlockScreenState();
@@ -26,7 +31,43 @@ class ZtUnlockScreen extends ConsumerStatefulWidget {
 class _ZtUnlockScreenState extends ConsumerState<ZtUnlockScreen> {
   final _password = TextEditingController();
   bool _busy = false;
+  bool _biometrics = false;
   String? _error;
+
+  @override
+  void initState() {
+    super.initState();
+    _checkBiometrics();
+  }
+
+  Future<void> _checkBiometrics() async {
+    final enabled = await ref.read(accountServiceProvider).biometricsEnabled();
+    if (!mounted || !enabled) return;
+    setState(() => _biometrics = true);
+    if (widget.autoPromptBiometrics) await _unlockWithBiometrics();
+  }
+
+  Future<void> _unlockWithBiometrics() async {
+    if (_busy) return;
+    setState(() {
+      _busy = true;
+      _error = null;
+    });
+    try {
+      final result =
+          await ref.read(accountServiceProvider).unlockWithBiometrics();
+      if (result != null && mounted) widget.onUnlocked(result);
+    } catch (e) {
+      if (mounted) {
+        setState(() {
+          _error = ztAuthErrorMessage(e);
+          _biometrics = false;
+        });
+      }
+    } finally {
+      if (mounted) setState(() => _busy = false);
+    }
+  }
 
   @override
   void dispose() {
@@ -94,6 +135,14 @@ class _ZtUnlockScreenState extends ConsumerState<ZtUnlockScreen> {
                     onPressed: _busy ? null : _unlock,
                     child: const Text('Unlock'),
                   ),
+                  if (_biometrics) ...[
+                    const SizedBox(height: 8),
+                    OutlinedButton.icon(
+                      onPressed: _busy ? null : _unlockWithBiometrics,
+                      icon: const Icon(Icons.fingerprint),
+                      label: const Text('Unlock with biometrics'),
+                    ),
+                  ],
                   if (widget.onSignOut != null)
                     TextButton(
                         onPressed: widget.onSignOut,

@@ -71,6 +71,7 @@ class ZtSettingsPage extends ConsumerWidget {
             title: const Text('Auto-lock'),
             subtitle: Text(_autoLockLabel(config.autoLockAfter)),
           ),
+          const _BiometricTile(),
           ListTile(
             leading: const Icon(Icons.lock_outline),
             title: const Text('Lock now'),
@@ -210,6 +211,82 @@ class ZtSettingsPage extends ConsumerWidget {
             .showSnackBar(SnackBar(content: Text(ztAuthErrorMessage(e))));
       }
     }
+  }
+}
+
+/// Turns biometric unlock on (with the password) or off. Hidden on devices
+/// without enrolled biometrics.
+class _BiometricTile extends ConsumerStatefulWidget {
+  const _BiometricTile();
+
+  @override
+  ConsumerState<_BiometricTile> createState() => _BiometricTileState();
+}
+
+class _BiometricTileState extends ConsumerState<_BiometricTile> {
+  bool _available = false;
+  bool _enabled = false;
+  bool _busy = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _load();
+  }
+
+  Future<void> _load() async {
+    final account = ref.read(accountServiceProvider);
+    final available = await account.biometricsAvailable();
+    final enabled = available && await account.biometricsEnabled();
+    if (mounted) {
+      setState(() {
+        _available = available;
+        _enabled = enabled;
+      });
+    }
+  }
+
+  Future<void> _toggle(bool on) async {
+    final account = ref.read(accountServiceProvider);
+    if (!on) {
+      await account.disableBiometrics();
+      if (mounted) setState(() => _enabled = false);
+      return;
+    }
+    final password = await showDialog<String>(
+      context: context,
+      builder: (_) => const _ConfirmPasswordDialog(
+        title: 'Unlock with biometrics',
+        message: 'Enter your password to turn on fingerprint or face unlock '
+            'on this device.',
+        action: 'Turn on',
+      ),
+    );
+    if (password == null || password.isEmpty || !mounted) return;
+    setState(() => _busy = true);
+    try {
+      await account.enableBiometrics(password);
+      if (mounted) setState(() => _enabled = true);
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context)
+            .showSnackBar(SnackBar(content: Text(ztAuthErrorMessage(e))));
+      }
+    } finally {
+      if (mounted) setState(() => _busy = false);
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    if (!_available) return const SizedBox.shrink();
+    return SwitchListTile(
+      secondary: const Icon(Icons.fingerprint),
+      title: const Text('Unlock with biometrics'),
+      subtitle: const Text('Fingerprint or face, on this device only'),
+      value: _enabled,
+      onChanged: _busy ? null : _toggle,
+    );
   }
 }
 

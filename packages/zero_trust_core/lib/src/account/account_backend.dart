@@ -1,5 +1,7 @@
 import 'dart:typed_data';
 
+import 'package:zt_crypto/zt_crypto.dart';
+
 /// Raised by an [AccountBackend] when email + auth password are rejected.
 class InvalidCredentials implements Exception {
   const InvalidCredentials();
@@ -55,14 +57,46 @@ class StoredKeys {
         pendingKdfParams:
             clearPending ? null : pendingKdfParams ?? this.pendingKdfParams,
       );
+
+  /// For the on-device copy in a `KeyCache`. Nothing here is secret on its
+  /// own: every key inside is sealed.
+  Map<String, Object?> toJson() => {
+        'kdf_salt': ZtBase64.encode(kdfSalt),
+        'kdf_params': kdfParams,
+        'wrapped_dek': ZtBase64.encode(wrappedDek),
+        'recovery_wrapped_dek': ZtBase64.encode(recoveryWrappedDek),
+        'legacy_dek': legacyDek,
+        if (pendingWrappedDek != null)
+          'pending_wrapped_dek': ZtBase64.encode(pendingWrappedDek!),
+        if (pendingKdfParams != null) 'pending_kdf_params': pendingKdfParams,
+      };
+
+  factory StoredKeys.fromJson(Map<String, Object?> json) {
+    final pending = json['pending_wrapped_dek'] as String?;
+    return StoredKeys(
+      kdfSalt: ZtBase64.decode(json['kdf_salt']! as String),
+      kdfParams: (json['kdf_params']! as Map).cast<String, Object?>(),
+      wrappedDek: ZtBase64.decode(json['wrapped_dek']! as String),
+      recoveryWrappedDek:
+          ZtBase64.decode(json['recovery_wrapped_dek']! as String),
+      legacyDek: json['legacy_dek'] as bool? ?? false,
+      pendingWrappedDek: pending == null ? null : ZtBase64.decode(pending),
+      pendingKdfParams:
+          (json['pending_kdf_params'] as Map?)?.cast<String, Object?>(),
+    );
+  }
 }
 
 /// The `profiles` row as the core reads it.
 class ProfileRecord {
-  const ProfileRecord({this.legacySalt, this.keys});
+  const ProfileRecord({this.legacySalt, this.keys, this.authUpgraded = false});
 
   /// Pre-core `salt` column, any base64 dialect.
   final String? legacySalt;
+
+  /// `profiles.auth_upgraded_at` is set: the Supabase password is the
+  /// derived auth secret, so the raw password must never be tried again.
+  final bool authUpgraded;
 
   /// Null until the account has v2 keys.
   final StoredKeys? keys;
@@ -76,6 +110,14 @@ abstract interface class AccountBackend {
 
   /// Throws [InvalidCredentials] when rejected.
   Future<void> signIn(String email, String authPassword);
+
+  /// Whether [email] belongs to a pre-core account whose Supabase password
+  /// is still the raw password. Only then may the raw password be sent.
+  /// False for unknown emails, so it reveals nothing about v2 accounts.
+  Future<bool> needsLegacySignIn(String email);
+
+  /// Records that the Supabase password is now the derived auth secret.
+  Future<void> markAuthUpgraded();
 
   /// Must leave a signed-in session (email confirmation off, or confirmed).
   Future<void> signUp(String email, String authPassword);

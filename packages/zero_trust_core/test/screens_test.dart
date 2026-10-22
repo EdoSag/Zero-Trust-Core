@@ -147,6 +147,77 @@ void main() {
     expect(result, isNotNull);
   });
 
+  testWidgets('unlock screen prompts for biometrics when they are on',
+      (tester) async {
+    final bio = InMemoryBiometricKeyStore();
+    account = AccountService(backend, params: fast, biometrics: bio);
+    final created = await account.signUp(email: email, password: password);
+    await account.enableBiometrics(password);
+
+    UnlockResult? result;
+    await tester.pumpWidget(
+        app(ZtUnlockScreen(email: email, onUnlocked: (r) => result = r)));
+    await settle(tester);
+    expect(result?.dek, created.dek);
+
+    // Cancelled prompt: stays on the screen with the button to retry.
+    result = null;
+    bio.approve = false;
+    await tester.pumpWidget(app(ZtUnlockScreen(
+        key: const ValueKey(2), email: email, onUnlocked: (r) => result = r)));
+    await settle(tester);
+    expect(result, isNull);
+    bio.approve = true;
+    await tester.tap(find.text('Unlock with biometrics'));
+    await settle(tester);
+    expect(result?.dek, created.dek);
+  });
+
+  testWidgets('unlock screen explains a dropped biometric key', (tester) async {
+    final bio = InMemoryBiometricKeyStore();
+    account = AccountService(backend, params: fast, biometrics: bio);
+    await account.signUp(email: email, password: password);
+    await account.enableBiometrics(password);
+    bio.invalidate(email);
+
+    await tester
+        .pumpWidget(app(ZtUnlockScreen(email: email, onUnlocked: (_) {})));
+    await settle(tester);
+    expect(find.textContaining('fingerprints or face changed'), findsOneWidget);
+    expect(find.text('Unlock with biometrics'), findsNothing);
+  });
+
+  testWidgets('settings: biometric switch needs the password', (tester) async {
+    final bio = InMemoryBiometricKeyStore();
+    account = AccountService(backend, params: fast, biometrics: bio);
+    await account.signUp(email: email, password: password);
+    await tester.pumpWidget(app(ZtSettingsPage(onSignedOut: () {})));
+    await settle(tester);
+
+    final tile = find.widgetWithText(SwitchListTile, 'Unlock with biometrics');
+    await tester.scrollUntilVisible(tile, 100);
+    await tester.tap(tile);
+    await tester.pumpAndSettle();
+    await tester.enterText(find.byType(TextField), password);
+    await tester.tap(find.widgetWithText(FilledButton, 'Turn on'));
+    await settle(tester);
+    expect(await bio.isEnabled(email), isTrue);
+    expect(tester.widget<SwitchListTile>(tile).value, isTrue);
+
+    await tester.tap(tile);
+    await settle(tester);
+    expect(await bio.isEnabled(email), isFalse);
+  });
+
+  testWidgets('settings: no biometric switch without hardware', (tester) async {
+    account = AccountService(backend,
+        params: fast, biometrics: InMemoryBiometricKeyStore(available: false));
+    await account.signUp(email: email, password: password);
+    await tester.pumpWidget(app(ZtSettingsPage(onSignedOut: () {})));
+    await settle(tester);
+    expect(find.text('Unlock with biometrics'), findsNothing);
+  });
+
   testWidgets('forgot password sends the reset email', (tester) async {
     await tester.pumpWidget(app(const ZtForgotPasswordScreen()));
     await tester.enterText(find.byType(TextFormField), ' $email ');

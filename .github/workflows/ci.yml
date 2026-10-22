@@ -25,3 +25,22 @@ jobs:
       - run: flutter pub get
       - run: flutter analyze --fatal-infos
       - run: flutter test
+
+  database:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16
+        env: { POSTGRES_PASSWORD: postgres }
+        ports: ['5432:5432']
+        options: >-
+          --health-cmd pg_isready --health-interval 5s --health-retries 10
+    env: { PGHOST: localhost, PGUSER: postgres, PGPASSWORD: postgres }
+    steps:
+      - uses: actions/checkout@v4
+      - name: Apply every migration and run the database tests
+        working-directory: supabase
+        run: |
+          psql -q -v ON_ERROR_STOP=1 -f tests/00_supabase_stub.sql \
+            $(for f in migrations/*.sql; do echo -f "$f"; done) \
+            -f tests/key_guard_test.sql
