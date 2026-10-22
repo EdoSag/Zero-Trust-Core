@@ -1,6 +1,6 @@
 -- Server-assigned receive time for vault_items, so clients page pulls on a
 -- clock they don't control, and a guard so stale writes can't win.
--- NOT APPLIED.
+-- Applied 2026-10-18.
 alter table public.vault_items
   add column if not exists synced_at timestamptz not null default now();
 

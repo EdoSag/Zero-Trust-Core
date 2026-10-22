@@ -28,6 +28,7 @@ dependencies:
     git:
       url: https://github.com/EdoSag/Zero-Trust-Core.git
       path: packages/zero_trust_core
+      ref: v0.4.0   # always pin a release tag; see CHANGELOG.md
 ```
 
 ```dart
@@ -69,7 +70,7 @@ Pre-core accounts still have their raw password as the Supabase password,
 so the first sign-in after updating must send it once to upgrade. The client
 does that only when `zt_needs_legacy_sign_in(email)` says the account is a
 not-yet-upgraded pre-core one; any other failed sign-in stops there. Apply
-`20261022000000_core_v3_key_guard.sql` before shipping core v0.3, or
+the `core_v3_*` migrations (live since 2026-10-22) before shipping, or
 pre-core accounts can't upgrade.
 
 The same migration guards `profiles`: key material can't be erased or
@@ -97,6 +98,20 @@ Every item is its own encrypted, signed row in `vault_items`; conflicts are
 last-writer-wins and the losing local edit comes back in
 `result.conflicts`, so the app can offer to restore it.
 
+- **Edit times** come from a hybrid logical clock: never earlier than any
+  version the device has seen, so a phone whose clock is behind still wins
+  with a later edit. The server skips writes dated more than 10 minutes
+  ahead of its own time; they stay dirty and go up once that time arrives.
+- **Pulls** reach back `pullOverlap` (30 s) behind the last high-water mark,
+  so rows that committed out of order aren't missed.
+- **Unreadable rows** (bad signature, failed decryption) are listed in
+  `result.rejected` and retried on every sync; show a warning while it's
+  non-empty.
+- **Uploads** go `pushBatchSize` (200) rows per request.
+
+A `LocalItemStore` needs `dirtyItems()` (an indexed query) and
+`rejectedIds()` / `setRejectedIds()` besides the basics.
+
 ## Tests
 
 ```bash
@@ -104,5 +119,6 @@ last-writer-wins and the losing local edit comes back in
 (cd packages/zero_trust_core && flutter pub get && flutter test)
 # Database: every migration plus the guard tests, on a plain Postgres 16
 (cd supabase && psql -v ON_ERROR_STOP=1 -f tests/00_supabase_stub.sql \
-  $(for f in migrations/*.sql; do echo -f "$f"; done) -f tests/key_guard_test.sql)
+  $(for f in migrations/*.sql; do echo -f "$f"; done) -f tests/key_guard_test.sql \
+  -f tests/vault_items_test.sql)
 ```

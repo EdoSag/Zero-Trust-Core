@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:convert';
+import 'dart:math';
 import 'dart:typed_data';
 
 import 'package:zt_crypto/zt_crypto.dart';
@@ -29,8 +30,10 @@ class SyncResult {
   final int applied;
   final List<SyncConflict> conflicts;
 
-  /// Item ids whose rows failed signature or decryption checks. Never
-  /// applied: a server or attacker cannot inject or swap data.
+  /// Item ids whose rows fail signature or decryption checks, after this
+  /// sync's retries. Never applied, so a server or attacker cannot inject or
+  /// swap data. Retried on every sync; while non-empty, the app should say
+  /// that some items couldn't be read.
   final List<String> rejected;
 }
 
@@ -41,6 +44,9 @@ class SyncResult {
 ///   blob), so the server only ever stores opaque, tamper-evident rows.
 /// - Conflicts resolve last-writer-wins on `updatedAt` (device id breaks
 ///   ties); a losing local edit is reported in [SyncResult.conflicts].
+///   `updatedAt` comes from a hybrid logical clock: never earlier than any
+///   version this device has seen, so a phone whose clock is behind still
+///   wins with a later edit.
 /// - Deletes are tombstones, so they reach every device.
 class ItemSyncEngine {
   ItemSyncEngine({
@@ -51,8 +57,24 @@ class ItemSyncEngine {
     required this.backend,
     required this.signingKeys,
     DateTime Function()? clock,
+    this.pullOverlap = const Duration(seconds: 30),
+    this.pushBatchSize = 200,
   })  : _appKey = appKey,
         _clock = clock ?? DateTime.now;
+
+  /// How far each pull reaches back before the last high-water mark. Rows
+  /// committed out of order (an earlier `synced_at` landing after a later
+  /// one) are caught here; re-applying a row already seen does nothing.
+  final Duration pullOverlap;
+
+  /// Rows per upload request.
+  final int pushBatchSize;
+
+  /// How far ahead of the server's time the server accepts an `updatedAt`
+  /// (the `vault_items` trigger uses the same bound). A seen version further
+  /// ahead than this doesn't move the logical clock, since following it would
+  /// stall every later push.
+  static const Duration maxClockSkew = Duration(minutes: 10);
 
   final String appId;
   final String deviceId;
@@ -64,16 +86,20 @@ class ItemSyncEngine {
 
   Future<void> Function()? _cancelLive;
   Future<void> _serial = Future.value();
+  DateTime? _latestSeen;
+  Future<void>? _clockSeed;
+
+  /// The newest server receive time seen: a lower bound on the server's
+  /// clock that doesn't depend on this device's.
+  DateTime? _serverTime;
 
   /// Create or update an item locally; [sync] pushes it.
-  Future<void> save(String itemId, Map<String, Object?> json) => store.put(
-        LocalItem(itemId: itemId, updatedAt: _now(), json: json, dirty: true),
-      );
+  Future<void> save(String itemId, Map<String, Object?> json) async =>
+      store.put(LocalItem(
+          itemId: itemId, updatedAt: await _stamp(), json: json, dirty: true));
 
-  Future<void> delete(String itemId) => store.put(
-        LocalItem(
-            itemId: itemId, updatedAt: _now(), deleted: true, dirty: true),
-      );
+  Future<void> delete(String itemId) async => store.put(LocalItem(
+      itemId: itemId, updatedAt: await _stamp(), deleted: true, dirty: true));
 
   /// Pull and apply remote changes, then push local ones. Calls are
   /// serialised, so overlapping triggers (resume, timer, realtime) are safe.
@@ -90,6 +116,10 @@ class ItemSyncEngine {
         final conflicts = <SyncConflict>[];
         final rejected = <String>[];
         final applied = await _apply(item, conflicts, rejected);
+        if (rejected.isNotEmpty) {
+          await store
+              .setRejectedIds({...await store.rejectedIds(), item.itemId});
+        }
         return SyncResult(
           applied: applied ? 1 : 0,
           conflicts: conflicts,
@@ -110,12 +140,16 @@ class ItemSyncEngine {
   Future<SyncResult> _sync() async {
     // Pull first, so a stale local edit loses here (and is reported) instead
     // of being pushed over a newer row.
+    await _seedClock();
     var applied = 0;
     final conflicts = <SyncConflict>[];
     final rejected = <String>[];
+    final readable = <String>{};
     var highWater = await store.lastPulledAt();
-    for (final remote in await backend.pull(appId, since: highWater)) {
+    final since = highWater?.subtract(pullOverlap);
+    for (final remote in await backend.pull(appId, since: since)) {
       if (await _apply(remote, conflicts, rejected)) applied++;
+      if (!rejected.contains(remote.itemId)) readable.add(remote.itemId);
       final synced = remote.syncedAt;
       if (synced != null && (highWater == null || synced.isAfter(highWater))) {
         highWater = synced;
@@ -123,18 +157,34 @@ class ItemSyncEngine {
     }
     if (highWater != null) await store.setLastPulledAt(highWater);
 
-    var pushed = 0;
-    for (final item in await store.all()) {
-      if (!item.dirty) continue;
-      // Rejected as stale: stay dirty so the next pull reports the conflict
-      // instead of silently replacing this edit.
-      if (!await backend.push(appId, await _seal(item))) continue;
-      // Leave it dirty if it was edited again while the push was in flight.
-      final current = await store.get(item.itemId);
-      if (current != null && current.updatedAt == item.updatedAt) {
-        await store.put(current.copyWith(dirty: false));
+    // Retry rows that failed before and weren't just pulled again.
+    final retry = (await store.rejectedIds())
+        .difference(readable)
+        .difference(rejected.toSet());
+    if (retry.isNotEmpty) {
+      for (final remote in await backend.fetch(appId, retry)) {
+        if (await _apply(remote, conflicts, rejected)) applied++;
       }
-      pushed++;
+    }
+    await store.setRejectedIds(rejected.toSet());
+
+    var pushed = 0;
+    final dirty = await store.dirtyItems();
+    for (var i = 0; i < dirty.length; i += pushBatchSize) {
+      final batch = dirty.sublist(i, min(i + pushBatchSize, dirty.length));
+      final sealed = [for (final item in batch) await _seal(item)];
+      final accepted = await backend.pushAll(appId, sealed);
+      for (final item in batch) {
+        // Not accepted: stays dirty, so the next pull reports the conflict
+        // (or the push succeeds later) instead of the edit being dropped.
+        if (!accepted.contains(item.itemId)) continue;
+        // Leave it dirty if it was edited again while the push was in flight.
+        final current = await store.get(item.itemId);
+        if (current != null && current.updatedAt == item.updatedAt) {
+          await store.put(current.copyWith(dirty: false));
+        }
+        pushed++;
+      }
     }
 
     return SyncResult(
@@ -155,9 +205,15 @@ class ItemSyncEngine {
     try {
       json = await _open(remote);
     } on Object {
-      rejected.add(remote.itemId);
+      if (!rejected.contains(remote.itemId)) rejected.add(remote.itemId);
       return false;
     }
+    final synced = remote.syncedAt?.toUtc();
+    if (synced != null &&
+        (_serverTime == null || synced.isAfter(_serverTime!))) {
+      _serverTime = synced;
+    }
+    _observe(remote.updatedAt);
 
     final local = await store.get(remote.itemId);
     if (local != null && !_remoteWins(remote, local)) return false;
@@ -234,5 +290,54 @@ class ItemSyncEngine {
         ...?blob,
       ];
 
-  DateTime _now() => _clock().toUtc();
+  /// The next edit time: this device's clock, or just after the newest
+  /// version it has seen when that is later.
+  Future<DateTime> _stamp() async {
+    await _seedClock();
+    final wall = _clock().toUtc();
+    var seen = _latestSeen;
+    // A stamp from while this clock ran fast must not drag every later edit
+    // past what the server accepts once the clock is corrected.
+    if (seen != null && seen.isAfter(_limit())) seen = null;
+    final t = seen != null && !seen.isBefore(wall)
+        ? seen.add(const Duration(milliseconds: 1))
+        : wall;
+    _latestSeen = t;
+    return t;
+  }
+
+  /// The latest `updatedAt` the server would accept now, as far as this
+  /// device can tell: the later of its clock and the server time seen, plus
+  /// [maxClockSkew].
+  DateTime _limit() {
+    final wall = _clock().toUtc();
+    final server = _serverTime;
+    return (server != null && server.isAfter(wall) ? server : wall)
+        .add(maxClockSkew);
+  }
+
+  /// Moves the logical clock forward to [t], unless [t] is further ahead of
+  /// the server than the server accepts (see [maxClockSkew]). The bound uses
+  /// the later of this device's clock and the server time seen, so a device
+  /// whose clock is behind still follows other devices' real edits.
+  void _observe(DateTime t) {
+    final u = t.toUtc();
+    if (u.isAfter(_limit())) return;
+    final seen = _latestSeen;
+    if (seen == null || u.isAfter(seen)) _latestSeen = u;
+  }
+
+  /// After a restart, continue from the newest local version. A failed read
+  /// is retried by the next call instead of being cached.
+  Future<void> _seedClock() => _clockSeed ??= () async {
+        try {
+          _serverTime = (await store.lastPulledAt())?.toUtc();
+          for (final item in await store.all()) {
+            _observe(item.updatedAt);
+          }
+        } on Object {
+          _clockSeed = null;
+          rethrow;
+        }
+      }();
 }

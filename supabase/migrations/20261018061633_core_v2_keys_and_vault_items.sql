@@ -1,5 +1,6 @@
 -- zero_trust_core v2: additive only. Existing apps keep working unchanged.
--- NOT APPLIED. Review, then apply to project zerotrust_apps.
+-- Applied 2026-10-18. The encrypted_vault policy fix that was part 3 is
+-- deferred: see supabase/deferred/encrypted_vault_insert_policy.sql.
 
 -- 1. profiles: key hierarchy columns (legacy `salt` stays for migration).
 alter table public.profiles
@@ -42,9 +43,3 @@ create policy vault_items_owner_all on public.vault_items
   with check ((select auth.uid()) = user_id);
 
 alter publication supabase_realtime add table public.vault_items;
-
--- 3. Fix the wrong-column insert policy on the legacy Fitness table
---    (checked `id` instead of `user_id`; masked by the ALL policy).
-drop policy if exists "Users can insert their own row" on public.encrypted_vault;
-create policy "Users can insert their own row" on public.encrypted_vault
-  for insert with check ((select auth.uid()) = user_id);
