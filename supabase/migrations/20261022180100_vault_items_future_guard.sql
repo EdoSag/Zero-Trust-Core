@@ -3,7 +3,7 @@
 -- fast can't stamp an edit that beats every later edit on every device.
 -- The refused write is skipped, like a stale one; the client keeps it and
 -- it is accepted once the server's time catches up with its timestamp.
--- Matches ItemSyncEngine.maxClockSkew. NOT APPLIED.
+-- Matches ItemSyncEngine.maxClockSkew. Applied 2026-10-22.
 create or replace function public.vault_items_set_synced_at()
 returns trigger language plpgsql set search_path = '' as $$
 begin
