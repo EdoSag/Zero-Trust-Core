@@ -59,8 +59,32 @@ class ItemSyncEngine {
     DateTime Function()? clock,
     this.pullOverlap = const Duration(seconds: 30),
     this.pushBatchSize = 200,
-  })  : _appKey = appKey,
+  })  : _appKey = Uint8List.fromList(appKey),
         _clock = clock ?? DateTime.now;
+
+  /// An engine for the unlocked vault's [appKey], with the signing keys
+  /// derived from it.
+  static Future<ItemSyncEngine> fromVault({
+    required String appId,
+    required Uint8List appKey,
+    required String deviceId,
+    required LocalItemStore store,
+    required SyncBackend backend,
+  }) async {
+    final key = Uint8List.fromList(appKey);
+    try {
+      return ItemSyncEngine(
+        appId: appId,
+        appKey: key,
+        deviceId: deviceId,
+        store: store,
+        backend: backend,
+        signingKeys: await KeyHierarchy.signingKeys(key),
+      );
+    } finally {
+      key.fillRange(0, key.length, 0);
+    }
+  }
 
   /// How far each pull reaches back before the last high-water mark. Rows
   /// committed out of order (an earlier `synced_at` landing after a later
@@ -92,11 +116,32 @@ class ItemSyncEngine {
   /// The newest server receive time seen: a lower bound on the server's
   /// clock that doesn't depend on this device's.
   DateTime? _serverTime;
+  bool _closed = false;
+
+  /// Stops live updates and zeroes this engine's copy of the app key. Call it
+  /// when the vault locks; anything still in flight then fails instead of
+  /// sealing with a zeroed key.
+  Future<void> close() async {
+    _closed = true;
+    _appKey.fillRange(0, _appKey.length, 0);
+    await stopLive();
+  }
+
+  void _checkOpen() {
+    if (_closed) throw StateError('ItemSyncEngine is closed');
+  }
 
   /// Create or update an item locally; [sync] pushes it.
-  Future<void> save(String itemId, Map<String, Object?> json) async =>
+  ///
+  /// [at] overrides the edit time. Only for content that must lose to every
+  /// real edit, such as an import (see `LegacyImporter`).
+  Future<void> save(String itemId, Map<String, Object?> json,
+          {DateTime? at}) async =>
       store.put(LocalItem(
-          itemId: itemId, updatedAt: await _stamp(), json: json, dirty: true));
+          itemId: itemId,
+          updatedAt: at?.toUtc() ?? await _stamp(),
+          json: json,
+          dirty: true));
 
   Future<void> delete(String itemId) async => store.put(LocalItem(
       itemId: itemId, updatedAt: await _stamp(), deleted: true, dirty: true));
@@ -113,6 +158,8 @@ class ItemSyncEngine {
   void startLive({void Function(SyncResult)? onApplied}) {
     _cancelLive ??= backend.subscribe(appId, (item) {
       final run = _serial.then((_) async {
+        // Arrived just before close: the next unlock's pull picks it up.
+        if (_closed) return const SyncResult();
         final conflicts = <SyncConflict>[];
         final rejected = <String>[];
         final applied = await _apply(item, conflicts, rejected);
@@ -126,8 +173,9 @@ class ItemSyncEngine {
           rejected: rejected,
         );
       });
+      // A failed live update is caught up by the next pull.
       _serial = run.then((_) {}, onError: (_) {});
-      if (onApplied != null) run.then(onApplied);
+      if (onApplied != null) run.then(onApplied, onError: (_) {});
     });
   }
 
@@ -205,6 +253,7 @@ class ItemSyncEngine {
     try {
       json = await _open(remote);
     } on Object {
+      if (_closed) rethrow;
       if (!rejected.contains(remote.itemId)) rejected.add(remote.itemId);
       return false;
     }
@@ -237,6 +286,7 @@ class ItemSyncEngine {
   }
 
   Future<RemoteItem> _seal(LocalItem item) async {
+    _checkOpen();
     final blob = item.deleted
         ? null
         : await SealedBox.seal(
@@ -260,6 +310,7 @@ class ItemSyncEngine {
 
   /// Verifies the signature and decrypts. Throws on any mismatch.
   Future<Map<String, Object?>?> _open(RemoteItem remote) async {
+    _checkOpen();
     final signature = remote.signature;
     if (signature == null) throw const FormatException('Unsigned row');
     final ok = await Signing.verify(

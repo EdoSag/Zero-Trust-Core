@@ -3,6 +3,42 @@
 Apps depend on the core by git tag (`ref: vX.Y.Z`). Upgrade notes list what
 an app must change.
 
+## 0.5.0
+
+Shared app plumbing, so each app stops building its own.
+
+- `ZtLocalStore`: the on-device store, a SQLite file encrypted as a whole
+  (SQLite3 Multiple Ciphers) under a key derived from the app key, one file
+  per account. `ztLocalStoreProvider` opens it on unlock and closes it on
+  lock; an unreadable file is set aside and re-synced.
+- `SyncController` (`ztSyncControllerProvider`): syncs on unlock, on resume,
+  2 s after edits, every 5 minutes, and backs off after failures (5 s
+  doubling to 5 minutes), plus realtime. Its `SyncStatus` drives the shared
+  `ZtSyncStatusTile` ("Synced 2 min ago"), shown by
+  `ZtSettingsPage(showSyncStatus: true)`.
+- `ztDeviceIdProvider`: a stable per-install id in secure storage.
+- `ItemSyncEngine.fromVault` derives the signing keys itself. The engine now
+  keeps its own copy of the app key and refuses to run after `close()`, so a
+  sync still running when the vault locks can't seal data with a zeroed key.
+- `LegacyImporter` and `SyncController.importLegacy`: moves pre-core data
+  into synced items once per device, then drops the legacy key
+  (`VaultController.forgetLegacyKey`). Imported items are dated 2000-01-01,
+  so any real edit wins over them, even one made while another device was
+  importing. `ItemSyncEngine.save` takes an optional `at` for this.
+- Deleting the account also deletes this app's local store.
+
+Upgrade notes: add to the app's `pubspec.yaml`
+
+```yaml
+hooks:
+  user_defines:
+    sqlite3:
+      source: sqlite3mc
+```
+
+(without it `ZtLocalStore.open` throws rather than writing plain text).
+Apps that keep their own `LocalItemStore` override `ztLocalStoreProvider`.
+
 ## 0.4.0
 
 Sync reliability.
