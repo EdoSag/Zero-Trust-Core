@@ -334,6 +334,8 @@ void main() {
     test('the logical clock survives a restart', () async {
       final phone = await device('phone');
       await phone.save('n1', {'v': 1});
+      await phone.sync();
+      await phone.sync(); // pulls its own row: the server time is known
       final first = (await phone.store.get('n1'))!.updatedAt;
       now = now.subtract(const Duration(hours: 1)); // clock jumped back
       final restarted = ItemSyncEngine(
@@ -365,6 +367,35 @@ void main() {
       expect((await fast.sync()).pushed, 1);
       await laptop.sync();
       expect((await laptop.store.get('n1'))!.json, {'v': 'from the future'});
+    });
+
+    test('a corrected fast clock does not hold back later edits', () async {
+      final phone = await device('phone');
+      now = now.add(const Duration(days: 1)); // clock a day ahead
+      await phone.save('a', {'v': 'while fast'});
+      expect((await phone.sync()).pushed, 0);
+      now = now.subtract(const Duration(days: 1)); // corrected
+
+      await phone.save('b', {'v': 'after the fix'});
+      final result = await phone.sync();
+      expect(result.pushed, 1);
+      expect(server.rows.keys, ['notes/b']);
+      expect((await phone.store.get('a'))!.dirty, isTrue); // held, not lost
+    });
+
+    test('a store error while seeding the clock is retried', () async {
+      final phone = ItemSyncEngine(
+        appId: 'notes',
+        appKey: appKey,
+        deviceId: 'phone',
+        store: _FlakyStore(),
+        backend: server,
+        signingKeys: signing,
+        clock: () => now,
+      );
+      await expectLater(phone.save('n1', {'v': 1}), throwsException);
+      await phone.save('n1', {'v': 1});
+      expect((await phone.sync()).pushed, 1);
     });
 
     test('a far-future row already on the server does not drag the clock',
@@ -457,6 +488,20 @@ void main() {
     expect((await laptop.store.get('n1'))!.json, {'v': 'live'});
     await laptop.stopLive();
   });
+}
+
+/// Fails the first `all()` read, like a database still opening.
+class _FlakyStore extends InMemoryItemStore {
+  bool _failed = false;
+
+  @override
+  Future<List<LocalItem>> all() {
+    if (!_failed) {
+      _failed = true;
+      return Future.error(Exception('database locked'));
+    }
+    return super.all();
+  }
 }
 
 class _CountingBackend implements SyncBackend {

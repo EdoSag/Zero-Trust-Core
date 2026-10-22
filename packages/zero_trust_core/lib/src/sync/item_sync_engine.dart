@@ -295,7 +295,10 @@ class ItemSyncEngine {
   Future<DateTime> _stamp() async {
     await _seedClock();
     final wall = _clock().toUtc();
-    final seen = _latestSeen;
+    var seen = _latestSeen;
+    // A stamp from while this clock ran fast must not drag every later edit
+    // past what the server accepts once the clock is corrected.
+    if (seen != null && seen.isAfter(_limit())) seen = null;
     final t = seen != null && !seen.isBefore(wall)
         ? seen.add(const Duration(milliseconds: 1))
         : wall;
@@ -303,28 +306,38 @@ class ItemSyncEngine {
     return t;
   }
 
+  /// The latest `updatedAt` the server would accept now, as far as this
+  /// device can tell: the later of its clock and the server time seen, plus
+  /// [maxClockSkew].
+  DateTime _limit() {
+    final wall = _clock().toUtc();
+    final server = _serverTime;
+    return (server != null && server.isAfter(wall) ? server : wall)
+        .add(maxClockSkew);
+  }
+
   /// Moves the logical clock forward to [t], unless [t] is further ahead of
   /// the server than the server accepts (see [maxClockSkew]). The bound uses
   /// the later of this device's clock and the server time seen, so a device
   /// whose clock is behind still follows other devices' real edits.
-  void _observe(DateTime t, {bool own = false}) {
+  void _observe(DateTime t) {
     final u = t.toUtc();
-    if (!own) {
-      final wall = _clock().toUtc();
-      final server = _serverTime;
-      final reference = server != null && server.isAfter(wall) ? server : wall;
-      if (u.isAfter(reference.add(maxClockSkew))) return;
-    }
+    if (u.isAfter(_limit())) return;
     final seen = _latestSeen;
     if (seen == null || u.isAfter(seen)) _latestSeen = u;
   }
 
-  /// After a restart, continue from the newest local version. Unsynced
-  /// items are this device's own edits, so they always count.
+  /// After a restart, continue from the newest local version. A failed read
+  /// is retried by the next call instead of being cached.
   Future<void> _seedClock() => _clockSeed ??= () async {
-        _serverTime = (await store.lastPulledAt())?.toUtc();
-        for (final item in await store.all()) {
-          _observe(item.updatedAt, own: item.dirty);
+        try {
+          _serverTime = (await store.lastPulledAt())?.toUtc();
+          for (final item in await store.all()) {
+            _observe(item.updatedAt);
+          }
+        } on Object {
+          _clockSeed = null;
+          rethrow;
         }
       }();
 }
