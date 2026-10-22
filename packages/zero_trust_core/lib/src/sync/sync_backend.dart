@@ -37,10 +37,15 @@ abstract interface class SyncBackend {
   /// ordered by `synced_at`.
   Future<List<RemoteItem>> pull(String app, {DateTime? since});
 
-  /// Returns false when the server kept a newer row instead (another device
-  /// wrote after this one last pulled). The caller keeps its edit dirty and
-  /// the next pull reports it as a conflict.
-  Future<bool> push(String app, RemoteItem item);
+  /// The current rows for [itemIds] (missing ids are left out).
+  Future<List<RemoteItem>> fetch(String app, Set<String> itemIds);
+
+  /// Writes [items] in one request and returns the ids the server accepted.
+  /// A missing id means the server kept its row instead: a newer one
+  /// (another device wrote after this one last pulled; the next pull reports
+  /// the conflict) or a write dated too far in the future (it is accepted
+  /// once the writing device's time is no longer ahead of the server's).
+  Future<Set<String>> pushAll(String app, List<RemoteItem> items);
 
   /// Live changes from other devices. Returns a cancel function.
   Future<void> Function() subscribe(

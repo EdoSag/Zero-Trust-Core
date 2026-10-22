@@ -1,3 +1,4 @@
+import 'dart:math';
 import 'dart:typed_data';
 
 import 'package:supabase_flutter/supabase_flutter.dart';
@@ -29,8 +30,7 @@ class SupabaseSyncBackend implements SyncBackend {
     while (true) {
       var query = _client
           .from(_table)
-          .select(
-              'item_id, data_blob, signature, device_id, updated_at, deleted, synced_at')
+          .select(_columns)
           .eq('user_id', _userId)
           .eq('app', app);
       if (afterAt != null && afterId == null) {
@@ -51,21 +51,47 @@ class SupabaseSyncBackend implements SyncBackend {
     }
   }
 
+  static const _columns =
+      'item_id, data_blob, signature, device_id, updated_at, deleted, synced_at';
+
   @override
-  Future<bool> push(String app, RemoteItem item) async {
-    // The vault_items trigger silently skips a write older than the stored
-    // row; it then returns no row, which is how a stale push is detected.
-    final rows = await _client.from(_table).upsert({
-      'user_id': _userId,
-      'app': app,
-      'item_id': item.itemId,
-      'data_blob': item.dataBlob == null ? null : _toBytea(item.dataBlob!),
-      'signature': item.signature == null ? null : _toBytea(item.signature!),
-      'device_id': item.deviceId,
-      'updated_at': item.updatedAt.toUtc().toIso8601String(),
-      'deleted': item.deleted,
-    }, onConflict: 'user_id,app,item_id').select('item_id');
-    return rows.isNotEmpty;
+  Future<List<RemoteItem>> fetch(String app, Set<String> itemIds) async {
+    final ids = itemIds.toList();
+    final out = <RemoteItem>[];
+    for (var i = 0; i < ids.length; i += 100) {
+      final rows = await _client
+          .from(_table)
+          .select(_columns)
+          .eq('user_id', _userId)
+          .eq('app', app)
+          .inFilter('item_id', ids.sublist(i, min(i + 100, ids.length)));
+      out.addAll(rows.map(_fromRow));
+    }
+    return out;
+  }
+
+  @override
+  Future<Set<String>> pushAll(String app, List<RemoteItem> items) async {
+    if (items.isEmpty) return {};
+    final userId = _userId;
+    // The vault_items trigger silently skips a write it refuses (older than
+    // the stored row, or dated too far ahead); skipped rows are missing
+    // from the result, which is how the caller tells them apart.
+    final rows = await _client.from(_table).upsert([
+      for (final item in items)
+        {
+          'user_id': userId,
+          'app': app,
+          'item_id': item.itemId,
+          'data_blob': item.dataBlob == null ? null : _toBytea(item.dataBlob!),
+          'signature':
+              item.signature == null ? null : _toBytea(item.signature!),
+          'device_id': item.deviceId,
+          'updated_at': item.updatedAt.toUtc().toIso8601String(),
+          'deleted': item.deleted,
+        },
+    ], onConflict: 'user_id,app,item_id').select('item_id');
+    return {for (final r in rows) r['item_id'] as String};
   }
 
   @override

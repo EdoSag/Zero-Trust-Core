@@ -1,7 +1,10 @@
 -- Minimal stand-in for the Supabase pieces the migrations use (auth schema,
 -- roles, realtime publication) plus the pre-core tables they alter, so CI
 -- can run every migration on a plain Postgres.
-create role anon nologin; create role authenticated nologin;
+do $$ begin
+  if not exists (select 1 from pg_roles where rolname = 'anon') then create role anon nologin; end if;
+  if not exists (select 1 from pg_roles where rolname = 'authenticated') then create role authenticated nologin; end if;
+end $$;
 create schema auth;
 create table auth.users (id uuid primary key, email text);
 create function auth.uid() returns uuid language sql stable as $$ select nullif(current_setting('request.jwt.claim.sub', true), '')::uuid $$;

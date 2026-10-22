@@ -43,4 +43,4 @@ jobs:
         run: |
           psql -q -v ON_ERROR_STOP=1 -f tests/00_supabase_stub.sql \
             $(for f in migrations/*.sql; do echo -f "$f"; done) \
-            -f tests/key_guard_test.sql
+            -f tests/key_guard_test.sql -f tests/vault_items_test.sql
