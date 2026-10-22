@@ -302,7 +302,7 @@ class AccountService {
       // An upgrade switched the auth password but didn't record it.
       await _markAuthUpgraded();
     }
-    await _cache.write(_requireUserId(), keys);
+    await _cacheKeys(_requireUserId(), keys);
     final unlocked = await _unlock(password, keys);
     if (authParams != params) {
       // Signed in with an older KDF setting: move the account forward.
@@ -352,9 +352,9 @@ class AccountService {
       final dek = await KeyHierarchy.unlockWithPassword(
           password: password, stored: _wrapped(promoted));
       try {
-        await _writeKeys(promoted);
+        await _writeKeys(promoted).timeout(onlineTimeout);
       } on Object {
-        // Offline: the promotion is idempotent and happens next time.
+        // Offline or hung: the promotion is idempotent and happens next time.
       }
       return UnlockResult(dek: dek, legacyDek: keys.legacyDek);
     } on Exception {
@@ -364,9 +364,13 @@ class AccountService {
 
   /// The server's key row, also saved as this device's copy.
   Future<StoredKeys?> _fetchKeys() async {
-    final keys = (await _backend.fetchProfile())?.keys;
+    // Captured first: a slow fetch can outlive a sign-out and a sign-in to
+    // another account, and must not be cached under that account.
     final userId = _backend.currentUserId;
-    if (keys != null && userId != null) await _cache.write(userId, keys);
+    final keys = (await _backend.fetchProfile())?.keys;
+    if (keys != null && userId != null && userId == _backend.currentUserId) {
+      await _cacheKeys(userId, keys);
+    }
     return keys;
   }
 
@@ -376,8 +380,19 @@ class AccountService {
   }
 
   Future<void> _writeKeys(StoredKeys keys) async {
+    final userId = _requireUserId();
     await _backend.writeKeys(keys);
-    await _cache.write(_requireUserId(), keys);
+    await _cacheKeys(userId, keys);
+  }
+
+  /// Best effort: a keychain that refuses the write only costs offline
+  /// unlock, never a sign-in or unlock that already succeeded online.
+  Future<void> _cacheKeys(String userId, StoredKeys keys) async {
+    try {
+      await _cache.write(userId, keys);
+    } on Object {
+      // See above.
+    }
   }
 
   /// Best effort: if it fails, the next v2 sign-in records it (_afterAuth).

@@ -330,6 +330,54 @@ void main() {
       await expectLater(service.unlock(password), throwsA(isA<KeyMismatch>()));
     });
 
+    test('a keychain that refuses writes never fails sign-in or unlock',
+        () async {
+      final s = AccountService(backend, params: fast, keyCache: _BrokenCache());
+      final created = await s.signUp(email: email, password: password);
+      await s.signOut();
+      expect(
+          (await s.signIn(email: email, password: password)).dek, created.dek);
+      expect((await s.unlock(password)).dek, created.dek);
+    });
+
+    test('a hung connection does not block promoting a pending password',
+        () async {
+      final slow = _SlowBackend();
+      final s = AccountService(slow,
+          params: fast, onlineTimeout: const Duration(milliseconds: 50));
+      final created = await s.signUp(email: email, password: password);
+      slow.failWritesAfter = 1; // pending written, promotion fails
+      await expectLater(
+          s.changePassword(
+              currentPassword: password, newPassword: 'a brand new password'),
+          throwsException);
+      await s.unlock(password).catchError((_) => created); // refresh cache
+      slow.hang = true;
+      expect((await s.unlock('a brand new password')).dek, created.dek);
+    });
+
+    test('a fetch that outlives a sign-out is not cached for the next user',
+        () async {
+      final slow = _SlowBackend();
+      final s = AccountService(slow,
+          params: fast, onlineTimeout: const Duration(milliseconds: 50));
+      await s.signUp(email: email, password: password);
+      final gate = Completer<void>();
+      slow.gate = gate;
+      final late = s.unlock(password).catchError((_) => _dummy);
+      await Future<void>.delayed(const Duration(milliseconds: 100));
+
+      await s.signOut();
+      const other = 'other@example.com';
+      await s.signUp(email: other, password: 'another long password');
+      gate.complete(); // the first user's row arrives now
+      await late;
+
+      slow.hang = true;
+      await expectLater(s.unlock(password), throwsA(isA<KeyMismatch>()));
+      expect((await s.unlock('another long password')).dek, isNotEmpty);
+    });
+
     test('sign-out forgets the device copy', () async {
       await service.signUp(email: email, password: password);
       await service.signOut();
@@ -424,11 +472,37 @@ void main() {
   });
 }
 
-/// Profile reads hang (a captive portal, a dead connection) once [hang] is set.
+/// Profile reads and key writes hang (a captive portal, a dead connection)
+/// once [hang] is set. With [gate], the next read returns only when it
+/// completes, with the row as it was when the read started.
 class _SlowBackend extends FakeBackend {
   bool hang = false;
+  Completer<void>? gate;
 
   @override
-  Future<ProfileRecord?> fetchProfile() =>
-      hang ? Completer<ProfileRecord?>().future : super.fetchProfile();
+  Future<ProfileRecord?> fetchProfile() async {
+    if (hang) return Completer<ProfileRecord?>().future;
+    final g = gate;
+    if (g == null) return super.fetchProfile();
+    gate = null;
+    final row = await super.fetchProfile();
+    await g.future;
+    return row;
+  }
+
+  @override
+  Future<void> writeKeys(StoredKeys keys) =>
+      hang ? Completer<void>().future : super.writeKeys(keys);
 }
+
+class _BrokenCache implements KeyCache {
+  @override
+  Future<StoredKeys?> read(String userId) async => null;
+  @override
+  Future<void> write(String userId, StoredKeys keys) =>
+      Future.error(Exception('keychain locked'));
+  @override
+  Future<void> clear(String userId) async {}
+}
+
+final _dummy = UnlockResult(dek: Uint8List(0));
