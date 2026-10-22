@@ -120,7 +120,12 @@ class SyncController extends Notifier<SyncStatus> {
   @override
   SyncStatus build() {
     final engineState = ref.watch(ztSyncEngineProvider);
-    final engine = engineState.value;
+    // Only a finished build counts: while the engine provider rebuilds
+    // (after a lock, say) `.value` still holds the previous, closed engine.
+    final engine = switch (engineState) {
+      AsyncData(:final value) => value,
+      _ => null,
+    };
     _engine = engine;
     _scheduler = null;
     if (engine == null) {

@@ -86,8 +86,14 @@ void main() {
     expect(server.rows['notes/n1']!.deviceId, ids.id);
 
     c.read(vaultControllerProvider.notifier).lock();
-    await Future<void>.delayed(Duration.zero);
-    expect(c.read(ztSyncControllerProvider).lastSyncedAt, isNull);
+    await Future<void>.delayed(const Duration(milliseconds: 50));
+    // Idle, not syncing (and failing) with the closed engine.
+    final locked = c.read(ztSyncControllerProvider);
+    expect(locked.lastSyncedAt, isNull);
+    expect(locked.isSyncing, isFalse);
+    expect(locked.error, isNull);
+    expect(server.subscribers, 0);
+    await expectLater(controller.save('n2', {}), throwsA(isA<VaultIsLocked>()));
     // The store closed with the vault.
     await expectLater(stores.single.all(), throwsA(anything));
   });
