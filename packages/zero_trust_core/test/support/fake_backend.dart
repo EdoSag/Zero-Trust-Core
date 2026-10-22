@@ -27,6 +27,27 @@ class FakeBackend implements AccountBackend {
     _user = email;
   }
 
+  /// Mirrors `zt_needs_legacy_sign_in`: a pre-core salt, and the auth
+  /// password not yet switched.
+  @override
+  Future<bool> needsLegacySignIn(String email) async {
+    final p = profiles[email];
+    return p != null &&
+        p.legacySalt != null &&
+        !p.authUpgraded &&
+        (p.keys == null || p.keys!.legacyDek);
+  }
+
+  @override
+  Future<void> markAuthUpgraded() async {
+    final p = profiles[_user!]!;
+    profiles[_user!] = ProfileRecord(
+        legacySalt: p.legacySalt, keys: p.keys, authUpgraded: true);
+  }
+
+  /// Simulates no network for profile reads.
+  bool offline = false;
+
   @override
   Future<void> signUp(String email, String authPassword) async {
     passwordsSeenByServer.add(authPassword);
@@ -54,7 +75,10 @@ class FakeBackend implements AccountBackend {
       resetEmailsSent.add(email);
 
   @override
-  Future<ProfileRecord?> fetchProfile() async => profiles[_user];
+  Future<ProfileRecord?> fetchProfile() async {
+    if (offline) throw Exception('offline');
+    return profiles[_user];
+  }
 
   @override
   Future<void> writeKeys(StoredKeys keys) async {
@@ -63,8 +87,12 @@ class FakeBackend implements AccountBackend {
       throw Exception('network');
     }
     if (failWritesAfter > 0) failWritesAfter--;
-    profiles[_user!] =
-        ProfileRecord(legacySalt: profiles[_user]?.legacySalt, keys: keys);
+    if (offline) throw Exception('offline');
+    profiles[_user!] = ProfileRecord(
+      legacySalt: profiles[_user]?.legacySalt,
+      keys: keys,
+      authUpgraded: profiles[_user]?.authUpgraded ?? false,
+    );
   }
 
   @override

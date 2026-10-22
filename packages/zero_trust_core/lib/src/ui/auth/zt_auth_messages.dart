@@ -1,12 +1,17 @@
 import '../../account/account_backend.dart';
 import '../../account/account_service.dart';
+import '../../account/biometric_key_store.dart';
 
 /// Turns account errors into one plain sentence for the user.
 String ztAuthErrorMessage(Object error) => switch (error) {
       InvalidCredentials() => 'That email and password don\'t match.',
       KeyMismatch() =>
         'This password can\'t unlock your data. Use your recovery key to reset it.',
+      BiometricKeyInvalidated() =>
+        'Your fingerprints or face changed, so biometric unlock was turned off. '
+            'Unlock with your password, then turn it back on in Settings.',
       ArgumentError(:final message) => '$message',
+      StateError(:final message) => message,
       FormatException() =>
         'That recovery key isn\'t valid. Check it for typos.',
       _ => 'Something went wrong. Check your connection and try again.',
