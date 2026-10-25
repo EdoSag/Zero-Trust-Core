@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../account/account_backend.dart';
 import '../../account/account_service.dart';
 import '../../config/zt_app_config.dart';
 import '../../core_providers.dart';
@@ -10,15 +11,24 @@ import 'zt_auth_messages.dart';
 ///
 /// [onUnlocked] receives the result; when it carries a new recovery key the
 /// app must show `ZtRecoveryKeyScreen` before anything else.
+///
+/// When the project requires email confirmation, creating an account sends
+/// the link and switches to sign-in; signing in before confirming offers to
+/// resend it.
 class ZtSignInScreen extends ConsumerStatefulWidget {
   const ZtSignInScreen({
     super.key,
     required this.onUnlocked,
     this.onForgotPassword,
+    this.emailRedirectTo,
   });
 
   final void Function(UnlockResult result) onUnlocked;
   final VoidCallback? onForgotPassword;
+
+  /// Where the confirmation link opens (the app's deep link). Defaults to
+  /// the project's Site URL.
+  final String? emailRedirectTo;
 
   @override
   ConsumerState<ZtSignInScreen> createState() => _ZtSignInScreenState();
@@ -33,6 +43,8 @@ class _ZtSignInScreenState extends ConsumerState<ZtSignInScreen> {
   bool _busy = false;
   bool _obscure = true;
   String? _error;
+  String? _info;
+  bool _canResend = false;
 
   @override
   void dispose() {
@@ -47,15 +59,53 @@ class _ZtSignInScreenState extends ConsumerState<ZtSignInScreen> {
     setState(() {
       _busy = true;
       _error = null;
+      _info = null;
+      _canResend = false;
     });
     final account = ref.read(accountServiceProvider);
     try {
       final result = _creating
           ? await account.signUp(
-              email: _email.text.trim(), password: _password.text)
+              email: _email.text.trim(),
+              password: _password.text,
+              redirectTo: widget.emailRedirectTo)
           : await account.signIn(
               email: _email.text.trim(), password: _password.text);
       if (mounted) widget.onUnlocked(result);
+    } on EmailConfirmationSent catch (e) {
+      if (mounted) {
+        setState(() {
+          _info = ztAuthErrorMessage(e);
+          _creating = false;
+          _canResend = true;
+          _confirm.clear();
+        });
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() {
+          _error = ztAuthErrorMessage(e);
+          _canResend = e is EmailNotConfirmed;
+        });
+      }
+    } finally {
+      if (mounted) setState(() => _busy = false);
+    }
+  }
+
+  Future<void> _resend() async {
+    if (ztValidateEmail(_email.text) != null) return;
+    setState(() => _busy = true);
+    try {
+      await ref.read(accountServiceProvider).resendConfirmation(
+          _email.text.trim(),
+          redirectTo: widget.emailRedirectTo);
+      if (mounted) {
+        setState(() {
+          _error = null;
+          _info = 'Sent again. Check your inbox and spam folder.';
+        });
+      }
     } catch (e) {
       if (mounted) setState(() => _error = ztAuthErrorMessage(e));
     } finally {
@@ -142,12 +192,21 @@ class _ZtSignInScreenState extends ConsumerState<ZtSignInScreen> {
                         onFieldSubmitted: (_) => _submit(),
                       ),
                     ],
+                    if (_info != null) ...[
+                      const SizedBox(height: 16),
+                      Text(_info!, textAlign: TextAlign.center),
+                    ],
                     if (_error != null) ...[
                       const SizedBox(height: 16),
                       Text(_error!,
                           style: TextStyle(color: theme.colorScheme.error),
                           textAlign: TextAlign.center),
                     ],
+                    if (_canResend)
+                      TextButton(
+                        onPressed: _busy ? null : _resend,
+                        child: const Text('Resend confirmation email'),
+                      ),
                     const SizedBox(height: 24),
                     FilledButton(
                       onPressed: _busy ? null : _submit,
@@ -164,6 +223,8 @@ class _ZtSignInScreenState extends ConsumerState<ZtSignInScreen> {
                           : () => setState(() {
                                 _creating = !_creating;
                                 _error = null;
+                                _info = null;
+                                _canResend = false;
                               }),
                       child: Text(_creating
                           ? 'I already have an account'

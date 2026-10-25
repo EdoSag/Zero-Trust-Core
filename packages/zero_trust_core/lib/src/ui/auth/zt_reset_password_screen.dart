@@ -7,7 +7,9 @@ import 'zt_auth_messages.dart';
 
 /// Second half of "forgot password": opened from Supabase's reset-email deep
 /// link (which signs the user in). The recovery key unlocks the data and a
-/// new password is set.
+/// new password is set. Other devices are signed out and the used recovery
+/// key is replaced: show `ZtRecoveryKeyScreen` for the result's
+/// `newRecoveryKey` before anything else.
 class ZtResetPasswordScreen extends ConsumerStatefulWidget {
   const ZtResetPasswordScreen({super.key, required this.onUnlocked});
 

@@ -9,6 +9,14 @@ class InvalidCredentials implements Exception {
   String toString() => 'InvalidCredentials';
 }
 
+/// Sign-in was refused because the email address hasn't been confirmed
+/// yet. `AccountService.resendConfirmation` sends the link again.
+class EmailNotConfirmed implements Exception {
+  const EmailNotConfirmed();
+  @override
+  String toString() => 'EmailNotConfirmed';
+}
+
 /// The v2 key columns of a `profiles` row. Byte columns are raw bytes here;
 /// the Supabase implementation handles PostgREST's `\x…` hex encoding.
 class StoredKeys {
@@ -108,7 +116,8 @@ abstract interface class AccountBackend {
   String? get currentUserId;
   String? get currentEmail;
 
-  /// Throws [InvalidCredentials] when rejected.
+  /// Throws [InvalidCredentials] when rejected, [EmailNotConfirmed] when
+  /// the address isn't confirmed yet.
   Future<void> signIn(String email, String authPassword);
 
   /// Whether [email] belongs to a pre-core account whose Supabase password
@@ -119,8 +128,16 @@ abstract interface class AccountBackend {
   /// Records that the Supabase password is now the derived auth secret.
   Future<void> markAuthUpgraded();
 
-  /// Must leave a signed-in session (email confirmation off, or confirmed).
-  Future<void> signUp(String email, String authPassword);
+  /// Creates the auth user. True when it is signed in right away; false
+  /// when Supabase sent a confirmation email first (the user signs in after
+  /// opening it). [redirectTo] is where the link leads.
+  Future<bool> signUp(String email, String authPassword, {String? redirectTo});
+
+  /// Sends the sign-up confirmation email again.
+  Future<void> resendConfirmation(String email, {String? redirectTo});
+
+  /// Ends every session of this account except this device's.
+  Future<void> signOutOtherDevices();
 
   Future<void> updateAuthPassword(String authPassword);
   Future<void> signOut();
@@ -132,6 +149,7 @@ abstract interface class AccountBackend {
   Future<ProfileRecord?> fetchProfile();
   Future<void> writeKeys(StoredKeys keys);
 
-  /// Deletes the auth user server-side; every user row cascades.
+  /// Deletes the auth user server-side; every user row cascades. The server
+  /// refuses unless this session signed in within the last few minutes.
   Future<void> deleteAccount();
 }

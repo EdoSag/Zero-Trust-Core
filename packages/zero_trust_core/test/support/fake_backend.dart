@@ -20,11 +20,29 @@ class FakeBackend implements AccountBackend {
   @override
   String? get currentEmail => _user;
 
+  /// Email confirmation on: sign-up leaves no session until [confirm].
+  bool requireConfirmation = false;
+  final Set<String> unconfirmed = {};
+  final List<String> confirmationsResent = [];
+  int otherDeviceSignOuts = 0;
+
+  /// Successful sign-ins, including re-authentication.
+  int signIns = 0;
+
+  /// Sign-ins since the last [deleteAccount]-guarding check, like a fresh
+  /// session the delete-account function requires.
+  bool freshSession = false;
+
+  void confirm(String email) => unconfirmed.remove(email);
+
   @override
   Future<void> signIn(String email, String authPassword) async {
     passwordsSeenByServer.add(authPassword);
     if (authPasswords[email] != authPassword) throw const InvalidCredentials();
+    if (unconfirmed.contains(email)) throw const EmailNotConfirmed();
     _user = email;
+    signIns++;
+    freshSession = true;
   }
 
   /// Mirrors `zt_needs_legacy_sign_in`: a pre-core salt, and the auth
@@ -49,11 +67,24 @@ class FakeBackend implements AccountBackend {
   bool offline = false;
 
   @override
-  Future<void> signUp(String email, String authPassword) async {
+  Future<bool> signUp(String email, String authPassword,
+      {String? redirectTo}) async {
     passwordsSeenByServer.add(authPassword);
     authPasswords[email] = authPassword;
+    if (requireConfirmation) {
+      unconfirmed.add(email);
+      return false;
+    }
     _user = email;
+    return true;
   }
+
+  @override
+  Future<void> resendConfirmation(String email, {String? redirectTo}) async =>
+      confirmationsResent.add(email);
+
+  @override
+  Future<void> signOutOtherDevices() async => otherDeviceSignOuts++;
 
   @override
   Future<void> updateAuthPassword(String authPassword) async {
@@ -97,6 +128,7 @@ class FakeBackend implements AccountBackend {
 
   @override
   Future<void> deleteAccount() async {
+    if (!freshSession) throw Exception('recent sign-in required');
     authPasswords.remove(_user);
     profiles.remove(_user);
     _user = null;

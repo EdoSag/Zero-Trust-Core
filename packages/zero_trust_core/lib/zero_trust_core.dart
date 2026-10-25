@@ -9,6 +9,7 @@ export 'src/account/biometric_key_store.dart';
 export 'src/account/key_cache.dart';
 export 'src/account/supabase_account_backend.dart';
 export 'src/config/zt_app_config.dart';
+export 'src/config/zt_preferences.dart';
 export 'src/core_providers.dart';
 export 'src/sync/device_id.dart';
 export 'src/sync/item_sync_engine.dart';

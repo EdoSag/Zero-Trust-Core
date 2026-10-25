@@ -14,6 +14,26 @@ Deno.serve(async (req) => {
   const { data: { user }, error } = await admin.auth.getUser(jwt);
   if (error || !user) return new Response("Unauthorized", { status: 401 });
 
+  // Require a password sign-in in the last few minutes, so a stolen or
+  // long-lived session can't delete the account. The token is verified
+  // above; its `amr` claim records when each sign-in method was used, and
+  // unlike `iat` it isn't moved by token refreshes.
+  const RECENT_SECONDS = 10 * 60;
+  let signedInAt = 0;
+  try {
+    const payload = JSON.parse(atob(
+      jwt.split(".")[1].replace(/-/g, "+").replace(/_/g, "/"),
+    ));
+    for (const entry of payload.amr ?? []) {
+      if (entry.method === "password") signedInAt = Math.max(signedInAt, entry.timestamp ?? 0);
+    }
+  } catch (_) {
+    // Treated as no recent sign-in.
+  }
+  if (Date.now() / 1000 - signedInAt > RECENT_SECONDS) {
+    return new Response("Sign in again to delete your account", { status: 403 });
+  }
+
   // Remove every object under {user_id}/ in every bucket. Each round lists
   // the first page, recurses into folders (entries with a null id) and
   // removes the files, until the prefix is empty, so folders of any size

@@ -12,15 +12,18 @@ void main() {
   WidgetController.hitTestWarningShouldBeFatal = true;
   late FakeBackend backend;
   late AccountService account;
+  late InMemoryPreferencesStore prefs;
 
   setUp(() {
     backend = FakeBackend();
     account = AccountService(backend, params: fast, legacyParams: fast);
+    prefs = InMemoryPreferencesStore();
   });
 
   Widget app(Widget home) => ProviderScope(
         overrides: [
           accountServiceProvider.overrideWithValue(account),
+          ztPreferencesStoreProvider.overrideWithValue(prefs),
           ztAppConfigProvider.overrideWithValue(
             const ZtAppConfig(appId: 'notes', displayName: 'Zero-Trust Notes'),
           ),
@@ -57,6 +60,52 @@ void main() {
     expect(result, isNotNull);
     expect(result!.newRecoveryKey, isNotNull);
     expect(backend.passwordsSeenByServer, isNot(contains(password)));
+  });
+
+  testWidgets('email confirmation: link sent, resend, then sign in',
+      (tester) async {
+    backend.requireConfirmation = true;
+    UnlockResult? result;
+    await tester.pumpWidget(app(ZtSignInScreen(onUnlocked: (r) => result = r)));
+
+    await tester.tap(find.text('Create a Zero-Trust account'));
+    await tester.pump();
+    await tester.enterText(find.widgetWithText(TextFormField, 'Email'), email);
+    await tester.enterText(
+        find.widgetWithText(TextFormField, 'Password'), password);
+    await tester.enterText(
+        find.widgetWithText(TextFormField, 'Confirm password'), password);
+    await tester.tap(find.widgetWithText(FilledButton, 'Create account'));
+    await settle(tester);
+    expect(result, isNull);
+    expect(find.textContaining('We sent a confirmation link to $email'),
+        findsOneWidget);
+    // Back on sign-in, with the email and password still filled in.
+    expect(find.widgetWithText(FilledButton, 'Sign in'), findsOneWidget);
+
+    await tester.tap(find.widgetWithText(FilledButton, 'Sign in'));
+    await settle(tester);
+    expect(find.textContaining('Confirm your email first'), findsOneWidget);
+    await tester.tap(find.text('Resend confirmation email'));
+    await settle(tester);
+    expect(backend.confirmationsResent, [email]);
+
+    backend.confirm(email);
+    await tester.tap(find.widgetWithText(FilledButton, 'Sign in'));
+    await settle(tester);
+    expect(result!.newRecoveryKey, isNotNull);
+  });
+
+  testWidgets('settings: auto-lock picker saves the choice', (tester) async {
+    await account.signUp(email: email, password: password);
+    await tester.pumpWidget(app(ZtSettingsPage(onSignedOut: () {})));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Auto-lock'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Immediately'));
+    await tester.pumpAndSettle();
+    expect(prefs.values['auto_lock'], '0');
+    expect(find.text('Immediately when you leave the app'), findsOneWidget);
   });
 
   testWidgets('sign-in validates input and explains wrong credentials',

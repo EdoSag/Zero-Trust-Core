@@ -36,6 +36,16 @@ class KeyMismatch implements Exception {
   String toString() => 'KeyMismatch';
 }
 
+/// Sign-up worked and Supabase emailed a confirmation link. The user opens
+/// it, then signs in; that first sign-in creates the keys and shows the
+/// recovery key.
+class EmailConfirmationSent implements Exception {
+  const EmailConfirmationSent(this.email);
+  final String email;
+  @override
+  String toString() => 'EmailConfirmationSent($email)';
+}
+
 /// One account across every Zero-Trust app. The password never leaves the
 /// device: Supabase only sees an HKDF-derived auth secret.
 ///
@@ -73,22 +83,33 @@ class AccountService {
   /// How pre-core apps stretched the password (PBKDF2-SHA256, 600k).
   final KdfParams legacyParams;
 
+  /// Creates the account. With email confirmation on (it should be, so no
+  /// one can register someone else's address) this throws
+  /// [EmailConfirmationSent]; the keys are created at the first sign-in after
+  /// the address is confirmed. [redirectTo] is where the email link leads.
   Future<UnlockResult> signUp({
     required String email,
     required String password,
+    String? redirectTo,
   }) async {
     _checkPassword(password);
+    final salt = await Kdf.saltForEmail(email);
+    final creds = await KeyHierarchy.deriveCredentials(
+        password: password, salt: salt, params: params);
+    final signedIn =
+        await _backend.signUp(email, creds.authSecret, redirectTo: redirectTo);
+    if (!signedIn) throw EmailConfirmationSent(email.trim());
     final keys = await KeyHierarchy.createAccount(
-      password: password,
-      salt: await Kdf.saltForEmail(email),
-      params: params,
-    );
-    await _backend.signUp(email, keys.authSecret);
+        password: password, salt: salt, params: params, credentials: creds);
     // If this write fails, the next sign-in sees an account with no keys
     // and finishes the sign-up (see _afterAuth).
     await _writeKeys(_toStored(keys.stored));
     return UnlockResult(dek: keys.dek, newRecoveryKey: keys.recoveryKey);
   }
+
+  /// Sends the sign-up confirmation email again.
+  Future<void> resendConfirmation(String email, {String? redirectTo}) =>
+      _backend.resendConfirmation(email.trim(), redirectTo: redirectTo);
 
   /// Signs in and unlocks. Accounts made by pre-core app versions are
   /// upgraded on the way: their existing key becomes the DEK, so all local
@@ -98,16 +119,20 @@ class AccountService {
     required String password,
   }) async {
     final salt = await Kdf.saltForEmail(email);
+    PasswordCredentials? current;
     for (final p in [params, ...previousParams]) {
       final creds = await KeyHierarchy.deriveCredentials(
           password: password, salt: salt, params: p);
+      if (p == params) current = creds;
       try {
         await _backend.signIn(email, creds.authSecret);
       } on InvalidCredentials {
         continue;
       }
-      return _afterAuth(password, salt, authParams: p);
+      return _afterAuth(password, salt, authParams: p, credentials: creds);
     }
+    // Derived above for [params]; reused below instead of deriving again.
+    final creds = current!;
 
     // A pre-core account still signs in with the raw password. Send it only
     // when the server says this email is one: on any other account a typo
@@ -122,8 +147,6 @@ class AccountService {
       // An earlier upgrade stored v2 keys but failed before switching the
       // auth password. Finish it.
       final unlocked = await _unlock(password, profile!.keys!);
-      final creds = await KeyHierarchy.deriveCredentials(
-          password: password, salt: salt, params: params);
       await _backend.updateAuthPassword(creds.authSecret);
       await _markAuthUpgraded();
       return unlocked;
@@ -137,6 +160,7 @@ class AccountService {
       salt: salt,
       legacyParams: legacyParams,
       params: params,
+      credentials: creds,
     );
     // Keys first, auth password second: if the second step fails, the next
     // sign-in lands in the branch above and completes it.
@@ -219,7 +243,13 @@ class AccountService {
     final keys = await _fetchKeys();
     if (keys == null) throw const KeyMismatch();
     final unlocked = await _unlock(currentPassword, keys);
-    await _setPassword(unlocked.dek, newPassword);
+    try {
+      await _reauthenticate(currentPassword);
+      await _setPassword(unlocked.dek, newPassword);
+    } finally {
+      unlocked.dek.fillRange(0, unlocked.dek.length, 0);
+    }
+    await _signOutOtherDevices();
   }
 
   /// Forgot password. Call while holding the session from Supabase's
@@ -237,7 +267,32 @@ class AccountService {
       stored: _wrapped(keys),
     );
     await _setPassword(dek, newPassword);
-    return UnlockResult(dek: dek, legacyDek: keys.legacyDek);
+    // The old recovery key was just typed in, maybe on a shared device:
+    // replace it. Best effort, since the password change already finished;
+    // without a new key the user can still make one in settings.
+    RecoveryKey? fresh;
+    try {
+      fresh = await rotateRecoveryKey(dek);
+    } on Object {
+      fresh = null;
+    }
+    await _signOutOtherDevices();
+    return UnlockResult(
+        dek: dek, legacyDek: keys.legacyDek, newRecoveryKey: fresh);
+  }
+
+  /// A new recovery key, after checking [password] locally and with the
+  /// server (so a stolen session alone can't replace it).
+  Future<RecoveryKey> newRecoveryKey(String password) async {
+    final keys = await _fetchKeys();
+    if (keys == null) throw const KeyMismatch();
+    final unlocked = await _unlock(password, keys);
+    try {
+      await _reauthenticate(password);
+      return await rotateRecoveryKey(unlocked.dek);
+    } finally {
+      unlocked.dek.fillRange(0, unlocked.dek.length, 0);
+    }
   }
 
   /// Issue a new recovery key; the old one stops working.
@@ -268,8 +323,12 @@ class AccountService {
   Future<void> sendPasswordReset(String email, {String? redirectTo}) =>
       _backend.sendPasswordReset(email.trim(), redirectTo: redirectTo);
 
-  Future<void> deleteAccount() async {
+  /// Deletes the account in every app. [password] is checked with the
+  /// server first, which also gives the fresh sign-in the server requires,
+  /// so an unattended unlocked phone or a stolen session can't do this.
+  Future<void> deleteAccount({required String password}) async {
     final userId = _backend.currentUserId;
+    await _reauthenticate(password);
     await _backend.deleteAccount();
     if (userId != null) {
       await _cache.clear(userId);
@@ -281,6 +340,7 @@ class AccountService {
     String password,
     Uint8List salt, {
     required KdfParams authParams,
+    required PasswordCredentials credentials,
   }) async {
     final profile = await _backend.fetchProfile();
     final keys = profile?.keys;
@@ -291,7 +351,10 @@ class AccountService {
       // exist yet, so finish it with fresh keys; the auth secret is the one
       // just used, because it depends only on password, email and params.
       final created = await KeyHierarchy.createAccount(
-          password: password, salt: salt, params: authParams);
+          password: password,
+          salt: salt,
+          params: authParams,
+          credentials: credentials);
       await _writeKeys(_toStored(created.stored));
       if (authParams != params) await _setPassword(created.dek, password);
       return UnlockResult(
@@ -309,6 +372,30 @@ class AccountService {
       await _setPassword(unlocked.dek, password);
     }
     return unlocked;
+  }
+
+  /// Signs in again with [password]: proves it to the server (not just to
+  /// this device) and starts a fresh session, which the server checks before
+  /// deleting the account.
+  Future<void> _reauthenticate(String password) async {
+    final email = _backend.currentEmail;
+    if (email == null) throw StateError('Not signed in');
+    final creds = await KeyHierarchy.deriveCredentials(
+        password: password,
+        salt: await Kdf.saltForEmail(email),
+        params: params);
+    await _backend.signIn(email, creds.authSecret);
+  }
+
+  /// After a password change or recovery, so a device that had the old
+  /// password (or a stolen session) loses access. Best effort: the change
+  /// itself already finished.
+  Future<void> _signOutOtherDevices() async {
+    try {
+      await _backend.signOutOtherDevices();
+    } on Object {
+      // See above.
+    }
   }
 
   /// Three writes, each safe to interrupt:

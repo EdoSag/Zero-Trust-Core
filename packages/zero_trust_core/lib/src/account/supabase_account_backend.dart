@@ -27,6 +27,10 @@ class SupabaseAccountBackend implements AccountBackend {
           e.message.contains('Invalid login credentials')) {
         throw const InvalidCredentials();
       }
+      if (e.code == 'email_not_confirmed' ||
+          e.message.contains('Email not confirmed')) {
+        throw const EmailNotConfirmed();
+      }
       rethrow;
     }
   }
@@ -43,15 +47,21 @@ class SupabaseAccountBackend implements AccountBackend {
       }).eq('id', _requireUserId());
 
   @override
-  Future<void> signUp(String email, String authPassword) async {
-    final res = await _client.auth.signUp(email: email, password: authPassword);
-    if (res.session == null) {
-      throw StateError(
-        'Sign-up needs a session. Turn off email confirmation in Supabase Auth, '
-        'or sign in after confirming.',
-      );
-    }
+  Future<bool> signUp(String email, String authPassword,
+      {String? redirectTo}) async {
+    final res = await _client.auth.signUp(
+        email: email, password: authPassword, emailRedirectTo: redirectTo);
+    return res.session != null;
   }
+
+  @override
+  Future<void> resendConfirmation(String email, {String? redirectTo}) => _client
+      .auth
+      .resend(type: OtpType.signup, email: email, emailRedirectTo: redirectTo);
+
+  @override
+  Future<void> signOutOtherDevices() =>
+      _client.auth.signOut(scope: SignOutScope.others);
 
   @override
   Future<void> updateAuthPassword(String authPassword) =>

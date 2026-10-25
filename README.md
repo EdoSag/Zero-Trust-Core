@@ -28,7 +28,7 @@ dependencies:
     git:
       url: https://github.com/EdoSag/Zero-Trust-Core.git
       path: packages/zero_trust_core
-      ref: v0.5.0   # always pin a release tag; see CHANGELOG.md
+      ref: v0.6.0   # always pin a release tag; see CHANGELOG.md
 ```
 
 ```dart
@@ -63,6 +63,32 @@ Each app needs, once:
 - Android: `MainActivity` extends `FlutterFragmentActivity`, and
   `minSdkVersion` is at least 28.
 - iOS: `NSFaceIDUsageDescription` in `Info.plist`.
+
+### Auto-lock
+
+The vault locks by itself; apps only call `touch()` on user input. It locks
+after the delay the user picks under **Settings → Auto-lock** (Immediately,
+1, 5 or 15 minutes, Never; `ZtAppConfig.autoLockAfter` until they pick):
+after that long idle, and when the app comes back after that long in the
+background (checked against the clock, since a suspended app runs no
+timers). "Immediately" locks as soon as the app leaves the screen. The
+choice is kept in secure storage, per install. Pass `onForgotPassword` to
+`ZtUnlockScreen` to offer the reset flow there too.
+
+### Account safety
+
+- **Email confirmation.** With "Confirm email" on in Supabase Auth,
+  `signUp` throws `EmailConfirmationSent`; keys are created at the first
+  sign-in after the user opens the link. Signing in before that throws
+  `EmailNotConfirmed`, and `ZtSignInScreen` offers to resend the link. Pass
+  the app's deep link as `ZtSignInScreen(emailRedirectTo: ...)`.
+- **Sensitive actions re-check the password with the server**: changing
+  the password, a new recovery key, and deleting the account. The
+  `delete-account` function also refuses a session whose last password
+  sign-in is older than 10 minutes.
+- **After a password change or a recovery**, every other device is signed
+  out. A recovery also issues a new recovery key (the old one was just typed
+  in), returned as `UnlockResult.newRecoveryKey`: show `ZtRecoveryKeyScreen`.
 
 ### Sign-in never sends the real password
 

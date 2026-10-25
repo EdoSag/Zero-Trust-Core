@@ -4,6 +4,8 @@ import 'dart:typed_data';
 
 import 'package:cryptography/cryptography.dart';
 
+import 'background.dart';
+
 /// Password KDF parameters, stored next to the salt in `profiles.kdf_params`
 /// so iterations (or the algorithm) can be raised later without breaking
 /// existing accounts.
@@ -64,22 +66,36 @@ abstract final class Kdf {
 
   /// Stretches the password into the 32-byte master key. The result never
   /// leaves the device and is never stored.
+  ///
+  /// Runs on a background isolate (see [runInBackground]): 600k PBKDF2
+  /// rounds take seconds on mid-range phones and would otherwise freeze the
+  /// UI. Below [backgroundFrom] rounds starting an isolate costs more than
+  /// the work, so it runs inline.
   static Future<Uint8List> deriveMasterKey({
     required String password,
     required List<int> salt,
     KdfParams params = KdfParams.current,
-  }) async {
-    final pbkdf2 = Pbkdf2(
-      macAlgorithm: Hmac.sha256(),
-      iterations: params.iterations,
-      bits: keyLength * 8,
-    );
-    final key = await pbkdf2.deriveKeyFromPassword(
-      password: password,
-      nonce: salt,
-    );
-    return Uint8List.fromList(await key.extractBytes());
+  }) {
+    final iterations = params.iterations;
+    final nonce = List<int>.of(salt);
+    Future<Uint8List> derive() async {
+      final pbkdf2 = Pbkdf2(
+        macAlgorithm: Hmac.sha256(),
+        iterations: iterations,
+        bits: keyLength * 8,
+      );
+      final key = await pbkdf2.deriveKeyFromPassword(
+        password: password,
+        nonce: nonce,
+      );
+      return Uint8List.fromList(await key.extractBytes());
+    }
+
+    return iterations >= backgroundFrom ? runInBackground(derive) : derive();
   }
+
+  /// See [deriveMasterKey].
+  static const backgroundFrom = 50000;
 
   /// HKDF-SHA256 expansion of [key] into an independent subkey for [info].
   /// Distinct `info` strings give keys that reveal nothing about each other.

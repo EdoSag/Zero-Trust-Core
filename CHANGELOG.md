@@ -3,6 +3,48 @@
 Apps depend on the core by git tag (`ref: vX.Y.Z`). Upgrade notes list what
 an app must change.
 
+## 0.6.0
+
+Lock and account hardening.
+
+- **Auto-lock on background.** The vault locks when the app returns after
+  the auto-lock delay in the background, checked against the clock so it
+  works even when the OS suspended the app, or as soon as the app is hidden
+  when set to "Immediately". Apps no longer need to call `lock()` themselves.
+- **Auto-lock picker** in `ZtSettingsPage`: Immediately, 1, 5, 15 minutes or
+  Never, kept in secure storage (`ztAutoLockProvider`,
+  `ztPreferencesStoreProvider`). `ZtAppConfig.autoLockAfter` is the default.
+- **Email confirmation works.** `AccountService.signUp` throws
+  `EmailConfirmationSent` when Supabase requires confirmation, and keys are
+  created at the first sign-in instead. `signIn` throws `EmailNotConfirmed`
+  before then; `resendConfirmation` sends the link again.
+  `ZtSignInScreen` handles both and takes `emailRedirectTo`.
+- **Password change and recovery sign out every other device.** Recovery
+  also replaces the recovery key that was just used, returned as
+  `UnlockResult.newRecoveryKey`.
+- **Sensitive actions re-check the password with the server.**
+  `changePassword`, the new `newRecoveryKey(password)` and
+  `deleteAccount(password:)` sign in again first. The `delete-account`
+  function refuses a session without a password sign-in in the last 10
+  minutes.
+- **Faster unlock.** The password KDF runs on a background isolate, so the
+  UI no longer freezes for seconds, and sign-up derives it once instead of
+  twice. The unlock button shows a spinner, and `ZtUnlockScreen` takes
+  `onForgotPassword`.
+- **Clearer errors**: offline, too many attempts, server down, and session
+  ended each get their own message.
+
+Upgrade notes:
+
+- `deleteAccount()` is now `deleteAccount(password: ...)`.
+- `AccountBackend` has `signUp` returning `bool`, `resendConfirmation` and
+  `signOutOtherDevices` (only matters for custom backends).
+- Remove any `lock()` call on `AppLifecycleState.paused`; it now overrides
+  the user's auto-lock choice.
+- Handle `newRecoveryKey` from `ZtResetPasswordScreen` like after sign-up.
+- Server: redeploy the `delete-account` function. To require email
+  confirmation, turn on "Confirm email" in Supabase Auth.
+
 ## 0.5.1
 
 - Locking the vault now really stops sync. Before, `SyncController` picked

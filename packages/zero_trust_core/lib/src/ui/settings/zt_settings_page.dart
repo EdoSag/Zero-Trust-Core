@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../config/zt_app_config.dart';
+import '../../config/zt_preferences.dart';
 import '../../core_providers.dart';
 import '../../vault/vault_controller.dart';
 import '../auth/zt_auth_messages.dart';
@@ -46,6 +47,7 @@ class ZtSettingsPage extends ConsumerWidget {
     final config = ref.watch(ztAppConfigProvider);
     final account = ref.watch(accountServiceProvider);
     final themeMode = ref.watch(themeModeProvider);
+    final autoLock = ref.watch(ztAutoLockProvider);
     final theme = Theme.of(context);
 
     return Scaffold(
@@ -77,7 +79,8 @@ class ZtSettingsPage extends ConsumerWidget {
           ListTile(
             leading: const Icon(Icons.lock_clock_outlined),
             title: const Text('Auto-lock'),
-            subtitle: Text(_autoLockLabel(config.autoLockAfter)),
+            subtitle: Text(_autoLockLabel(autoLock)),
+            onTap: () => _pickAutoLock(context, ref, autoLock),
           ),
           const _BiometricTile(),
           ListTile(
@@ -143,11 +146,47 @@ class ZtSettingsPage extends ConsumerWidget {
   }
 
   static String _autoLockLabel(Duration? d) {
-    if (d == null) return 'Off';
+    if (d == null) return 'Never';
+    if (d == Duration.zero) return 'Immediately when you leave the app';
     if (d.inMinutes >= 1) {
       return 'After ${d.inMinutes} min in the background or idle';
     }
     return 'After ${d.inSeconds} s in the background or idle';
+  }
+
+  static String _autoLockChoice(Duration? d) => switch (d) {
+        null => 'Never',
+        Duration.zero => 'Immediately',
+        _ when d.inMinutes >= 1 => 'After ${d.inMinutes} min',
+        _ => 'After ${d.inSeconds} s',
+      };
+
+  Future<void> _pickAutoLock(
+      BuildContext context, WidgetRef ref, Duration? current) async {
+    final choices = {...AutoLockController.choices, current}.toList();
+    final picked = await showDialog<(Duration?,)>(
+      context: context,
+      builder: (context) => SimpleDialog(
+        title: const Text('Auto-lock'),
+        children: [
+          RadioGroup<Duration?>(
+            groupValue: current,
+            onChanged: (d) => Navigator.pop(context, (d,)),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                for (final d in choices)
+                  RadioListTile<Duration?>(
+                      value: d, title: Text(_autoLockChoice(d))),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+    if (picked != null) {
+      await ref.read(ztAutoLockProvider.notifier).set(picked.$1);
+    }
   }
 
   Future<void> _changePassword(BuildContext context, WidgetRef ref) async {
@@ -156,8 +195,9 @@ class ZtSettingsPage extends ConsumerWidget {
       builder: (_) => const _ChangePasswordDialog(),
     );
     if (done == true && context.mounted) {
-      ScaffoldMessenger.of(context)
-          .showSnackBar(const SnackBar(content: Text('Password changed')));
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+          content:
+              Text('Password changed. Your other devices were signed out.')));
     }
   }
 
@@ -174,9 +214,7 @@ class ZtSettingsPage extends ConsumerWidget {
     if (password == null || !context.mounted) return;
     final account = ref.read(accountServiceProvider);
     try {
-      final unlocked = await account.unlock(password);
-      final key = await account.rotateRecoveryKey(unlocked.dek);
-      unlocked.dek.fillRange(0, unlocked.dek.length, 0);
+      final key = await account.newRecoveryKey(password);
       if (!context.mounted) return;
       await Navigator.of(context).push(MaterialPageRoute<void>(
         fullscreenDialog: true,
@@ -219,11 +257,8 @@ class ZtSettingsPage extends ConsumerWidget {
     if (password == null || !context.mounted) return;
     final account = ref.read(accountServiceProvider);
     try {
-      // Re-check the password so an unattended unlocked phone can't do this.
-      final unlocked = await account.unlock(password);
-      unlocked.dek.fillRange(0, unlocked.dek.length, 0);
       final userId = account.currentUserId;
-      await account.deleteAccount();
+      await account.deleteAccount(password: password);
       ref.read(vaultControllerProvider.notifier).lock();
       if (userId != null) await _deleteLocalData(ref, userId);
       onSignedOut();

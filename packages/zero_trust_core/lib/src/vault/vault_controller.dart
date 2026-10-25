@@ -1,10 +1,13 @@
 import 'dart:async';
 import 'dart:typed_data';
 
+import 'package:clock/clock.dart';
+import 'package:flutter/widgets.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:zt_crypto/zt_crypto.dart';
 
 import '../config/zt_app_config.dart';
+import '../config/zt_preferences.dart';
 
 sealed class VaultState {
   const VaultState();
@@ -26,19 +29,48 @@ class VaultUnlocked extends VaultState {
   final Uint8List? legacyKey;
 }
 
-/// Holds the unlocked key in memory, zeroes it on lock, and locks after
-/// [ZtAppConfig.autoLockAfter] of inactivity. Apps call [touch] on user
-/// interaction and [lock] when they go to the background.
+/// Holds the unlocked key in memory, zeroes it on lock, and auto-locks
+/// after the delay the user picked ([ztAutoLockProvider], defaulting to
+/// [ZtAppConfig.autoLockAfter]):
+/// - after that long without interaction (apps call [touch] on input);
+/// - when the app comes back after being in the background that long, or
+///   as soon as it leaves the screen when the delay is zero.
 class VaultController extends Notifier<VaultState> {
   Timer? _timer;
+  DateTime? _hiddenAt;
 
   @override
   VaultState build() {
-    ref.onDispose(() => _timer?.cancel());
+    final lifecycle = AppLifecycleListener(onHide: _hidden, onShow: _shown);
+    ref.onDispose(() {
+      _timer?.cancel();
+      lifecycle.dispose();
+    });
+    // A new choice in settings applies from now.
+    ref.listen(ztAutoLockProvider, (_, __) => touch());
     return const VaultLocked();
   }
 
   ZtAppConfig get _config => ref.read(ztAppConfigProvider);
+  Duration? get _autoLock => ref.read(ztAutoLockProvider);
+
+  void _hidden() {
+    _hiddenAt = clock.now();
+    if (_autoLock == Duration.zero) lock();
+  }
+
+  void _shown() {
+    final hiddenAt = _hiddenAt;
+    _hiddenAt = null;
+    final after = _autoLock;
+    if (state is! VaultUnlocked || hiddenAt == null || after == null) return;
+    // Timers don't run while the OS suspends the app, so check the clock.
+    if (clock.now().difference(hiddenAt) >= after) {
+      lock();
+    } else {
+      touch();
+    }
+  }
 
   /// Takes ownership of [dek]: derives this app's key, then zeroes [dek].
   /// With [legacyDek] (from `UnlockResult.legacyDek`) a copy is kept as
@@ -66,8 +98,8 @@ class VaultController extends Notifier<VaultState> {
 
   void touch() {
     _timer?.cancel();
-    final after = _config.autoLockAfter;
-    if (state is VaultUnlocked && after != null) {
+    final after = _autoLock;
+    if (state is VaultUnlocked && after != null && after > Duration.zero) {
       _timer = Timer(after, lock);
     }
   }
