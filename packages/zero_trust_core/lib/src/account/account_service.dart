@@ -376,15 +376,23 @@ class AccountService {
 
   /// Signs in again with [password]: proves it to the server (not just to
   /// this device) and starts a fresh session, which the server checks before
-  /// deleting the account.
+  /// deleting the account. Like [signIn] it tries [previousParams] too, for
+  /// a session that began before the app raised [params].
   Future<void> _reauthenticate(String password) async {
     final email = _backend.currentEmail;
     if (email == null) throw StateError('Not signed in');
-    final creds = await KeyHierarchy.deriveCredentials(
-        password: password,
-        salt: await Kdf.saltForEmail(email),
-        params: params);
-    await _backend.signIn(email, creds.authSecret);
+    final salt = await Kdf.saltForEmail(email);
+    for (final p in [params, ...previousParams]) {
+      final creds = await KeyHierarchy.deriveCredentials(
+          password: password, salt: salt, params: p);
+      try {
+        await _backend.signIn(email, creds.authSecret);
+        return;
+      } on InvalidCredentials {
+        continue;
+      }
+    }
+    throw const InvalidCredentials();
   }
 
   /// After a password change or recovery, so a device that had the old

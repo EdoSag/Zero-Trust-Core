@@ -354,6 +354,20 @@ void main() {
         created.dek);
   });
 
+  test('sensitive actions work in a session from before params were raised',
+      () async {
+    const older = KdfParams(iterations: 1000);
+    const newer = KdfParams(iterations: 2000);
+    await AccountService(backend, params: older)
+        .signUp(email: email, password: password);
+    // The app updates while the old session is still signed in.
+    final upgraded =
+        AccountService(backend, params: newer, previousParams: const [older]);
+    await upgraded.newRecoveryKey(password);
+    await upgraded.deleteAccount(password: password);
+    expect(backend.profiles, isEmpty);
+  });
+
   group('offline unlock', () {
     test('uses the device copy of the keys when the server is unreachable',
         () async {
