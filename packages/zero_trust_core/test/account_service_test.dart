@@ -10,6 +10,8 @@ import 'package:zero_trust_core/zero_trust_core.dart';
 import 'support/fake_backend.dart';
 
 void main() {
+  TestWidgetsFlutterBinding.ensureInitialized();
+
   late FakeBackend backend;
   late AccountService service;
   const email = 'edo@example.com';
@@ -179,6 +181,69 @@ void main() {
     expect(ok.dek, created.dek);
   });
 
+  test('password change signs out other devices and checks the server',
+      () async {
+    await service.signUp(email: email, password: password);
+    final before = backend.signIns;
+    await service.changePassword(
+        currentPassword: password, newPassword: 'a brand new password');
+    expect(backend.signIns, before + 1, reason: 'fresh sign-in first');
+    expect(backend.otherDeviceSignOuts, 1);
+  });
+
+  test('recovery issues a new recovery key and signs out other devices',
+      () async {
+    final created = await service.signUp(email: email, password: password);
+    final oldKey = await created.newRecoveryKey!.format();
+    final recovered = await service.recover(
+        recoveryKey: oldKey, newPassword: 'recovered pw!');
+    expect(recovered.newRecoveryKey, isNotNull);
+    expect(backend.otherDeviceSignOuts, 1);
+    // The typed-in key no longer works; the new one does.
+    await expectLater(
+        service.recover(recoveryKey: oldKey, newPassword: 'another password'),
+        throwsA(anything));
+    final ok = await service.recover(
+        recoveryKey: await recovered.newRecoveryKey!.format(),
+        newPassword: 'another password');
+    expect(ok.dek, created.dek);
+  });
+
+  test('a new recovery key needs the password', () async {
+    final created = await service.signUp(email: email, password: password);
+    await expectLater(service.newRecoveryKey('not my password!!'),
+        throwsA(isA<KeyMismatch>()));
+    final before = backend.signIns;
+    final key = await service.newRecoveryKey(password);
+    expect(backend.signIns, before + 1);
+    final ok = await service.recover(
+        recoveryKey: await key.format(), newPassword: 'another password');
+    expect(ok.dek, created.dek);
+  });
+
+  group('email confirmation', () {
+    setUp(() => backend.requireConfirmation = true);
+
+    test('sign-up sends the link; sign-in after confirming creates keys',
+        () async {
+      await expectLater(service.signUp(email: email, password: password),
+          throwsA(isA<EmailConfirmationSent>()));
+      expect(backend.profiles[email]?.keys, isNull);
+
+      await expectLater(service.signIn(email: email, password: password),
+          throwsA(isA<EmailNotConfirmed>()));
+      await service.resendConfirmation(' $email ');
+      expect(backend.confirmationsResent, [email]);
+
+      backend.confirm(email);
+      final first = await service.signIn(email: email, password: password);
+      expect(first.newRecoveryKey, isNotNull);
+      await service.signOut();
+      final again = await service.signIn(email: email, password: password);
+      expect(again.dek, first.dek);
+    });
+  });
+
   test('short passwords are refused before anything is sent', () async {
     expect(() => service.signUp(email: email, password: 'short'),
         throwsArgumentError);
@@ -287,6 +352,20 @@ void main() {
                 .signIn(email: email, password: password))
             .dek,
         created.dek);
+  });
+
+  test('sensitive actions work in a session from before params were raised',
+      () async {
+    const older = KdfParams(iterations: 1000);
+    const newer = KdfParams(iterations: 2000);
+    await AccountService(backend, params: older)
+        .signUp(email: email, password: password);
+    // The app updates while the old session is still signed in.
+    final upgraded =
+        AccountService(backend, params: newer, previousParams: const [older]);
+    await upgraded.newRecoveryKey(password);
+    await upgraded.deleteAccount(password: password);
+    expect(backend.profiles, isEmpty);
   });
 
   group('offline unlock', () {
@@ -459,15 +538,26 @@ void main() {
       expect(await s.biometricsEnabled(), isFalse);
 
       await s.enableBiometrics(password);
-      await s.deleteAccount();
+      await s.deleteAccount(password: password);
       expect(await bio.isEnabled(email), isFalse);
     });
   });
 
   test('delete account removes auth user and profile', () async {
     await service.signUp(email: email, password: password);
-    await service.deleteAccount();
+    await service.deleteAccount(password: password);
     expect(backend.authPasswords, isEmpty);
+    expect(backend.profiles, isEmpty);
+  });
+
+  test('delete account needs the right password, checked by the server',
+      () async {
+    await service.signUp(email: email, password: password);
+    backend.freshSession = false; // an old session, e.g. a stolen token
+    await expectLater(service.deleteAccount(password: 'not my password!!'),
+        throwsA(isA<InvalidCredentials>()));
+    expect(backend.profiles, isNotEmpty);
+    await service.deleteAccount(password: password);
     expect(backend.profiles, isEmpty);
   });
 }

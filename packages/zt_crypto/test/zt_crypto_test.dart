@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 import 'dart:typed_data';
 
@@ -50,6 +51,23 @@ void main() {
       );
       expect(hex(key),
           '55ac046e56e3089fec1691c22544b605f94185216dde0465e68b9d57c20dacbc');
+    });
+
+    test('derivation runs off the calling isolate', () async {
+      // While 200k rounds run, this isolate keeps handling timers (on the
+      // UI isolate: frames keep drawing).
+      var ticks = 0;
+      final timer =
+          Timer.periodic(const Duration(milliseconds: 5), (_) => ticks++);
+      final watch = Stopwatch()..start();
+      await Kdf.deriveMasterKey(
+          password: 'pw',
+          salt: List.filled(16, 1),
+          params: const KdfParams(iterations: 200000));
+      timer.cancel();
+      final expected = watch.elapsedMilliseconds ~/ 5;
+      expect(ticks, greaterThan(expected ~/ 4),
+          reason: '$ticks ticks in ${watch.elapsedMilliseconds} ms');
     });
 
     test('HKDF-SHA256 matches RFC 5869 test case 3', () async {

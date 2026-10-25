@@ -98,19 +98,21 @@ abstract final class KeyHierarchy {
     }
   }
 
-  /// New user: fresh salt, fresh random DEK, fresh recovery key.
   /// New user: fresh random DEK and recovery key. [salt] is normally
-  /// [Kdf.saltForEmail].
+  /// [Kdf.saltForEmail]. Pass [credentials] when they were already derived
+  /// from the same password, salt and params, to skip a second KDF run.
   static Future<NewAccountKeys> createAccount({
     required String password,
     required List<int> salt,
     KdfParams params = KdfParams.current,
+    PasswordCredentials? credentials,
   }) =>
       _wrapDek(
         dek: Kdf.randomBytes(Kdf.keyLength),
         password: password,
         salt: salt,
         params: params,
+        credentials: credentials,
       );
 
   /// Existing (pre-core) user. Today's apps derive their data key directly as
@@ -123,6 +125,7 @@ abstract final class KeyHierarchy {
     required List<int> salt,
     KdfParams legacyParams = KdfParams.current,
     KdfParams params = KdfParams.current,
+    PasswordCredentials? credentials,
   }) async {
     final legacyKey = await Kdf.deriveMasterKey(
       password: password,
@@ -130,7 +133,12 @@ abstract final class KeyHierarchy {
       params: legacyParams,
     );
     return _wrapDek(
-        dek: legacyKey, password: password, salt: salt, params: params);
+      dek: legacyKey,
+      password: password,
+      salt: salt,
+      params: params,
+      credentials: credentials,
+    );
   }
 
   /// Unlock with the password. Throws `SecretBoxAuthenticationError` when the
@@ -164,12 +172,14 @@ abstract final class KeyHierarchy {
     required WrappedKeys stored,
     required List<int> salt,
     KdfParams params = KdfParams.current,
+    PasswordCredentials? credentials,
   }) async {
-    final creds = await deriveCredentials(
-      password: newPassword,
-      salt: salt,
-      params: params,
-    );
+    final creds = credentials ??
+        await deriveCredentials(
+          password: newPassword,
+          salt: salt,
+          params: params,
+        );
     return (
       stored: stored.copyWith(
         kdfSalt: Uint8List.fromList(salt),
@@ -216,8 +226,9 @@ abstract final class KeyHierarchy {
     required String password,
     required List<int> salt,
     required KdfParams params,
+    PasswordCredentials? credentials,
   }) async {
-    final creds =
+    final creds = credentials ??
         await deriveCredentials(password: password, salt: salt, params: params);
     final recoveryKey = RecoveryKey.generate();
     return NewAccountKeys(

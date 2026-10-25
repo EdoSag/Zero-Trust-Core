@@ -1,16 +1,44 @@
 import 'dart:typed_data';
 
+import 'package:clock/clock.dart';
 import 'package:fake_async/fake_async.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:zero_trust_core/zero_trust_core.dart';
 
-ProviderContainer containerFor(ZtAppConfig config) => ProviderContainer(
-      overrides: [ztAppConfigProvider.overrideWithValue(config)],
+ProviderContainer containerFor(ZtAppConfig config, {PreferencesStore? prefs}) =>
+    ProviderContainer(
+      overrides: [
+        ztAppConfigProvider.overrideWithValue(config),
+        ztPreferencesStoreProvider
+            .overrideWithValue(prefs ?? InMemoryPreferencesStore()),
+      ],
     );
 
+const _fiveMinutes = ZtAppConfig(
+    appId: 'tasks',
+    displayName: 'Zero-Trust Tasks',
+    autoLockAfter: Duration(minutes: 5));
+
 void main() {
+  final binding = TestWidgetsFlutterBinding.ensureInitialized();
+
+  void goBackground() {
+    binding.handleAppLifecycleStateChanged(AppLifecycleState.inactive);
+    binding.handleAppLifecycleStateChanged(AppLifecycleState.hidden);
+    binding.handleAppLifecycleStateChanged(AppLifecycleState.paused);
+  }
+
+  void comeBack() {
+    binding.handleAppLifecycleStateChanged(AppLifecycleState.hidden);
+    binding.handleAppLifecycleStateChanged(AppLifecycleState.inactive);
+    binding.handleAppLifecycleStateChanged(AppLifecycleState.resumed);
+  }
+
+  setUp(
+      () => binding.handleAppLifecycleStateChanged(AppLifecycleState.resumed));
+
   test('unlock derives the app key, zeroes the DEK, lock zeroes the key',
       () async {
     final c = containerFor(
@@ -67,6 +95,94 @@ void main() {
       async.elapse(const Duration(minutes: 2));
       expect(c.read(vaultControllerProvider), isA<VaultLocked>());
       c.dispose();
+    });
+  });
+
+  test('locks on return after the delay away, though no timer ran', () async {
+    // A suspended app runs no timers; only the clock moves.
+    var now = DateTime(2026, 10, 25, 9);
+    await withClock(Clock(() => now), () async {
+      final c = containerFor(_fiveMinutes);
+      addTearDown(c.dispose);
+      await c.read(vaultControllerProvider.notifier).unlock(Uint8List(32));
+
+      goBackground();
+      now = now.add(const Duration(minutes: 4, seconds: 59));
+      comeBack();
+      expect(c.read(vaultControllerProvider), isA<VaultUnlocked>());
+
+      goBackground();
+      now = now.add(const Duration(minutes: 5));
+      comeBack();
+      expect(c.read(vaultControllerProvider), isA<VaultLocked>());
+    });
+  });
+
+  test('returning restarts the idle timer', () {
+    fakeAsync((async) {
+      final c = containerFor(_fiveMinutes);
+      c.read(vaultControllerProvider.notifier).unlock(Uint8List(32));
+      async.flushMicrotasks();
+      async.elapse(const Duration(minutes: 3));
+      goBackground();
+      async.elapse(const Duration(minutes: 1));
+      comeBack();
+      async.elapse(const Duration(minutes: 4));
+      expect(c.read(vaultControllerProvider), isA<VaultUnlocked>());
+      async.elapse(const Duration(minutes: 2));
+      expect(c.read(vaultControllerProvider), isA<VaultLocked>());
+      c.dispose();
+    });
+  });
+
+  test('"Immediately" locks as soon as the app is hidden', () async {
+    final c = containerFor(_fiveMinutes);
+    addTearDown(c.dispose);
+    await c.read(ztAutoLockProvider.notifier).set(Duration.zero);
+    await c.read(vaultControllerProvider.notifier).unlock(Uint8List(32));
+    goBackground();
+    expect(c.read(vaultControllerProvider), isA<VaultLocked>());
+  });
+
+  test('"Never" turns off both idle and background locking', () {
+    fakeAsync((async) {
+      final c = containerFor(_fiveMinutes);
+      c.read(ztAutoLockProvider.notifier).set(null);
+      c.read(vaultControllerProvider.notifier).unlock(Uint8List(32));
+      async.flushMicrotasks();
+      goBackground();
+      async.elapse(const Duration(hours: 3));
+      comeBack();
+      expect(c.read(vaultControllerProvider), isA<VaultUnlocked>());
+      c.dispose();
+    });
+  });
+
+  test('the auto-lock choice is saved and applies to the running timer', () {
+    fakeAsync((async) {
+      final prefs = InMemoryPreferencesStore();
+      final c = containerFor(_fiveMinutes, prefs: prefs);
+      c.listen(ztAutoLockProvider, (_, __) {});
+      c.read(vaultControllerProvider.notifier).unlock(Uint8List(32));
+      async.flushMicrotasks();
+      expect(c.read(ztAutoLockProvider), const Duration(minutes: 5));
+
+      c.read(ztAutoLockProvider.notifier).set(const Duration(minutes: 1));
+      async.flushMicrotasks();
+      expect(prefs.values['auto_lock'], '60');
+      async.elapse(const Duration(seconds: 61));
+      expect(c.read(vaultControllerProvider), isA<VaultLocked>());
+      c.dispose();
+
+      // A new launch reads it back; "Never" is stored too.
+      final next = containerFor(_fiveMinutes, prefs: prefs);
+      next.listen(ztAutoLockProvider, (_, __) {});
+      async.flushMicrotasks();
+      expect(next.read(ztAutoLockProvider), const Duration(minutes: 1));
+      next.read(ztAutoLockProvider.notifier).set(null);
+      async.flushMicrotasks();
+      expect(prefs.values['auto_lock'], 'never');
+      next.dispose();
     });
   });
 

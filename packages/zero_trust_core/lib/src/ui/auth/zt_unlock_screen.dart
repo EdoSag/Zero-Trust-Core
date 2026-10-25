@@ -14,12 +14,16 @@ class ZtUnlockScreen extends ConsumerStatefulWidget {
     required this.onUnlocked,
     this.email,
     this.onSignOut,
+    this.onForgotPassword,
     this.autoPromptBiometrics = true,
   });
 
   final void Function(UnlockResult result) onUnlocked;
   final String? email;
   final VoidCallback? onSignOut;
+
+  /// Shows "Forgot password?"; route to `ZtResetPasswordScreen`.
+  final VoidCallback? onForgotPassword;
 
   /// Show the biometric prompt as soon as the screen opens.
   final bool autoPromptBiometrics;
@@ -133,8 +137,17 @@ class _ZtUnlockScreenState extends ConsumerState<ZtUnlockScreen> {
                   const SizedBox(height: 24),
                   FilledButton(
                     onPressed: _busy ? null : _unlock,
-                    child: const Text('Unlock'),
+                    child: _busy
+                        ? const SizedBox.square(
+                            dimension: 20,
+                            child: CircularProgressIndicator(
+                                strokeWidth: 2, semanticsLabel: 'Unlocking'))
+                        : const Text('Unlock'),
                   ),
+                  if (widget.onForgotPassword != null)
+                    TextButton(
+                        onPressed: _busy ? null : widget.onForgotPassword,
+                        child: const Text('Forgot password?')),
                   if (_biometrics) ...[
                     const SizedBox(height: 8),
                     OutlinedButton.icon(
