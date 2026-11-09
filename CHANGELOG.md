@@ -47,8 +47,8 @@ Upgrade notes:
   `vaultControllerProvider.notifier.whileShowingSystemUi(...)`.
 - `ZtTheme.light(accent:)` now uses the accent's tonal colours for the
   secondary roles instead of the raw colour.
-- Server: apply `20261109000000_core_v7_attachments_bucket.sql` before an
-  app uses attachments.
+- Server: `20261109103420_core_v7_attachments_bucket.sql` (the
+  `zt-attachments` bucket) is live since 2026-11-09.
 - Android: `api.pwnedpasswords.com` must be reachable (no network-security
   config blocks it by default).
 
