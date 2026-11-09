@@ -28,7 +28,7 @@ dependencies:
     git:
       url: https://github.com/EdoSag/Zero-Trust-Core.git
       path: packages/zero_trust_core
-      ref: v0.7.0   # always pin a release tag; see CHANGELOG.md
+      ref: v0.8.0   # always pin a release tag; see CHANGELOG.md
 ```
 
 ```dart
@@ -47,6 +47,23 @@ same in every app. Each auth screen hands back an `UnlockResult`; pass its
 `dek` to `vaultControllerProvider.notifier.unlock`, and when
 `newRecoveryKey` is set, show `ZtRecoveryKeyScreen` first. Apps add their own
 settings rows through `ZtSettingsPage(appSection: [...], backupSection: [...])`.
+
+`ZtOnboardingScreen` (privacy promise, recovery key, biometrics) runs once
+before the first sign-in; `ztOnboardingSeenProvider` says whether it has.
+`ZtSignInScreen(offerBiometrics: true)` offers fingerprint or face unlock
+right after signing in, without asking for the password again.
+
+Settings links: `privacyPolicyUrl`, `termsUrl` and `supportUrl` (all opened
+through `onOpenUrl`); "Open-source licences" is always there.
+`onDataExported` adds "Export my data": a decrypted ZIP of every item and
+attachment (`ZtDataExporter`), handed to the app to share.
+
+### Languages
+
+Every string the core shows is in `packages/zero_trust_core/lib/l10n/zt_en.arb`.
+Add `ZtL10n.delegate` to `MaterialApp.localizationsDelegates`. A language the
+core doesn't have yet shows English. To add one, copy `zt_en.arb` to
+`zt_<code>.arb`, translate it, and run `flutter gen-l10n` in that package.
 
 ### Unlock: offline and biometrics
 

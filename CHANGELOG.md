@@ -3,6 +3,41 @@
 Apps depend on the core by git tag (`ref: vX.Y.Z`). Upgrade notes list what
 an app must change.
 
+## 0.8.0
+
+Polish before launch. No breaking changes, no database changes; every
+addition is opt-in, and sign-in, keys and sync work exactly as before.
+
+- **Onboarding** (Z12): `ZtOnboardingScreen`, three pages shown once
+  (`ztOnboardingSeenProvider`). `ZtSignInScreen(offerBiometrics: true)` offers
+  biometric unlock straight after sign-in
+  (`AccountService.enableBiometricsAfterSignIn`, no second key derivation).
+- **Export my data** (Z4): `ZtSettingsPage(onDataExported: ...)` adds the row;
+  it warns, builds a ZIP (`data.json` grouped by kind, decrypted attachments,
+  a README) and hands the file to the app, usually for the share sheet.
+- **Settings links** (Z5): `termsUrl`, `supportUrl` ("Help and feedback")
+  next to `privacyPolicyUrl`, and an "Open-source licences" row.
+- **Languages** (Z9): every core string now comes from
+  `lib/l10n/zt_en.arb` via `ZtL10n`. English only for now; the wording is
+  unchanged. New dependencies: `flutter_localizations`, `intl` (any version),
+  `archive`.
+- **Accessibility** (Z10): tests on every shared screen, light and dark,
+  for tap-target size, labels and text contrast, plus layout at 200% text.
+  Headings are marked as headings, sign-in errors are announced, the
+  recovery key is read out letter by letter, and the strength meter reads
+  its tip.
+- **Tests and CI** (Z19): fixed key vectors (checked against Python's
+  hashlib) so a dependency bump can't silently change keys; tests that an
+  account made in any app, or a pre-core account upgraded in one, opens all
+  four; format checks; pinned Flutter 3.47.9; a Deno lint/type-check job for
+  the delete-account function; a check that generated strings match the ARB.
+- The password dialogs ignore an empty password instead of running the slow
+  key derivation.
+
+Upgrade: change `ref:` to `v0.8.0`. Optional: add `ZtL10n.delegate` to
+`localizationsDelegates`, pass the new settings parameters, show
+`ZtOnboardingScreen` and set `offerBiometrics: true`.
+
 ## 0.7.2
 
 - **New Tasks mark**: a checklist on cyan instead of a check in a circle on
