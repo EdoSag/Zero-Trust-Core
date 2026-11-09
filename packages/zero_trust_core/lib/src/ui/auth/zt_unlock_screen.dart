@@ -4,6 +4,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../account/account_service.dart';
 import '../../config/zt_app_config.dart';
 import '../../core_providers.dart';
+import '../../config/zt_suite.dart';
+import '../brand/zt_brand_mark.dart';
 import 'zt_auth_messages.dart';
 
 /// Unlock an already signed-in session (app relaunch, after auto-lock).
@@ -111,8 +113,10 @@ class _ZtUnlockScreenState extends ConsumerState<ZtUnlockScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  Icon(Icons.lock_outline,
-                      size: 48, color: theme.colorScheme.primary),
+                  Center(
+                      child: ZtBrandMark(
+                          app: ZtSuite.byId(config.appId),
+                          icon: Icons.lock_outline)),
                   const SizedBox(height: 16),
                   Text('${config.displayName} is locked',
                       textAlign: TextAlign.center,

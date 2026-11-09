@@ -2,6 +2,7 @@
 /// Zero-Trust app. Pure Dart, so it is unit-testable without a device.
 library;
 
+export 'src/attachment_cipher.dart';
 export 'src/kdf.dart';
 export 'src/key_hierarchy.dart';
 export 'src/recovery_key.dart';

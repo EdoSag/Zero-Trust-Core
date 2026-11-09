@@ -1,6 +1,6 @@
 name: zero_trust_core
 description: Account, keys, vault lock and shared UI for every Zero-Trust app.
-version: 0.6.0
+version: 0.7.0
 publish_to: none
 
 environment:
@@ -14,6 +14,9 @@ dependencies:
   flutter_secure_storage: ^11.2.0
   local_auth: ^3.0.2
   clock: ^1.1.1
+  cryptography: ^2.7.0
+  dynamic_color: ^1.7.0
+  http: ^1.2.0
   path_provider: ^2.1.6
   sqlite3: ^3.7.0
   supabase_flutter: ^2.9.0

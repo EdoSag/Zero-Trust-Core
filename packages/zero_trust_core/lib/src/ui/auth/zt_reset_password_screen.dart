@@ -2,8 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../account/account_service.dart';
+import '../../account/password_check.dart';
 import '../../core_providers.dart';
 import 'zt_auth_messages.dart';
+import 'zt_password_strength.dart';
 
 /// Second half of "forgot password": opened from Supabase's reset-email deep
 /// link (which signs the user in). The recovery key unlocks the data and a
@@ -42,10 +44,19 @@ class _ZtResetPasswordScreenState extends ConsumerState<ZtResetPasswordScreen> {
       _busy = true;
       _error = null;
     });
+    // Use exactly what was validated, even if a field changes meanwhile.
+    final recoveryKey = _recoveryKey.text;
+    final password = _password.text;
     try {
+      final breached = await ztBreachedPasswordError(
+          ref.read(ztBreachedPasswordCheckerProvider), password);
+      if (breached != null) {
+        if (mounted) setState(() => _error = breached);
+        return;
+      }
       final result = await ref
           .read(accountServiceProvider)
-          .recover(recoveryKey: _recoveryKey.text, newPassword: _password.text);
+          .recover(recoveryKey: recoveryKey, newPassword: password);
       if (mounted) widget.onUnlocked(result);
     } catch (e) {
       if (mounted) setState(() => _error = ztAuthErrorMessage(e));
@@ -85,8 +96,12 @@ class _ZtResetPasswordScreenState extends ConsumerState<ZtResetPasswordScreen> {
                 decoration: const InputDecoration(labelText: 'New password'),
                 obscureText: true,
                 autofillHints: const [AutofillHints.newPassword],
-                validator: ztValidatePassword,
+                validator: (v) => ztValidateNewPassword(v,
+                    email: ref.read(accountServiceProvider).currentEmail),
               ),
+              ZtPasswordStrengthMeter(
+                  controller: _password,
+                  email: ref.read(accountServiceProvider).currentEmail),
               const SizedBox(height: 16),
               TextFormField(
                 controller: _confirm,
