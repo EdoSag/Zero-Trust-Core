@@ -24,6 +24,11 @@ void main() {
         'images': [
           {'size': '60x60', 'scale': '3x', 'filename': 'Icon-App-60x60@3x.png'},
           {
+            'size': '1024x1024',
+            'idiom': 'universal',
+            'filename': 'Icon-1024.png'
+          },
+          {
             'size': '83.5x83.5',
             'scale': '2x',
             'filename': 'Icon-App-83.5x83.5@2x.png'
@@ -48,6 +53,10 @@ void main() {
       expect(File('$res/mipmap-anydpi-v26/ic_launcher.xml').readAsStringSync(),
           contains('<monochrome'));
       expect((await _decode(File('$ios/Icon-App-60x60@3x.png'))).width, 180);
+      // No alpha channel on iOS (PNG colour type 2 = RGB).
+      final marketing = File('$ios/Icon-1024.png').readAsBytesSync();
+      expect(marketing[25], 2);
+      expect((await _decode(File('$ios/Icon-1024.png'))).width, 1024);
       expect(
           (await _decode(File('$ios/Icon-App-83.5x83.5@2x.png'))).width, 167);
       expect(

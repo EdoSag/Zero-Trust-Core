@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'dart:io';
 import 'dart:ui' as ui;
+import 'dart:typed_data';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -81,9 +82,13 @@ abstract final class ZtLauncherIcons {
       final name = image['filename'] as String?;
       if (name == null) continue;
       final pt = double.parse((image['size'] as String).split('x').first);
-      final scale =
-          double.parse((image['scale'] as String).replaceAll('x', ''));
-      await _png('$dir/$name', (pt * scale).round(),
+      // Xcode's single-size catalog leaves out the scale (1x).
+      final scale = double.parse(
+          ((image['scale'] as String?) ?? '1x').replaceAll('x', ''));
+      await _png(
+          '$dir/$name',
+          (pt * scale).round(),
+          opaque: true,
           (c, s) => _mark(c, s, app, radius: 0));
     }
   }
@@ -137,13 +142,63 @@ abstract final class ZtLauncherIcons {
         canvas, Offset((size - text.width) / 2, (size - text.height) / 2));
   }
 
-  static Future<void> _png(String path, int size,
-      void Function(Canvas canvas, double size) paint) async {
+  /// [opaque] writes RGB without an alpha channel: App Store validation
+  /// rejects iOS icons that have one, even when it's fully opaque.
+  static Future<void> _png(
+      String path, int size, void Function(Canvas canvas, double size) paint,
+      {bool opaque = false}) async {
     final recorder = ui.PictureRecorder();
     paint(Canvas(recorder), size.toDouble());
     final image = await recorder.endRecording().toImage(size, size);
-    final data = await image.toByteData(format: ui.ImageByteFormat.png);
-    File(path).writeAsBytesSync(data!.buffer.asUint8List());
+    if (!opaque) {
+      final data = await image.toByteData(format: ui.ImageByteFormat.png);
+      File(path).writeAsBytesSync(data!.buffer.asUint8List());
+      return;
+    }
+    final rgba = (await image.toByteData(format: ui.ImageByteFormat.rawRgba))!
+        .buffer
+        .asUint8List();
+    File(path).writeAsBytesSync(_encodeRgbPng(rgba, size));
+  }
+
+  /// A minimal PNG encoder for an opaque RGB image (colour type 2).
+  static Uint8List _encodeRgbPng(Uint8List rgba, int size) {
+    final raw = BytesBuilder();
+    for (var y = 0; y < size; y++) {
+      raw.addByte(0); // filter: none
+      for (var x = 0; x < size; x++) {
+        final i = (y * size + x) * 4;
+        raw.add([rgba[i], rgba[i + 1], rgba[i + 2]]);
+      }
+    }
+    final out = BytesBuilder()
+      ..add([0x89, 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A]);
+    void chunk(String type, List<int> data) {
+      final body = [...ascii.encode(type), ...data];
+      out
+        ..add(_u32(data.length))
+        ..add(body)
+        ..add(_u32(_crc32(body)));
+    }
+
+    chunk('IHDR', [..._u32(size), ..._u32(size), 8, 2, 0, 0, 0]);
+    chunk('IDAT', ZLibCodec(level: 9).encode(raw.takeBytes()));
+    chunk('IEND', const []);
+    return out.takeBytes();
+  }
+
+  static List<int> _u32(int v) =>
+      [(v >> 24) & 0xFF, (v >> 16) & 0xFF, (v >> 8) & 0xFF, v & 0xFF];
+
+  static int _crc32(List<int> bytes) {
+    var crc = 0xFFFFFFFF;
+    for (final b in bytes) {
+      crc ^= b;
+      for (var k = 0; k < 8; k++) {
+        crc = (crc & 1) != 0 ? (crc >> 1) ^ 0xEDB88320 : crc >> 1;
+      }
+    }
+    return crc ^ 0xFFFFFFFF;
   }
 
   /// Tests draw with a blank font unless the real icon font is loaded.
