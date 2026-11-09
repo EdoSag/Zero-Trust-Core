@@ -4,6 +4,7 @@
 -- Additive: no existing table, bucket or policy is changed. Contacts' old
 -- `contactsProfilePictures` bucket stays as it is for pre-core builds.
 -- 25 MB per object: 20 MB of plaintext plus encryption overhead.
+-- Applied to the live project 2026-11-09 (version 20261109103420).
 insert into storage.buckets (id, name, public, file_size_limit)
 values ('zt-attachments', 'zt-attachments', false, 26214400)
 on conflict (id) do nothing;
