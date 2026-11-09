@@ -120,4 +120,15 @@ void main() {
     expect(utf8.decode(unzip(export.zip)['README.txt']!.content),
         contains(ref.id));
   });
+
+  test('without attachment storage, found attachments are listed missing',
+      () async {
+    final ref = await attachments.put(Uint8List.fromList([1]));
+    await store.put(
+        LocalItem(itemId: 'n1', updatedAt: t, json: {'image': ref.toJson()}));
+    final export = await ZtDataExporter(appId: 'notes', store: store).build();
+    expect(export.missingAttachments, [ref.id]);
+    expect(utf8.decode(unzip(export.zip)['README.txt']!.content),
+        contains(ref.id));
+  });
 }
