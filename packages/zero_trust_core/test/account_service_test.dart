@@ -488,6 +488,15 @@ void main() {
       expect(unlocked!.dek, created.dek);
     });
 
+    test('turned on right after sign-in without asking again', () async {
+      final created = await s.signUp(email: email, password: password);
+      final copy = Uint8List.fromList(created.dek);
+      await s.enableBiometricsAfterSignIn(created);
+      expect(created.dek, copy, reason: 'the caller keeps its key');
+      expect(await s.biometricsEnabled(), isTrue);
+      expect((await s.unlockWithBiometrics())!.dek, copy);
+    });
+
     test('cancelling the prompt returns null', () async {
       await s.signUp(email: email, password: password);
       await s.enableBiometrics(password);

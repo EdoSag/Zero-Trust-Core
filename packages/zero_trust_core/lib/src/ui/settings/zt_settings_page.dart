@@ -28,6 +28,8 @@ class ZtSettingsPage extends ConsumerWidget {
     this.backupSection = const [],
     this.version,
     this.privacyPolicyUrl,
+    this.termsUrl,
+    this.supportUrl,
     this.onOpenUrl,
     this.showSyncStatus = false,
     this.showOtherApps = true,
@@ -43,7 +45,15 @@ class ZtSettingsPage extends ConsumerWidget {
   final List<Widget> backupSection;
 
   final String? version;
+  /// Store requirement. Each link row shows only with [onOpenUrl] set.
   final Uri? privacyPolicyUrl;
+
+  /// Terms of use.
+  final Uri? termsUrl;
+
+  /// Help and feedback: a web page or a `mailto:` link.
+  final Uri? supportUrl;
+
   final void Function(Uri url)? onOpenUrl;
 
   /// Shows [ZtSyncStatusTile] under the account. Needs the core's sync
@@ -144,12 +154,38 @@ class ZtSettingsPage extends ConsumerWidget {
               'End-to-end encrypted. We can\'t read your data.',
             ].join(' · ')),
           ),
+          if (supportUrl != null && onOpenUrl != null)
+            ListTile(
+              leading: const Icon(Icons.help_outline),
+              title: const Text('Help and feedback'),
+              onTap: () => onOpenUrl!(supportUrl!),
+            ),
           if (privacyPolicyUrl != null && onOpenUrl != null)
             ListTile(
               leading: const Icon(Icons.policy_outlined),
               title: const Text('Privacy policy'),
               onTap: () => onOpenUrl!(privacyPolicyUrl!),
             ),
+          if (termsUrl != null && onOpenUrl != null)
+            ListTile(
+              leading: const Icon(Icons.gavel_outlined),
+              title: const Text('Terms of use'),
+              onTap: () => onOpenUrl!(termsUrl!),
+            ),
+          ListTile(
+            leading: const Icon(Icons.description_outlined),
+            title: const Text('Open-source licences'),
+            onTap: () => showLicensePage(
+              context: context,
+              applicationName: config.displayName,
+              applicationVersion: version,
+              applicationIcon: Padding(
+                padding: const EdgeInsets.all(8),
+                child:
+                    ZtBrandMark(app: ZtSuite.byId(config.appId), size: 48),
+              ),
+            ),
+          ),
           if (showOtherApps && onOpenUrl != null) ...[
             const _Header('Other Zero-Trust apps'),
             for (final app in ZtSuite.apps)

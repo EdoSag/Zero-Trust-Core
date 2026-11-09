@@ -25,6 +25,7 @@ class ZtSignInScreen extends ConsumerStatefulWidget {
     required this.onUnlocked,
     this.onForgotPassword,
     this.emailRedirectTo,
+    this.offerBiometrics = false,
   });
 
   final void Function(UnlockResult result) onUnlocked;
@@ -33,6 +34,10 @@ class ZtSignInScreen extends ConsumerStatefulWidget {
   /// Where the confirmation link opens (the app's deep link). Defaults to
   /// the project's Site URL.
   final String? emailRedirectTo;
+
+  /// After signing in, offer to turn on fingerprint or face unlock when the
+  /// device has it and it isn't on yet (part of the shared onboarding).
+  final bool offerBiometrics;
 
   @override
   ConsumerState<ZtSignInScreen> createState() => _ZtSignInScreenState();
@@ -87,6 +92,7 @@ class _ZtSignInScreenState extends ConsumerState<ZtSignInScreen> {
               password: password,
               redirectTo: widget.emailRedirectTo)
           : await account.signIn(email: email, password: password);
+      if (widget.offerBiometrics) await _offerBiometrics(result);
       if (mounted) widget.onUnlocked(result);
     } on EmailConfirmationSent catch (e) {
       if (mounted) {
@@ -106,6 +112,39 @@ class _ZtSignInScreenState extends ConsumerState<ZtSignInScreen> {
       }
     } finally {
       if (mounted) setState(() => _busy = false);
+    }
+  }
+
+  /// Never blocks sign-in: any failure just leaves biometrics off.
+  Future<void> _offerBiometrics(UnlockResult result) async {
+    final account = ref.read(accountServiceProvider);
+    try {
+      if (!await account.biometricsAvailable() ||
+          await account.biometricsEnabled() ||
+          !mounted) {
+        return;
+      }
+      final yes = await showDialog<bool>(
+        context: context,
+        barrierDismissible: false,
+        builder: (context) => AlertDialog(
+          icon: const Icon(Icons.fingerprint),
+          title: const Text('Unlock with biometrics?'),
+          content: const Text('Use your fingerprint or face to open the app '
+              'on this phone. You can change this in Settings.'),
+          actions: [
+            TextButton(
+                onPressed: () => Navigator.pop(context, false),
+                child: const Text('Not now')),
+            FilledButton(
+                onPressed: () => Navigator.pop(context, true),
+                child: const Text('Turn on')),
+          ],
+        ),
+      );
+      if (yes == true) await account.enableBiometricsAfterSignIn(result);
+    } on Object {
+      // Stays off; the Settings switch can turn it on later.
     }
   }
 
