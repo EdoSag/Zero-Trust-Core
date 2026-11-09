@@ -3,6 +3,15 @@
 Apps depend on the core by git tag (`ref: vX.Y.Z`). Upgrade notes list what
 an app must change.
 
+## 0.7.2
+
+- **New Tasks mark**: a checklist on cyan instead of a check in a circle on
+  blue, which looked too much like Google Tasks. Shows on sign-in, unlock and
+  in "Other Zero-Trust apps" in every app.
+- **`ZtLauncherIcons`**: draws an app's launcher icons (Android adaptive and
+  themed, older Android, iOS, web) from the same brand mark. Upgrade: add
+  `tool/launcher_icon_test.dart` and run `flutter test tool/launcher_icon_test.dart`.
+
 ## 0.7.1
 
 Fixes sign-in and unlock in apps that include `cryptography_flutter`
