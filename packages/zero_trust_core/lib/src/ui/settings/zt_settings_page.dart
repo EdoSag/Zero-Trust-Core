@@ -467,11 +467,14 @@ class _Header extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(16, 24, 16, 8),
-      child: Text(text,
-          style: theme.textTheme.titleSmall
-              ?.copyWith(color: theme.colorScheme.primary)),
+    return Semantics(
+      header: true,
+      child: Padding(
+        padding: const EdgeInsets.fromLTRB(16, 24, 16, 8),
+        child: Text(text,
+            style: theme.textTheme.titleSmall
+                ?.copyWith(color: theme.colorScheme.primary)),
+      ),
     );
   }
 }

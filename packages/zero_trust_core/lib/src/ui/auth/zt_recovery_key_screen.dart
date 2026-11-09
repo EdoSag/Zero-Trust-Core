@@ -30,6 +30,9 @@ class _ZtRecoveryKeyScreenState extends State<ZtRecoveryKeyScreen> {
     });
   }
 
+  static String _spelled(String key) =>
+      key.split('-').map((group) => group.split('').join(' ')).join(', ');
+
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
@@ -54,6 +57,9 @@ class _ZtRecoveryKeyScreenState extends State<ZtRecoveryKeyScreen> {
                     ? const Center(child: CircularProgressIndicator())
                     : SelectableText(
                         _text!,
+                        // Read out group by group, letter by letter, so
+                        // it can be written down from a screen reader.
+                        semanticsLabel: 'Recovery key: ${_spelled(_text!)}',
                         key: const Key('zt-recovery-key'),
                         textAlign: TextAlign.center,
                         style: theme.textTheme.titleMedium?.copyWith(

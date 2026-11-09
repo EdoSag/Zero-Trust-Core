@@ -186,9 +186,12 @@ class _ZtSignInScreenState extends ConsumerState<ZtSignInScreen> {
                   children: [
                     Center(child: ZtBrandMark(app: ZtSuite.byId(config.appId))),
                     const SizedBox(height: 16),
-                    Text(config.displayName,
-                        textAlign: TextAlign.center,
-                        style: theme.textTheme.headlineSmall),
+                    Semantics(
+                      header: true,
+                      child: Text(config.displayName,
+                          textAlign: TextAlign.center,
+                          style: theme.textTheme.headlineSmall),
+                    ),
                     const SizedBox(height: 8),
                     Text(
                       _creating
@@ -248,15 +251,22 @@ class _ZtSignInScreenState extends ConsumerState<ZtSignInScreen> {
                         onFieldSubmitted: (_) => _submit(),
                       ),
                     ],
+                    // Live regions: screen readers announce these when
+                    // they appear, since focus stays on the button.
                     if (_info != null) ...[
                       const SizedBox(height: 16),
-                      Text(_info!, textAlign: TextAlign.center),
+                      Semantics(
+                          liveRegion: true,
+                          child: Text(_info!, textAlign: TextAlign.center)),
                     ],
                     if (_error != null) ...[
                       const SizedBox(height: 16),
-                      Text(_error!,
-                          style: TextStyle(color: theme.colorScheme.error),
-                          textAlign: TextAlign.center),
+                      Semantics(
+                        liveRegion: true,
+                        child: Text(_error!,
+                            style: TextStyle(color: theme.colorScheme.error),
+                            textAlign: TextAlign.center),
+                      ),
                     ],
                     if (_canResend)
                       TextButton(
@@ -267,9 +277,13 @@ class _ZtSignInScreenState extends ConsumerState<ZtSignInScreen> {
                     FilledButton(
                       onPressed: _busy ? null : _submit,
                       child: _busy
-                          ? const SizedBox.square(
+                          ? SizedBox.square(
                               dimension: 20,
-                              child: CircularProgressIndicator(strokeWidth: 2))
+                              child: CircularProgressIndicator(
+                                  strokeWidth: 2,
+                                  semanticsLabel: _creating
+                                      ? 'Creating account'
+                                      : 'Signing in'))
                           : Text(_creating ? 'Create account' : 'Sign in'),
                     ),
                     const SizedBox(height: 8),

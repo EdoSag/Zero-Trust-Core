@@ -118,9 +118,12 @@ class _ZtUnlockScreenState extends ConsumerState<ZtUnlockScreen> {
                           app: ZtSuite.byId(config.appId),
                           icon: Icons.lock_outline)),
                   const SizedBox(height: 16),
-                  Text('${config.displayName} is locked',
-                      textAlign: TextAlign.center,
-                      style: theme.textTheme.headlineSmall),
+                  Semantics(
+                    header: true,
+                    child: Text('${config.displayName} is locked',
+                        textAlign: TextAlign.center,
+                        style: theme.textTheme.headlineSmall),
+                  ),
                   if (widget.email != null) ...[
                     const SizedBox(height: 8),
                     Text(widget.email!,
