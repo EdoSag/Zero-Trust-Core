@@ -58,7 +58,8 @@ class ZtDataExporter {
   final String appId;
   final LocalItemStore store;
 
-  /// Null leaves attachments out.
+  /// Null when attachment storage isn't available: the items' attachments
+  /// are then listed in [ZtExport.missingAttachments].
   final ZtAttachments? attachments;
   final DateTime Function() _now;
 
@@ -104,7 +105,10 @@ class ZtDataExporter {
     final index = <Map<String, Object?>>[];
     final missing = <String>[];
     final source = attachments;
-    if (source != null) {
+    if (source == null) {
+      // Can't read any of them: say so rather than export silently without.
+      missing.addAll(refs.keys);
+    } else {
       final usedNames = <String>{};
       for (final ref in refs.values) {
         final Uint8List bytes;
