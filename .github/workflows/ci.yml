@@ -11,7 +11,9 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - uses: dart-lang/setup-dart@v1
+        with: { sdk: 3.13.7 } # the Dart in Flutter below; keeps formatting stable
       - run: dart pub get
+      - run: dart format --output=none --set-exit-if-changed .
       - run: dart analyze --fatal-infos
       - run: dart test
 
@@ -21,8 +23,11 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - uses: subosito/flutter-action@v2
-        with: { channel: stable }
+        with: { channel: stable, flutter-version: 3.47.9 }
       - run: flutter pub get
+      - name: Generated strings match lib/l10n/*.arb
+        run: flutter gen-l10n && git diff --exit-code lib/src/l10n
+      - run: dart format --output=none --set-exit-if-changed .
       - run: flutter analyze --fatal-infos
       - run: flutter test
 
@@ -45,3 +50,13 @@ jobs:
             $(for f in migrations/*.sql; do echo -f "$f"; done) \
             -f tests/key_guard_test.sql -f tests/vault_items_test.sql \
             -f tests/attachments_test.sql
+
+  edge_functions:
+    runs-on: ubuntu-latest
+    defaults: { run: { working-directory: supabase/functions } }
+    steps:
+      - uses: actions/checkout@v4
+      - uses: denoland/setup-deno@v2
+        with: { deno-version: v2.x }
+      - run: deno lint
+      - run: deno check delete-account/index.ts

@@ -32,7 +32,10 @@ class ZtPasswordStrengthMeter extends StatelessWidget {
         };
         return Semantics(
           liveRegion: true,
-          label: 'Password strength: ${strength.label}',
+          label: [
+            'Password strength: ${strength.label}',
+            if (strength.hint != null) strength.hint,
+          ].join('. '),
           child: Padding(
             padding: const EdgeInsets.only(top: 8),
             child: Column(

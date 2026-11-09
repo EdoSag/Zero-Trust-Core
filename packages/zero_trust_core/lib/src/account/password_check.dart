@@ -5,6 +5,8 @@ import 'package:cryptography/cryptography.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:http/http.dart' as http;
 
+import '../l10n/zt_l10n.dart';
+
 /// How hard a password is to guess, from 0 (trivial) to 4 (strong).
 class PasswordStrength {
   const PasswordStrength(this.score, this.hint);
@@ -14,13 +16,13 @@ class PasswordStrength {
   /// One short tip for making it stronger, or null when it's strong.
   final String? hint;
 
-  String get label => const [
-        'Very weak',
-        'Weak',
-        'Fair',
-        'Good',
-        'Strong',
-      ][score];
+  String get label => switch (score) {
+        0 => ZtL10n.current.strengthVeryWeak,
+        1 => ZtL10n.current.strengthWeak,
+        2 => ZtL10n.current.strengthFair,
+        3 => ZtL10n.current.strengthGood,
+        _ => ZtL10n.current.strengthStrong,
+      };
 
   /// What the core asks for in a new password.
   bool get acceptable => score >= 3;
@@ -34,7 +36,9 @@ class PasswordStrength {
 /// guessable token instead of its characters. The password protects the
 /// data itself, so the bar is high: score 3 needs about 60 bits of entropy.
 PasswordStrength estimatePasswordStrength(String password, {String? email}) {
-  if (password.isEmpty) return const PasswordStrength(0, 'Enter a password.');
+  if (password.isEmpty) {
+    return PasswordStrength(0, ZtL10n.current.enterAPassword);
+  }
   var p = password.toLowerCase();
   final tips = <String>[];
 
@@ -54,24 +58,24 @@ PasswordStrength estimatePasswordStrength(String password, {String? email}) {
   }
 
   final local = email?.split('@').first.toLowerCase() ?? '';
-  if (local.length >= 3) strip(local, 'Don\'t use your email in it.');
+  if (local.length >= 3) strip(local, ZtL10n.current.tipNoEmail);
   for (final word in _commonWords) {
     if (word.length >= 4 && p.contains(word)) {
-      strip(word, 'Avoid common words and passwords.');
+      strip(word, ZtL10n.current.tipCommonWords);
     }
   }
-  strip(RegExp(r'(.)\1{2,}'), 'Avoid repeated characters like "aaa".');
+  strip(RegExp(r'(.)\1{2,}'), ZtL10n.current.tipRepeated);
   for (final seq in _sequences) {
     for (var len = seq.length; len >= 4; len--) {
       for (var i = 0; i + len <= seq.length; i++) {
         final s = seq.substring(i, i + len);
-        if (p.contains(s)) strip(s, 'Avoid sequences like "1234" or "qwerty".');
+        if (p.contains(s)) strip(s, ZtL10n.current.tipSequences);
         final r = s.split('').reversed.join();
-        if (p.contains(r)) strip(r, 'Avoid sequences like "1234" or "qwerty".');
+        if (p.contains(r)) strip(r, ZtL10n.current.tipSequences);
       }
     }
   }
-  strip(RegExp(r'(19|20)\d{2}'), 'Avoid years and dates.');
+  strip(RegExp(r'(19|20)\d{2}'), ZtL10n.current.tipYears);
 
   final rest = p.replaceAll('\u0000', '');
   var pool = 0;
@@ -98,8 +102,8 @@ PasswordStrength estimatePasswordStrength(String password, {String? email}) {
       : tips.isNotEmpty
           ? tips.first
           : password.length < 16
-              ? 'Make it longer: a few unrelated words work well.'
-              : 'Mix in words, numbers or symbols.';
+              ? ZtL10n.current.tipLonger
+              : ZtL10n.current.tipMix;
   return PasswordStrength(score, hint);
 }
 
@@ -170,8 +174,7 @@ Future<String?> ztBreachedPasswordError(
     return null;
   }
   if (seen == 0) return null;
-  return 'This password has appeared in data breaches, so attackers try it '
-      'first. Choose a different one.';
+  return ZtL10n.current.passwordBreached;
 }
 
 /// Words and passwords guessers try first (lowercase). Short on purpose: it

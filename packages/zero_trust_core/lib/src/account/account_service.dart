@@ -218,6 +218,24 @@ class AccountService {
     }
   }
 
+  /// Turn on biometric unlock with the key from a sign-in that just
+  /// happened, so the user isn't asked for the password (and the slow key
+  /// derivation) a second time. [result] is left untouched; a copy of its
+  /// key is stored.
+  Future<void> enableBiometricsAfterSignIn(UnlockResult result) async {
+    final store = _biometrics;
+    if (store == null || !await store.isAvailable()) {
+      throw StateError('Biometric unlock is not available on this device.');
+    }
+    final dek = Uint8List.fromList(result.dek);
+    try {
+      await store
+          .save(_requireUserId(), (dek: dek, legacyDek: result.legacyDek));
+    } finally {
+      dek.fillRange(0, dek.length, 0);
+    }
+  }
+
   Future<void> disableBiometrics() async {
     final userId = _backend.currentUserId;
     if (userId != null) await _biometrics?.clear(userId);

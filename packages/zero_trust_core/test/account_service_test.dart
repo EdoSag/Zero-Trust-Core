@@ -107,6 +107,55 @@ void main() {
     expect(next.dek, todaysKey);
   });
 
+  group('one account opens every app', () {
+    // Each app has its own AccountService on the same project.
+
+    test('made in any app, it signs in to all four with the same key',
+        () async {
+      for (final maker in ZtSuite.apps) {
+        final backend = FakeBackend();
+        final created = await AccountService(backend, params: fast)
+            .signUp(email: email, password: password);
+        final appKeys = <String, Uint8List>{};
+        for (final app in ZtSuite.apps) {
+          final signedIn = await AccountService(backend, params: fast)
+              .signIn(email: email, password: password);
+          expect(signedIn.dek, created.dek,
+              reason: '${maker.appId} -> ${app.appId}');
+          expect(signedIn.newRecoveryKey, isNull);
+          appKeys[app.appId] =
+              await KeyHierarchy.appKey(signedIn.dek, app.appId);
+        }
+        // Each app's data stays separated under its own key.
+        expect(appKeys.values.map((k) => k.join(',')).toSet(),
+            hasLength(ZtSuite.apps.length));
+      }
+    });
+
+    test(
+        'a pre-core account upgraded by one app opens the others with its '
+        'old data key', () async {
+      final legacySalt = Kdf.newSalt();
+      final oldKey = await Kdf.deriveMasterKey(
+          password: password, salt: legacySalt, params: fast);
+      backend.authPasswords[email] = password;
+      backend.profiles[email] =
+          ProfileRecord(legacySalt: ZtBase64.encode(legacySalt));
+
+      final first =
+          await AccountService(backend, params: fast, legacyParams: fast)
+              .signIn(email: email, password: password);
+      expect(first.legacyDek, isTrue);
+      for (final _ in ZtSuite.apps) {
+        final other =
+            await AccountService(backend, params: fast, legacyParams: fast)
+                .signIn(email: email, password: password);
+        expect(other.dek, oldKey);
+        expect(other.legacyDek, isTrue);
+      }
+    });
+  });
+
   test('legacy salt written by Notes (standard base64) also upgrades',
       () async {
     final legacySalt = Kdf.newSalt();
@@ -486,6 +535,15 @@ void main() {
       expect(await s.biometricsEnabled(), isTrue);
       final unlocked = await s.unlockWithBiometrics();
       expect(unlocked!.dek, created.dek);
+    });
+
+    test('turned on right after sign-in without asking again', () async {
+      final created = await s.signUp(email: email, password: password);
+      final copy = Uint8List.fromList(created.dek);
+      await s.enableBiometricsAfterSignIn(created);
+      expect(created.dek, copy, reason: 'the caller keeps its key');
+      expect(await s.biometricsEnabled(), isTrue);
+      expect((await s.unlockWithBiometrics())!.dek, copy);
     });
 
     test('cancelling the prompt returns null', () async {

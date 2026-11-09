@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+
+import '../../l10n/zt_l10n.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../sync/sync_providers.dart';
@@ -38,8 +40,7 @@ class ZtSyncStatusTile extends ConsumerWidget {
         (final Object error, _) when !status.isSyncing =>
           Text(ztErrorMessage(error)),
         (_, 0) => null,
-        (_, 1) => const Text("1 item couldn't be read"),
-        _ => Text("$rejected items couldn't be read"),
+        _ => Text(ZtL10n.of(context).itemsUnreadable(rejected)),
       },
       onTap: status.isSyncing
           ? null
@@ -50,17 +51,13 @@ class ZtSyncStatusTile extends ConsumerWidget {
 
 /// The row's title for [status] at [now].
 String syncStatusLabel(SyncStatus status, DateTime now) {
-  if (status.isSyncing) return 'Syncing…';
-  if (status.error != null) return "Couldn't sync. Tap to retry";
+  if (status.isSyncing) return ZtL10n.current.syncing;
+  if (status.error != null) return ZtL10n.current.syncFailedRetry;
   final at = status.lastSyncedAt;
-  if (at == null) return 'Not synced yet';
+  if (at == null) return ZtL10n.current.notSyncedYet;
   final ago = now.difference(at);
-  if (ago.inMinutes < 1) return 'Synced just now';
-  if (ago.inHours < 1) return 'Synced ${ago.inMinutes} min ago';
-  if (ago.inDays < 1) {
-    return ago.inHours == 1
-        ? 'Synced 1 hour ago'
-        : 'Synced ${ago.inHours} hours ago';
-  }
-  return ago.inDays == 1 ? 'Synced yesterday' : 'Synced ${ago.inDays} days ago';
+  if (ago.inMinutes < 1) return ZtL10n.current.syncedJustNow;
+  if (ago.inHours < 1) return ZtL10n.current.syncedMinutesAgo(ago.inMinutes);
+  if (ago.inDays < 1) return ZtL10n.current.syncedHoursAgo(ago.inHours);
+  return ZtL10n.current.syncedDaysAgo(ago.inDays);
 }
