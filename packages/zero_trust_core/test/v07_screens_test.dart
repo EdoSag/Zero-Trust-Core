@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:typed_data';
 
 import 'package:fake_async/fake_async.dart';
@@ -18,6 +19,18 @@ class AlwaysBreached implements BreachedPasswordChecker {
   Future<int> timesSeen(String password) async {
     calls++;
     return 42;
+  }
+}
+
+/// Holds the check open until [release], to edit the form meanwhile.
+class SlowCheck implements BreachedPasswordChecker {
+  final gate = Completer<void>();
+  final checked = <String>[];
+  @override
+  Future<int> timesSeen(String password) async {
+    checked.add(password);
+    await gate.future;
+    return 0;
   }
 }
 
@@ -96,6 +109,24 @@ void main() {
     expect(find.textContaining('appeared in data breaches'), findsOneWidget);
     expect(result, isNull);
     expect(backend.profiles, isEmpty);
+  });
+
+  testWidgets('sign-up uses the password that was checked, not a later edit',
+      (tester) async {
+    final slow = SlowCheck();
+    breaches = slow;
+    await tester.pumpWidget(app(ZtSignInScreen(onUnlocked: (_) {})));
+    await fillSignUp(tester, strong);
+    await tester.tap(find.widgetWithText(FilledButton, 'Create account'));
+    await tester.pump();
+    await tester.enterText(find.widgetWithText(TextFormField, 'Password'), 'x');
+    slow.gate.complete();
+    await settle(tester);
+    expect(slow.checked, [strong]);
+    await tester.runAsync(() async {
+      await account.signOut();
+      await account.signIn(email: email, password: strong);
+    });
   });
 
   testWidgets(

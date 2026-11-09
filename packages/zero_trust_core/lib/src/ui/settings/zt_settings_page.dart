@@ -521,15 +521,19 @@ class _ChangePasswordDialogState extends ConsumerState<_ChangePasswordDialog> {
       _busy = true;
       _error = null;
     });
+    // Use exactly what was validated, even if a field changes meanwhile.
+    final current = _current.text;
+    final next = _next.text;
     try {
       final breached = await ztBreachedPasswordError(
-          ref.read(ztBreachedPasswordCheckerProvider), _next.text);
+          ref.read(ztBreachedPasswordCheckerProvider), next);
       if (breached != null) {
         if (mounted) setState(() => _error = breached);
         return;
       }
-      await ref.read(accountServiceProvider).changePassword(
-          currentPassword: _current.text, newPassword: _next.text);
+      await ref
+          .read(accountServiceProvider)
+          .changePassword(currentPassword: current, newPassword: next);
       if (mounted) Navigator.pop(context, true);
     } catch (e) {
       if (mounted) setState(() => _error = ztAuthErrorMessage(e));

@@ -93,6 +93,15 @@ class ZtAttachments {
   final AttachmentBackend _backend;
   final AttachmentCache _cache;
   Future<void>? _flushing;
+  Future<void> _queue = Future<void>.value();
+
+  /// Runs [action] after every earlier one: the pending lists are
+  /// read-modify-write, so two at once would lose an entry.
+  Future<R> _locked<R>(Future<R> Function() action) {
+    final result = _queue.then((_) => action());
+    _queue = result.then<void>((_) {}, onError: (Object _) {});
+    return result;
+  }
 
   String pathOf(String id) => '$userId/$appId/$id';
 
@@ -112,8 +121,10 @@ class ZtAttachments {
     final key = Kdf.randomBytes(32);
     final sealed =
         await AttachmentCipher.encrypt(bytes, key: key, attachmentId: id);
-    await _cache.write(id, sealed);
-    await _cache.setPendingUploads({...await _cache.pendingUploads(), id});
+    await _locked(() async {
+      await _cache.write(id, sealed);
+      await _cache.setPendingUploads({...await _cache.pendingUploads(), id});
+    });
     final ref = ZtAttachmentRef(
         id: id, key: key, size: bytes.length, mimeType: mimeType, name: name);
     unawaited(flush().catchError((Object _) {}));
@@ -132,7 +143,7 @@ class ZtAttachments {
     if (plain.length != ref.size) {
       throw const AttachmentCorrupt('size does not match');
     }
-    if (!cached) await _cache.write(ref.id, sealed);
+    if (!cached) await _locked(() => _cache.write(ref.id, sealed!));
     return plain;
   }
 
@@ -145,12 +156,15 @@ class ZtAttachments {
   Future<void> deleteAll(Iterable<ZtAttachmentRef> refs) async {
     final ids = {for (final r in refs) r.id};
     if (ids.isEmpty) return;
-    for (final id in ids) {
-      await _cache.remove(id);
-    }
-    await _cache
-        .setPendingUploads((await _cache.pendingUploads()).difference(ids));
-    await _cache.setPendingDeletes({...await _cache.pendingDeletes(), ...ids});
+    await _locked(() async {
+      for (final id in ids) {
+        await _cache.remove(id);
+      }
+      await _cache
+          .setPendingUploads((await _cache.pendingUploads()).difference(ids));
+      await _cache
+          .setPendingDeletes({...await _cache.pendingDeletes(), ...ids});
+    });
     unawaited(flush().catchError((Object _) {}));
   }
 
@@ -168,17 +182,18 @@ class ZtAttachments {
   }
 
   Future<void> _flush() async {
-    final deletes = await _cache.pendingDeletes();
+    // Network calls run outside the lock; only the list updates are inside.
+    final deletes = await _locked(_cache.pendingDeletes);
     if (deletes.isNotEmpty) {
       await _backend.remove([for (final id in deletes) pathOf(id)]);
-      await _cache.setPendingDeletes(
-          (await _cache.pendingDeletes()).difference(deletes));
+      await _locked(() async => _cache.setPendingDeletes(
+          (await _cache.pendingDeletes()).difference(deletes)));
     }
-    for (final id in await _cache.pendingUploads()) {
-      final sealed = await _cache.read(id);
+    for (final id in await _locked(_cache.pendingUploads)) {
+      final sealed = await _locked(() => _cache.read(id));
       if (sealed != null) await _backend.upload(pathOf(id), sealed);
-      await _cache
-          .setPendingUploads((await _cache.pendingUploads())..remove(id));
+      await _locked(() async => _cache
+          .setPendingUploads((await _cache.pendingUploads())..remove(id)));
     }
   }
 

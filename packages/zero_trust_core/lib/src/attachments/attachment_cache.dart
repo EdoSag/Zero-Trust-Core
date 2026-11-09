@@ -66,6 +66,10 @@ class FileAttachmentCache implements AttachmentCache {
     if (await dir.exists()) await dir.delete(recursive: true);
   }
 
+  static int _tmpCount = 0;
+  static String _tmpSuffix() =>
+      'tmp${DateTime.now().microsecondsSinceEpoch}-${_tmpCount++}';
+
   static final _safeId = RegExp(r'^[0-9a-f]{32}$');
 
   File _file(String id) {
@@ -84,7 +88,7 @@ class FileAttachmentCache implements AttachmentCache {
   @override
   Future<void> write(String id, Uint8List sealed) async {
     // Write then rename, so a crash never leaves half a file behind.
-    final tmp = File('${_file(id).path}.tmp');
+    final tmp = File('${_file(id).path}.${_tmpSuffix()}');
     await tmp.writeAsBytes(sealed, flush: true);
     await tmp.rename(_file(id).path);
   }
@@ -109,7 +113,7 @@ class FileAttachmentCache implements AttachmentCache {
   }
 
   Future<void> _writePending(Map<String, Set<String>> p) async {
-    final tmp = File('${_pending.path}.tmp');
+    final tmp = File('${_pending.path}.${_tmpSuffix()}');
     await tmp.writeAsString(jsonEncode({
       for (final e in p.entries) e.key: e.value.toList(),
     }));

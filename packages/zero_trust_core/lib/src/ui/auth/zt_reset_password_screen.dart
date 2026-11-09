@@ -44,16 +44,19 @@ class _ZtResetPasswordScreenState extends ConsumerState<ZtResetPasswordScreen> {
       _busy = true;
       _error = null;
     });
+    // Use exactly what was validated, even if a field changes meanwhile.
+    final recoveryKey = _recoveryKey.text;
+    final password = _password.text;
     try {
       final breached = await ztBreachedPasswordError(
-          ref.read(ztBreachedPasswordCheckerProvider), _password.text);
+          ref.read(ztBreachedPasswordCheckerProvider), password);
       if (breached != null) {
         if (mounted) setState(() => _error = breached);
         return;
       }
       final result = await ref
           .read(accountServiceProvider)
-          .recover(recoveryKey: _recoveryKey.text, newPassword: _password.text);
+          .recover(recoveryKey: recoveryKey, newPassword: password);
       if (mounted) widget.onUnlocked(result);
     } catch (e) {
       if (mounted) setState(() => _error = ztAuthErrorMessage(e));

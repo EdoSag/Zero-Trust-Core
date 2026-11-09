@@ -1,9 +1,12 @@
 import 'dart:typed_data';
 
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+
 import 'package:flutter_test/flutter_test.dart';
 import 'package:zero_trust_core/zero_trust_core.dart';
 
 void main() {
+  TestWidgetsFlutterBinding.ensureInitialized();
   late InMemoryAttachmentBackend server;
   late InMemoryAttachmentCache cache;
   late ZtAttachments attachments;
@@ -117,4 +120,65 @@ void main() {
     expect(ztErrorMessage(const AttachmentNotFound('x')),
         contains('once the device that added it is back online'));
   });
+
+  test('many puts and deletes at once lose no queue entry', () async {
+    server.failWith = Exception('offline');
+    final refs = await Future.wait([
+      for (var i = 0; i < 20; i++) attachments.put(bytes(10 + i)),
+    ]);
+    await Future.wait([
+      attachments.delete(refs[0]),
+      attachments.delete(refs[1]),
+      for (var i = 0; i < 5; i++) attachments.put(bytes(5)),
+    ]);
+    await pumpEventQueue();
+    expect(await attachments.pendingUploadCount(), 23);
+    server.failWith = null;
+    await attachments.flush();
+    expect(server.files, hasLength(23));
+    expect(cache.uploads, isEmpty);
+    expect(cache.deletes, isEmpty);
+  });
+
+  test('a new account after sign-out gets its own attachments', () async {
+    final backend = _SwitchingAccount();
+    final c = ProviderContainer(overrides: [
+      ztAppConfigProvider.overrideWithValue(
+          const ZtAppConfig(appId: 'notes', displayName: 'Zero-Trust Notes')),
+      accountServiceProvider.overrideWithValue(AccountService(backend)),
+      ztPreferencesStoreProvider.overrideWithValue(InMemoryPreferencesStore()),
+      ztAttachmentBackendProvider.overrideWithValue(server),
+      ztAttachmentCacheProvider
+          .overrideWith((ref) async => InMemoryAttachmentCache()),
+      // No sync in this test.
+      ztSyncControllerProvider.overrideWith(_IdleSync.new),
+    ]);
+    addTearDown(c.dispose);
+    final vault = c.read(vaultControllerProvider.notifier);
+    c.listen(ztAttachmentsProvider, (_, __) {});
+
+    await vault.unlock(Uint8List(32));
+    expect((await c.read(ztAttachmentsProvider.future)).userId, 'first');
+    vault.lock();
+    backend.user = 'second';
+    await vault.unlock(Uint8List(32));
+    final second = await c.read(ztAttachmentsProvider.future);
+    expect(second.userId, 'second');
+    expect(second.pathOf('x'), 'second/notes/x');
+  });
+}
+
+class _IdleSync extends SyncController {
+  @override
+  SyncStatus build() => const SyncStatus();
+}
+
+class _SwitchingAccount implements AccountBackend {
+  String user = 'first';
+  @override
+  String? get currentUserId => user;
+  @override
+  String? get currentEmail => '$user@x.com';
+  @override
+  dynamic noSuchMethod(Invocation invocation) => throw UnimplementedError();
 }

@@ -67,22 +67,26 @@ class _ZtSignInScreenState extends ConsumerState<ZtSignInScreen> {
       _canResend = false;
     });
     final account = ref.read(accountServiceProvider);
+    // What was validated is what gets used, even if a field changes while
+    // the breach check or the KDF is running.
+    final creating = _creating;
+    final email = _email.text.trim();
+    final password = _password.text;
     try {
-      if (_creating) {
+      if (creating) {
         final breached = await ztBreachedPasswordError(
-            ref.read(ztBreachedPasswordCheckerProvider), _password.text);
+            ref.read(ztBreachedPasswordCheckerProvider), password);
         if (breached != null) {
           if (mounted) setState(() => _error = breached);
           return;
         }
       }
-      final result = _creating
+      final result = creating
           ? await account.signUp(
-              email: _email.text.trim(),
-              password: _password.text,
+              email: email,
+              password: password,
               redirectTo: widget.emailRedirectTo)
-          : await account.signIn(
-              email: _email.text.trim(), password: _password.text);
+          : await account.signIn(email: email, password: password);
       if (mounted) widget.onUnlocked(result);
     } on EmailConfirmationSent catch (e) {
       if (mounted) {
