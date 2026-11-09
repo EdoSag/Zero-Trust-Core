@@ -1,8 +1,12 @@
+import 'dart:io';
+
 import 'package:dynamic_color/dynamic_color.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../config/zt_app_config.dart';
+import '../../export/zt_data_export.dart';
+import '../../export/zt_export_data_tile.dart';
 import '../../attachments/attachment_cache.dart';
 import '../../config/zt_preferences.dart';
 import '../../config/zt_suite.dart';
@@ -26,6 +30,7 @@ class ZtSettingsPage extends ConsumerWidget {
     required this.onSignedOut,
     this.appSection = const [],
     this.backupSection = const [],
+    this.onDataExported,
     this.version,
     this.privacyPolicyUrl,
     this.termsUrl,
@@ -43,6 +48,10 @@ class ZtSettingsPage extends ConsumerWidget {
 
   /// Export / import rows. Hidden when empty.
   final List<Widget> backupSection;
+
+  /// Shows "Export my data" ([ZtExportDataTile]) at the top of Backup and
+  /// receives the ZIP file, usually to open the share sheet.
+  final Future<void> Function(File file, ZtExport export)? onDataExported;
 
   final String? version;
   /// Store requirement. Each link row shows only with [onOpenUrl] set.
@@ -137,8 +146,10 @@ class ZtSettingsPage extends ConsumerWidget {
             ),
           ),
           const _DynamicColorTile(),
-          if (backupSection.isNotEmpty) ...[
+          if (backupSection.isNotEmpty || onDataExported != null) ...[
             const _Header('Backup'),
+            if (onDataExported != null)
+              ZtExportDataTile(onExported: onDataExported!),
             ...backupSection,
           ],
           if (appSection.isNotEmpty) ...[

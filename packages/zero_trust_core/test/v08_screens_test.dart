@@ -1,5 +1,8 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_riverpod/misc.dart' show Override;
 import 'package:flutter_test/flutter_test.dart';
 import 'package:zero_trust_core/zero_trust_core.dart';
 
@@ -20,8 +23,9 @@ void main() {
     prefs = InMemoryPreferencesStore();
   });
 
-  Widget app(Widget home, {List<Locale>? locales}) => ProviderScope(
+  Widget app(Widget home, {List<Override> extra = const []}) => ProviderScope(
         overrides: [
+          ...extra,
           accountServiceProvider.overrideWithValue(account),
           ztPreferencesStoreProvider.overrideWithValue(prefs),
           ztAppConfigProvider.overrideWithValue(
@@ -186,5 +190,49 @@ void main() {
       await tester.scrollUntilVisible(find.text('Open-source licences'), 100);
       expect(find.text('Open-source licences'), findsOneWidget);
     });
+  });
+
+  testWidgets('settings: export my data writes a ZIP (Z4)', (tester) async {
+    await account.signUp(email: email, password: password);
+    final store = InMemoryItemStore();
+    await store.put(LocalItem(
+        itemId: 'w1', updatedAt: DateTime.utc(2026), json: {'km': 5}));
+    ZtExport? written;
+    File? exported;
+    await tester.pumpWidget(app(
+      ZtSettingsPage(
+        onSignedOut: () {},
+        onDataExported: (file, export) async => exported = file,
+      ),
+      extra: [
+        ztLocalStoreProvider.overrideWith((ref) async => store),
+        ztAttachmentsProvider.overrideWith((ref) async => ZtAttachments(
+            appId: 'fitness',
+            userId: 'u1',
+            backend: InMemoryAttachmentBackend(),
+            cache: InMemoryAttachmentCache())),
+        ztExportFileWriterProvider.overrideWithValue((export) async {
+          written = export;
+          return File('/tmp/${export.fileName}');
+        }),
+      ],
+    ));
+    await settle(tester);
+    await tester.scrollUntilVisible(find.text('Export my data'), 100);
+    await tester.tap(find.text('Export my data'));
+    await tester.pumpAndSettle();
+    expect(find.textContaining('isn\'t encrypted'), findsOneWidget);
+    await tester.tap(find.widgetWithText(FilledButton, 'Export'));
+    for (var i = 0; i < 50 && exported == null; i++) {
+      await tester.runAsync(
+          () => Future<void>.delayed(const Duration(milliseconds: 20)));
+      await tester.pump();
+    }
+    await tester.pumpAndSettle();
+
+    expect(exported, isNotNull);
+    expect(exported!.path, endsWith('.zip'));
+    expect(written!.itemCount, 1);
+    expect(written!.zip.length, greaterThan(100));
   });
 }
