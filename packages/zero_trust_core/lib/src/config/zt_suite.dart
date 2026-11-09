@@ -52,8 +52,10 @@ abstract final class ZtSuite {
     appId: 'tasks',
     name: 'Tasks',
     tagline: 'To-dos, reminders and lists',
-    icon: Icons.task_alt,
-    accent: Color(0xFF3B82F6), // blue
+    // A checklist rather than a check in a circle, and cyan rather than
+    // blue, so it doesn't read as Google Tasks.
+    icon: Icons.checklist_rounded,
+    accent: Color(0xFF06B6D4), // cyan
     androidPackage: 'dev.sagron.zerotrusttasks',
   );
   static const fitness = ZtSuiteApp(

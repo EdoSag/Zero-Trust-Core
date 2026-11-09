@@ -35,6 +35,7 @@ export 'src/ui/auth/zt_reset_password_screen.dart';
 export 'src/ui/auth/zt_sign_in_screen.dart';
 export 'src/ui/auth/zt_unlock_screen.dart';
 export 'src/ui/brand/zt_brand_mark.dart';
+export 'src/ui/brand/zt_launcher_icons.dart';
 export 'src/ui/settings/zt_data_protection_screen.dart';
 export 'src/ui/settings/zt_settings_page.dart';
 export 'src/ui/settings/zt_sync_status_tile.dart';
