@@ -3,6 +3,55 @@
 Apps depend on the core by git tag (`ref: vX.Y.Z`). Upgrade notes list what
 an app must change.
 
+## 0.7.0
+
+Shared building blocks the other apps need before they move onto the core.
+No breaking changes; pre-core accounts sign in and keep their data exactly
+as before.
+
+- **Typed collections** (`ZtCollection<T>`): each kind of item (notes,
+  notebooks, tasks, lists, contacts…) gets `fromJson`/`toJson`, `list`,
+  `get`, `watch`, `save`, `delete`. Items carry `kind` and a schema version
+  (`_v`); older items go through `upgrade` on read, items from a newer app
+  version are listed by `newerItems` and never overwritten, and fields the
+  app doesn't know are kept on save. A collection with `kind: null` owns
+  items without a `kind`, so everything Notes has written stays readable.
+- **Encrypted attachments** (`ZtAttachments`, `ztAttachmentsProvider`):
+  images, photos and files up to 20 MB, encrypted on the device with their
+  own key (kept inside the item) in authenticated 256 KiB chunks
+  (`AttachmentCipher` in `zt_crypto`). Stored locally first so they show
+  offline; uploads and deletes wait for the network and are retried after
+  every sync. Private bucket `zt-attachments`, own folder only.
+- **Auto-lock and system screens**: `VaultController.whileShowingSystemUi`
+  keeps the vault unlocked while a file/photo picker, permission prompt or
+  share sheet covers the app (up to 15 minutes away).
+- **"How your data is protected"** screen (`ZtDataProtectionScreen`), linked
+  from Settings → Security.
+- **Clearer errors**: `ztErrorMessage` also covers sync, storage and
+  attachment errors; the sync row says why it failed.
+- **New passwords** (sign-up, change, reset) show a strength meter, must
+  rate "Good" or better, and are checked against known breaches (Have I Been
+  Pwned, k-anonymity: only 5 hex characters of the SHA-1 leave the device;
+  skipped when offline). Signing in is never checked.
+- **One brand look**: `ZtSuite` lists the four apps with their accents and
+  store ids; `ZtBrandMark` on sign-in, unlock and settings; `ZtThemeBuilder`
+  applies the app's accent, remembers light/dark/system, and offers
+  wallpaper colours (Material You) under Appearance; `ZtSpacing` tokens.
+- **Other Zero-Trust apps** section in Settings (needs `onOpenUrl`).
+
+Upgrade notes:
+
+- Wrap `MaterialApp` in `ZtThemeBuilder` instead of passing `ZtTheme.light()`
+  yourself (optional, but it's what remembers the theme choice).
+- Wrap file pickers, camera and permission prompts in
+  `vaultControllerProvider.notifier.whileShowingSystemUi(...)`.
+- `ZtTheme.light(accent:)` now uses the accent's tonal colours for the
+  secondary roles instead of the raw colour.
+- Server: apply `20261109000000_core_v7_attachments_bucket.sql` before an
+  app uses attachments.
+- Android: `api.pwnedpasswords.com` must be reachable (no network-security
+  config blocks it by default).
+
 ## 0.6.0
 
 Lock and account hardening.

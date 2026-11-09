@@ -3,9 +3,13 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../account/account_backend.dart';
 import '../../account/account_service.dart';
+import '../../account/password_check.dart';
 import '../../config/zt_app_config.dart';
 import '../../core_providers.dart';
+import '../../config/zt_suite.dart';
+import '../brand/zt_brand_mark.dart';
 import 'zt_auth_messages.dart';
+import 'zt_password_strength.dart';
 
 /// Sign in or create a Zero-Trust account. Identical in every app.
 ///
@@ -64,6 +68,14 @@ class _ZtSignInScreenState extends ConsumerState<ZtSignInScreen> {
     });
     final account = ref.read(accountServiceProvider);
     try {
+      if (_creating) {
+        final breached = await ztBreachedPasswordError(
+            ref.read(ztBreachedPasswordCheckerProvider), _password.text);
+        if (breached != null) {
+          if (mounted) setState(() => _error = breached);
+          return;
+        }
+      }
       final result = _creating
           ? await account.signUp(
               email: _email.text.trim(),
@@ -129,8 +141,7 @@ class _ZtSignInScreenState extends ConsumerState<ZtSignInScreen> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
-                    Icon(Icons.shield_outlined,
-                        size: 48, color: theme.colorScheme.primary),
+                    Center(child: ZtBrandMark(app: ZtSuite.byId(config.appId))),
                     const SizedBox(height: 16),
                     Text(config.displayName,
                         textAlign: TextAlign.center,
@@ -175,11 +186,13 @@ class _ZtSignInScreenState extends ConsumerState<ZtSignInScreen> {
                       // Accounts from pre-core app versions may have shorter passwords;
                       // they must still be able to sign in and upgrade.
                       validator: (v) => _creating
-                          ? ztValidatePassword(v)
+                          ? ztValidateNewPassword(v, email: _email.text.trim())
                           : ((v ?? '').isEmpty ? 'Enter your password.' : null),
                       onFieldSubmitted: (_) => _creating ? null : _submit(),
                     ),
                     if (_creating) ...[
+                      ZtPasswordStrengthMeter(
+                          controller: _password, email: _email.text.trim()),
                       const SizedBox(height: 16),
                       TextFormField(
                         controller: _confirm,

@@ -193,6 +193,12 @@ void main() {
     expect(dark.colorScheme.brightness, Brightness.dark);
     expect(light.colorScheme.primary,
         ColorScheme.fromSeed(seedColor: ZtTheme.brandSeed).primary);
-    expect(dark.colorScheme.secondary, Colors.teal);
+    // The accent's tonal colour for the brightness, so text on it keeps
+    // its contrast.
+    expect(
+        dark.colorScheme.secondary,
+        ColorScheme.fromSeed(
+                seedColor: Colors.teal, brightness: Brightness.dark)
+            .primary);
   });
 }

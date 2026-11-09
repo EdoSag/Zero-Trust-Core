@@ -38,6 +38,12 @@ class VaultUnlocked extends VaultState {
 class VaultController extends Notifier<VaultState> {
   Timer? _timer;
   DateTime? _hiddenAt;
+  int _systemUi = 0;
+
+  /// The longest a [whileShowingSystemUi] action keeps the vault open while
+  /// the app is in the background. Past this the usual auto-lock applies on
+  /// return, so a file picker left open on a desk doesn't keep it unlocked.
+  static const systemUiGrace = Duration(minutes: 15);
 
   @override
   VaultState build() {
@@ -56,14 +62,15 @@ class VaultController extends Notifier<VaultState> {
 
   void _hidden() {
     _hiddenAt = clock.now();
-    if (_autoLock == Duration.zero) lock();
+    if (_autoLock == Duration.zero && _systemUi == 0) lock();
   }
 
   void _shown() {
     final hiddenAt = _hiddenAt;
     _hiddenAt = null;
-    final after = _autoLock;
+    var after = _autoLock;
     if (state is! VaultUnlocked || hiddenAt == null || after == null) return;
+    if (_systemUi > 0 && after < systemUiGrace) after = systemUiGrace;
     // Timers don't run while the OS suspends the app, so check the clock.
     if (clock.now().difference(hiddenAt) >= after) {
       lock();
@@ -96,7 +103,32 @@ class VaultController extends Notifier<VaultState> {
     state = VaultUnlocked(appKey: s.appKey);
   }
 
+  /// Runs [action], which shows system UI over the app (a file or photo
+  /// picker, a permission prompt, the share sheet, the camera), without the
+  /// vault locking because the app went to the background meanwhile. The
+  /// idle timer is paused too. If the app stays in the background longer
+  /// than [systemUiGrace], the vault still locks when it comes back.
+  ///
+  /// ```dart
+  /// final file = await ref.read(vaultControllerProvider.notifier)
+  ///     .whileShowingSystemUi(() => FilePicker.pickFiles());
+  /// ```
+  Future<R> whileShowingSystemUi<R>(Future<R> Function() action) async {
+    _systemUi++;
+    _timer?.cancel();
+    try {
+      return await action();
+    } finally {
+      _systemUi--;
+      if (_systemUi == 0 && _hiddenAt == null) touch();
+    }
+  }
+
+  /// Whether a [whileShowingSystemUi] action is running.
+  bool get showingSystemUi => _systemUi > 0;
+
   void touch() {
+    if (_systemUi > 0) return;
     _timer?.cancel();
     final after = _autoLock;
     if (state is VaultUnlocked && after != null && after > Duration.zero) {

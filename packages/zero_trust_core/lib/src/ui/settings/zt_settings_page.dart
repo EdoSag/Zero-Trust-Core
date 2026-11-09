@@ -1,11 +1,18 @@
+import 'package:dynamic_color/dynamic_color.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../config/zt_app_config.dart';
+import '../../attachments/attachment_cache.dart';
 import '../../config/zt_preferences.dart';
+import '../../config/zt_suite.dart';
+import '../brand/zt_brand_mark.dart';
+import 'zt_data_protection_screen.dart';
 import '../../core_providers.dart';
 import '../../vault/vault_controller.dart';
+import '../../account/password_check.dart';
 import '../auth/zt_auth_messages.dart';
+import '../auth/zt_password_strength.dart';
 import '../../sync/zt_local_store.dart';
 import '../auth/zt_recovery_key_screen.dart';
 import 'zt_sync_status_tile.dart';
@@ -23,6 +30,7 @@ class ZtSettingsPage extends ConsumerWidget {
     this.privacyPolicyUrl,
     this.onOpenUrl,
     this.showSyncStatus = false,
+    this.showOtherApps = true,
   });
 
   /// Called after sign-out and after account deletion. Route to sign-in.
@@ -41,6 +49,10 @@ class ZtSettingsPage extends ConsumerWidget {
   /// Shows [ZtSyncStatusTile] under the account. Needs the core's sync
   /// providers (`ztSyncControllerProvider`).
   final bool showSyncStatus;
+
+  /// Lists the suite's other apps (same account) with a link to each in
+  /// the store, opened through [onOpenUrl]. Hidden without [onOpenUrl].
+  final bool showOtherApps;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -94,6 +106,13 @@ class ZtSettingsPage extends ConsumerWidget {
             subtitle: const Text('Your current recovery key will stop working'),
             onTap: () => _newRecoveryKey(context, ref),
           ),
+          ListTile(
+            leading: const Icon(Icons.verified_user_outlined),
+            title: const Text('How your data is protected'),
+            subtitle: const Text('End-to-end encryption, in plain words'),
+            onTap: () => Navigator.of(context).push(MaterialPageRoute<void>(
+                builder: (_) => const ZtDataProtectionScreen())),
+          ),
           const _Header('Appearance'),
           RadioGroup<ThemeMode>(
             groupValue: themeMode,
@@ -107,6 +126,7 @@ class ZtSettingsPage extends ConsumerWidget {
               ],
             ),
           ),
+          const _DynamicColorTile(),
           if (backupSection.isNotEmpty) ...[
             const _Header('Backup'),
             ...backupSection,
@@ -130,6 +150,18 @@ class ZtSettingsPage extends ConsumerWidget {
               title: const Text('Privacy policy'),
               onTap: () => onOpenUrl!(privacyPolicyUrl!),
             ),
+          if (showOtherApps && onOpenUrl != null) ...[
+            const _Header('Other Zero-Trust apps'),
+            for (final app in ZtSuite.apps)
+              if (app.appId != config.appId)
+                ListTile(
+                  leading: ZtBrandMark(app: app, size: 40),
+                  title: Text(app.fullName),
+                  subtitle: Text('${app.tagline} · same account'),
+                  trailing: const Icon(Icons.open_in_new, size: 20),
+                  onTap: () => onOpenUrl!(app.playStoreUrl),
+                ),
+          ],
           const _Header('Danger zone'),
           ListTile(
             leading: Icon(Icons.delete_forever_outlined,
@@ -238,6 +270,7 @@ class ZtSettingsPage extends ConsumerWidget {
       final appId = ref.read(ztAppConfigProvider).appId;
       await ZtLocalStore.deleteFiles(
           await ZtLocalStore.pathFor(appId: appId, userId: userId));
+      await FileAttachmentCache.deleteFor(appId: appId, userId: userId);
     } on Object {
       // No platform storage (tests), or already gone.
     }
@@ -268,6 +301,39 @@ class ZtSettingsPage extends ConsumerWidget {
             .showSnackBar(SnackBar(content: Text(ztAuthErrorMessage(e))));
       }
     }
+  }
+}
+
+/// "Use wallpaper colours" (Material You). Hidden where the platform has
+/// no wallpaper palette (iOS, Android before 12).
+class _DynamicColorTile extends ConsumerStatefulWidget {
+  const _DynamicColorTile();
+
+  @override
+  ConsumerState<_DynamicColorTile> createState() => _DynamicColorTileState();
+}
+
+class _DynamicColorTileState extends ConsumerState<_DynamicColorTile> {
+  bool _available = false;
+
+  @override
+  void initState() {
+    super.initState();
+    DynamicColorPlugin.getCorePalette().then((p) {
+      if (mounted && p != null) setState(() => _available = true);
+    }, onError: (Object _) {});
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    if (!_available) return const SizedBox.shrink();
+    return SwitchListTile(
+      secondary: const Icon(Icons.palette_outlined),
+      title: const Text('Use wallpaper colours'),
+      subtitle: const Text('Match your phone\'s theme instead of the app\'s'),
+      value: ref.watch(ztDynamicColorProvider),
+      onChanged: (on) => ref.read(ztDynamicColorProvider.notifier).set(on),
+    );
   }
 }
 
@@ -456,6 +522,12 @@ class _ChangePasswordDialogState extends ConsumerState<_ChangePasswordDialog> {
       _error = null;
     });
     try {
+      final breached = await ztBreachedPasswordError(
+          ref.read(ztBreachedPasswordCheckerProvider), _next.text);
+      if (breached != null) {
+        if (mounted) setState(() => _error = breached);
+        return;
+      }
       await ref.read(accountServiceProvider).changePassword(
           currentPassword: _current.text, newPassword: _next.text);
       if (mounted) Navigator.pop(context, true);
@@ -484,8 +556,12 @@ class _ChangePasswordDialogState extends ConsumerState<_ChangePasswordDialog> {
               controller: _next,
               decoration: const InputDecoration(labelText: 'New password'),
               obscureText: true,
-              validator: ztValidatePassword,
+              validator: (v) => ztValidateNewPassword(v,
+                  email: ref.read(accountServiceProvider).currentEmail),
             ),
+            ZtPasswordStrengthMeter(
+                controller: _next,
+                email: ref.read(accountServiceProvider).currentEmail),
             TextFormField(
               controller: _confirm,
               decoration:

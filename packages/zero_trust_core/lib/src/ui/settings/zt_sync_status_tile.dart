@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../sync/sync_providers.dart';
 import '../../sync/sync_scheduler.dart';
+import '../auth/zt_auth_messages.dart';
 
 /// The shared sync row: "Synced 2 min ago", "Syncing…", or a failure with
 /// tap to retry. [ZtSettingsPage] shows it when `showSyncStatus` is set.
@@ -33,11 +34,13 @@ class ZtSyncStatusTile extends ConsumerWidget {
               color: status.error != null ? theme.colorScheme.error : null,
             ),
       title: Text(syncStatusLabel(status, (now ?? DateTime.now)())),
-      subtitle: rejected == 0
-          ? null
-          : Text(rejected == 1
-              ? "1 item couldn't be read"
-              : "$rejected items couldn't be read"),
+      subtitle: switch ((status.error, rejected)) {
+        (final Object error, _) when !status.isSyncing =>
+          Text(ztErrorMessage(error)),
+        (_, 0) => null,
+        (_, 1) => const Text("1 item couldn't be read"),
+        _ => Text("$rejected items couldn't be read"),
+      },
       onTap: status.isSyncing
           ? null
           : () => ref.read(ztSyncControllerProvider.notifier).syncNow(),

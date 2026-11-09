@@ -28,7 +28,7 @@ dependencies:
     git:
       url: https://github.com/EdoSag/Zero-Trust-Core.git
       path: packages/zero_trust_core
-      ref: v0.6.0   # always pin a release tag; see CHANGELOG.md
+      ref: v0.7.0   # always pin a release tag; see CHANGELOG.md
 ```
 
 ```dart
@@ -157,6 +157,50 @@ widget, for example) so sync runs while the app is open.
 To drive sync by hand instead, build `ItemSyncEngine.fromVault(...)` and call
 `sync()`, `startLive()` and `close()` yourself.
 
+### Typed collections
+
+Each kind of item an app keeps is a `ZtCollection<T>`; several share the
+app's store, told apart by the item's `kind`:
+
+```dart
+final notes = ZtCollection<Note>(
+  kind: null,            // the app's default: items with no kind
+  version: 2,            // schema version this build writes
+  fromJson: (id, json, updatedAt) => Note.fromJson(id, json, updatedAt),
+  toJson: (n) => n.toJson(),   // every field, null for cleared ones
+  idOf: (n) => n.id,
+  upgrade: (json, from) => {...json, 'pinned': false},  // 1 -> 2
+);
+final notebooks = ZtCollection<Notebook>(kind: 'notebook', ...);
+
+notes.watch(store);                     // Stream<List<Note>>
+await notes.save(sync, store, note);    // synced to every device
+await notes.newerItems(store);          // "Update the app to see N items"
+```
+
+### Attachments
+
+```dart
+final files = await ref.read(ztAttachmentsProvider.future);
+final photo = await files.put(bytes, mimeType: 'image/jpeg');
+note = note.copyWith(images: [...note.images, photo.toJson()]);  // ref in the item
+final shown = await files.read(ZtAttachmentRef.fromJson(json));
+await files.delete(ref);   // when the item or image is removed
+```
+
+Each file has its own key, stored in the item (so only the account can read
+it), and is encrypted in authenticated chunks before it leaves the device.
+Wrap pickers in `whileShowingSystemUi` so auto-lock doesn't fire while the
+picker is open.
+
+### Look and feel
+
+`ZtThemeBuilder` gives every app the same theme: brand indigo, the app's
+accent from `ZtSuite`, remembered light/dark/system, and optional wallpaper
+colours. `ZtBrandMark(app: ZtSuite.notes)` is the app mark; `ZtSpacing` the
+spacing steps. Settings shows "How your data is protected" and, with
+`onOpenUrl`, the other Zero-Trust apps.
+
 ### Data from before the core
 
 Accounts upgraded from a pre-core app version unlock with
@@ -187,5 +231,5 @@ A failure leaves the import to run again on the next call.
 # Database: every migration plus the guard tests, on a plain Postgres 16
 (cd supabase && psql -v ON_ERROR_STOP=1 -f tests/00_supabase_stub.sql \
   $(for f in migrations/*.sql; do echo -f "$f"; done) -f tests/key_guard_test.sql \
-  -f tests/vault_items_test.sql)
+  -f tests/vault_items_test.sql -f tests/attachments_test.sql)
 ```
