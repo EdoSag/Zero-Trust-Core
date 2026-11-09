@@ -529,19 +529,18 @@ class _ConfirmPasswordDialogState extends State<_ConfirmPasswordDialog> {
         TextButton(
             onPressed: () => Navigator.pop(context),
             child: const Text('Cancel')),
-        // Disabled while empty: an empty password would only run the slow
-        // key derivation to fail.
-        ValueListenableBuilder(
-          valueListenable: _password,
-          builder: (context, value, _) => FilledButton(
-            style: widget.destructive
-                ? FilledButton.styleFrom(backgroundColor: error)
-                : null,
-            onPressed: value.text.isEmpty
-                ? null
-                : () => Navigator.pop(context, _password.text),
-            child: Text(widget.action),
-          ),
+        FilledButton(
+          style: widget.destructive
+              ? FilledButton.styleFrom(backgroundColor: error)
+              : null,
+          // Ignored while empty: an empty password would only run the slow
+          // key derivation to fail.
+          onPressed: () {
+            if (_password.text.isNotEmpty) {
+              Navigator.pop(context, _password.text);
+            }
+          },
+          child: Text(widget.action),
         ),
       ],
     );
