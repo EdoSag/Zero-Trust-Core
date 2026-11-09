@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+
+import '../../l10n/zt_l10n.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../config/zt_app_config.dart';
@@ -68,29 +70,25 @@ class _ZtOnboardingScreenState extends ConsumerState<ZtOnboardingScreen> {
   final _controller = PageController();
   int _page = 0;
 
-  static const _pages = [
-    _Page(
-      null,
-      'Only you can read your data',
-      'Everything is encrypted on this phone before it\'s saved or synced. '
-          'We never see your password, so we can\'t read your data, and '
-          'neither can anyone who breaks into our servers.',
-    ),
-    _Page(
-      Icons.key_outlined,
-      'Keep your recovery key safe',
-      'When you create your account you get a recovery key. It\'s the only '
-          'way back in if you forget your password, because we can\'t reset '
-          'it for you. Write it down or keep it in a password manager.',
-    ),
-    _Page(
-      Icons.fingerprint,
-      'Unlock with a touch',
-      'Turn on fingerprint or face unlock after you sign in. It stays on '
-          'this phone, and your password still works everywhere. One account '
-          'opens every Zero-Trust app.',
-    ),
-  ];
+  static const _pageCount = 3;
+
+  static List<_Page> _pagesFor(ZtLocalizations l) => [
+        _Page(
+          null,
+          l.onlyYouCanReadYourData,
+          l.everythingIsEncryptedOnThisPhone,
+        ),
+        _Page(
+          Icons.key_outlined,
+          l.keepYourRecoveryKeySafe,
+          l.whenYouCreateYourAccountYou,
+        ),
+        _Page(
+          Icons.fingerprint,
+          l.unlockWithATouch,
+          l.turnOnFingerprintOrFaceUnlock,
+        ),
+      ];
 
   @override
   void dispose() {
@@ -104,7 +102,7 @@ class _ZtOnboardingScreenState extends ConsumerState<ZtOnboardingScreen> {
   }
 
   void _next() {
-    if (_page == _pages.length - 1) {
+    if (_page == _pageCount - 1) {
       _finish();
       return;
     }
@@ -117,7 +115,8 @@ class _ZtOnboardingScreenState extends ConsumerState<ZtOnboardingScreen> {
     final theme = Theme.of(context);
     final config = ref.watch(ztAppConfigProvider);
     final app = ZtSuite.byId(config.appId);
-    final last = _page == _pages.length - 1;
+    final pages = _pagesFor(ZtL10n.of(context));
+    final last = _page == _pageCount - 1;
     return Scaffold(
       body: SafeArea(
         child: Column(
@@ -128,16 +127,18 @@ class _ZtOnboardingScreenState extends ConsumerState<ZtOnboardingScreen> {
                 padding: const EdgeInsets.all(8),
                 child: last
                     ? const SizedBox(height: 48)
-                    : TextButton(onPressed: _finish, child: const Text('Skip')),
+                    : TextButton(
+                        onPressed: _finish,
+                        child: Text(ZtL10n.of(context).skip)),
               ),
             ),
             Expanded(
               child: PageView.builder(
                 controller: _controller,
-                itemCount: _pages.length,
+                itemCount: pages.length,
                 onPageChanged: (i) => setState(() => _page = i),
                 itemBuilder: (context, i) {
-                  final page = _pages[i];
+                  final page = pages[i];
                   return SingleChildScrollView(
                     padding: const EdgeInsets.symmetric(horizontal: 32),
                     child: ConstrainedBox(
@@ -166,12 +167,12 @@ class _ZtOnboardingScreenState extends ConsumerState<ZtOnboardingScreen> {
               ),
             ),
             Semantics(
-              label: 'Page ${_page + 1} of ${_pages.length}',
+              label: ZtL10n.of(context).pageOf(_page + 1, pages.length),
               excludeSemantics: true,
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  for (var i = 0; i < _pages.length; i++)
+                  for (var i = 0; i < pages.length; i++)
                     AnimatedContainer(
                       duration: const Duration(milliseconds: 200),
                       margin: const EdgeInsets.symmetric(horizontal: 4),
@@ -193,7 +194,9 @@ class _ZtOnboardingScreenState extends ConsumerState<ZtOnboardingScreen> {
                 width: double.infinity,
                 child: FilledButton(
                   onPressed: _next,
-                  child: Text(last ? 'Get started' : 'Next'),
+                  child: Text(last
+                      ? ZtL10n.of(context).getStarted
+                      : ZtL10n.of(context).next),
                 ),
               ),
             ),

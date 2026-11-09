@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+
+import '../../l10n/zt_l10n.dart';
 import 'package:flutter/services.dart';
 import 'package:zt_crypto/zt_crypto.dart';
 
@@ -38,15 +40,14 @@ class _ZtRecoveryKeyScreenState extends State<ZtRecoveryKeyScreen> {
     final theme = Theme.of(context);
     return Scaffold(
       appBar: AppBar(
-          title: const Text('Save your recovery key'),
+          title: Text(ZtL10n.of(context).saveYourRecoveryKey),
           automaticallyImplyLeading: false),
       body: SafeArea(
         child: ListView(
           padding: const EdgeInsets.all(24),
           children: [
             Text(
-              'This key is the only way back into your data if you forget your password. '
-              'We can\'t reset it for you, because we never see your password or your data.',
+              ZtL10n.of(context).thisKeyIsTheOnlyWay,
               style: theme.textTheme.bodyLarge,
             ),
             const SizedBox(height: 24),
@@ -59,7 +60,8 @@ class _ZtRecoveryKeyScreenState extends State<ZtRecoveryKeyScreen> {
                         _text!,
                         // Read out group by group, letter by letter, so
                         // it can be written down from a screen reader.
-                        semanticsLabel: 'Recovery key: ${_spelled(_text!)}',
+                        semanticsLabel: ZtL10n.of(context)
+                            .recoveryKeySpelled(_spelled(_text!)),
                         key: const Key('zt-recovery-key'),
                         textAlign: TextAlign.center,
                         style: theme.textTheme.titleMedium?.copyWith(
@@ -73,15 +75,15 @@ class _ZtRecoveryKeyScreenState extends State<ZtRecoveryKeyScreen> {
             const SizedBox(height: 12),
             OutlinedButton.icon(
               icon: const Icon(Icons.copy),
-              label: const Text('Copy'),
+              label: Text(ZtL10n.of(context).copy),
               onPressed: _text == null
                   ? null
                   : () {
                       Clipboard.setData(ClipboardData(text: _text!));
                       ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(
-                            content: Text(
-                                'Copied. Store it somewhere safe and offline.')),
+                        SnackBar(
+                            content: Text(ZtL10n.of(context)
+                                .copiedStoreItSomewhereSafeAnd)),
                       );
                     },
             ),
@@ -89,14 +91,14 @@ class _ZtRecoveryKeyScreenState extends State<ZtRecoveryKeyScreen> {
             CheckboxListTile(
               value: _saved,
               onChanged: (v) => setState(() => _saved = v ?? false),
-              title: const Text('I saved my recovery key somewhere safe'),
+              title: Text(ZtL10n.of(context).iSavedMyRecoveryKeySomewhere),
               controlAffinity: ListTileControlAffinity.leading,
               contentPadding: EdgeInsets.zero,
             ),
             const SizedBox(height: 16),
             FilledButton(
               onPressed: _saved ? widget.onDone : null,
-              child: const Text('Continue'),
+              child: Text(ZtL10n.of(context).continueButton),
             ),
           ],
         ),

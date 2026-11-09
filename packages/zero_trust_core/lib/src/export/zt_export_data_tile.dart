@@ -1,6 +1,8 @@
 import 'dart:io';
 
 import 'package:flutter/material.dart';
+
+import '../l10n/zt_l10n.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:path_provider/path_provider.dart';
 
@@ -41,18 +43,15 @@ class _ZtExportDataTileState extends ConsumerState<ZtExportDataTile> {
     final go = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Export my data?'),
-        content: const Text(
-            'You get one ZIP file with everything in this app, readable by '
-            'any computer. It isn\'t encrypted, so anyone who gets the file '
-            'can read it. Keep it somewhere safe.'),
+        title: Text(ZtL10n.of(context).exportMyDataQuestion),
+        content: Text(ZtL10n.of(context).youGetOneZipFileWith),
         actions: [
           TextButton(
               onPressed: () => Navigator.pop(context, false),
-              child: const Text('Cancel')),
+              child: Text(ZtL10n.of(context).cancel)),
           FilledButton(
               onPressed: () => Navigator.pop(context, true),
-              child: const Text('Export')),
+              child: Text(ZtL10n.of(context).export)),
         ],
       ),
     );
@@ -79,8 +78,8 @@ class _ZtExportDataTileState extends ConsumerState<ZtExportDataTile> {
       await widget.onExported(file, export);
       if (export.missingAttachments.isNotEmpty) {
         messenger.showSnackBar(SnackBar(
-            content: Text('${export.missingAttachments.length} attached files '
-                'couldn\'t be included. Try again when online.')));
+            content: Text(ZtL10n.current
+                .attachmentsNotIncluded(export.missingAttachments.length))));
       }
     } catch (e) {
       messenger.showSnackBar(SnackBar(content: Text(ztErrorMessage(e))));
@@ -93,13 +92,13 @@ class _ZtExportDataTileState extends ConsumerState<ZtExportDataTile> {
   Widget build(BuildContext context) {
     return ListTile(
       leading: const Icon(Icons.download_outlined),
-      title: const Text('Export my data'),
-      subtitle: const Text('A ZIP of everything in this app, not encrypted'),
+      title: Text(ZtL10n.of(context).exportMyData),
+      subtitle: Text(ZtL10n.of(context).aZipOfEverythingInThis),
       trailing: _busy
-          ? const SizedBox.square(
+          ? SizedBox.square(
               dimension: 20,
               child: CircularProgressIndicator(
-                  strokeWidth: 2, semanticsLabel: 'Exporting'))
+                  strokeWidth: 2, semanticsLabel: ZtL10n.of(context).exporting))
           : null,
       enabled: !_busy,
       onTap: _export,

@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+
+import '../../l10n/zt_l10n.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../account/account_backend.dart';
@@ -129,16 +131,15 @@ class _ZtSignInScreenState extends ConsumerState<ZtSignInScreen> {
         barrierDismissible: false,
         builder: (context) => AlertDialog(
           icon: const Icon(Icons.fingerprint),
-          title: const Text('Unlock with biometrics?'),
-          content: const Text('Use your fingerprint or face to open the app '
-              'on this phone. You can change this in Settings.'),
+          title: Text(ZtL10n.of(context).unlockWithBiometricsQuestion),
+          content: Text(ZtL10n.of(context).useYourFingerprintOrFaceTo),
           actions: [
             TextButton(
                 onPressed: () => Navigator.pop(context, false),
-                child: const Text('Not now')),
+                child: Text(ZtL10n.of(context).notNow)),
             FilledButton(
                 onPressed: () => Navigator.pop(context, true),
-                child: const Text('Turn on')),
+                child: Text(ZtL10n.of(context).turnOn)),
           ],
         ),
       );
@@ -158,7 +159,7 @@ class _ZtSignInScreenState extends ConsumerState<ZtSignInScreen> {
       if (mounted) {
         setState(() {
           _error = null;
-          _info = 'Sent again. Check your inbox and spam folder.';
+          _info = ZtL10n.of(context).sentAgainCheckYourInboxAnd;
         });
       }
     } catch (e) {
@@ -195,8 +196,8 @@ class _ZtSignInScreenState extends ConsumerState<ZtSignInScreen> {
                     const SizedBox(height: 8),
                     Text(
                       _creating
-                          ? 'One account for every Zero-Trust app. Your password never leaves this device.'
-                          : 'Sign in with your Zero-Trust account.',
+                          ? ZtL10n.of(context).signUpIntro
+                          : ZtL10n.of(context).signInWithYourZeroTrust,
                       textAlign: TextAlign.center,
                       style: theme.textTheme.bodyMedium
                           ?.copyWith(color: theme.colorScheme.onSurfaceVariant),
@@ -204,7 +205,8 @@ class _ZtSignInScreenState extends ConsumerState<ZtSignInScreen> {
                     const SizedBox(height: 32),
                     TextFormField(
                       controller: _email,
-                      decoration: const InputDecoration(labelText: 'Email'),
+                      decoration:
+                          InputDecoration(labelText: ZtL10n.of(context).email),
                       keyboardType: TextInputType.emailAddress,
                       autofillHints: const [AutofillHints.email],
                       textInputAction: TextInputAction.next,
@@ -214,9 +216,11 @@ class _ZtSignInScreenState extends ConsumerState<ZtSignInScreen> {
                     TextFormField(
                       controller: _password,
                       decoration: InputDecoration(
-                        labelText: 'Password',
+                        labelText: ZtL10n.of(context).password,
                         suffixIcon: IconButton(
-                          tooltip: _obscure ? 'Show password' : 'Hide password',
+                          tooltip: _obscure
+                              ? ZtL10n.of(context).showPassword
+                              : ZtL10n.of(context).hidePassword,
                           icon: Icon(_obscure
                               ? Icons.visibility
                               : Icons.visibility_off),
@@ -233,7 +237,9 @@ class _ZtSignInScreenState extends ConsumerState<ZtSignInScreen> {
                       // they must still be able to sign in and upgrade.
                       validator: (v) => _creating
                           ? ztValidateNewPassword(v, email: _email.text.trim())
-                          : ((v ?? '').isEmpty ? 'Enter your password.' : null),
+                          : ((v ?? '').isEmpty
+                              ? ZtL10n.of(context).enterYourPassword
+                              : null),
                       onFieldSubmitted: (_) => _creating ? null : _submit(),
                     ),
                     if (_creating) ...[
@@ -242,12 +248,12 @@ class _ZtSignInScreenState extends ConsumerState<ZtSignInScreen> {
                       const SizedBox(height: 16),
                       TextFormField(
                         controller: _confirm,
-                        decoration: const InputDecoration(
-                            labelText: 'Confirm password'),
+                        decoration: InputDecoration(
+                            labelText: ZtL10n.of(context).confirmPassword),
                         obscureText: _obscure,
                         validator: (v) => v == _password.text
                             ? null
-                            : 'Passwords don\'t match.',
+                            : ZtL10n.of(context).passwordsDontMatch,
                         onFieldSubmitted: (_) => _submit(),
                       ),
                     ],
@@ -271,7 +277,7 @@ class _ZtSignInScreenState extends ConsumerState<ZtSignInScreen> {
                     if (_canResend)
                       TextButton(
                         onPressed: _busy ? null : _resend,
-                        child: const Text('Resend confirmation email'),
+                        child: Text(ZtL10n.of(context).resendConfirmationEmail),
                       ),
                     const SizedBox(height: 24),
                     FilledButton(
@@ -282,9 +288,11 @@ class _ZtSignInScreenState extends ConsumerState<ZtSignInScreen> {
                               child: CircularProgressIndicator(
                                   strokeWidth: 2,
                                   semanticsLabel: _creating
-                                      ? 'Creating account'
-                                      : 'Signing in'))
-                          : Text(_creating ? 'Create account' : 'Sign in'),
+                                      ? ZtL10n.of(context).creatingAccount
+                                      : ZtL10n.of(context).signingIn))
+                          : Text(_creating
+                              ? ZtL10n.of(context).createAccount
+                              : ZtL10n.of(context).signIn),
                     ),
                     const SizedBox(height: 8),
                     TextButton(
@@ -297,13 +305,13 @@ class _ZtSignInScreenState extends ConsumerState<ZtSignInScreen> {
                                 _canResend = false;
                               }),
                       child: Text(_creating
-                          ? 'I already have an account'
-                          : 'Create a Zero-Trust account'),
+                          ? ZtL10n.of(context).iAlreadyHaveAnAccount
+                          : ZtL10n.of(context).createAZeroTrustAccount),
                     ),
                     if (!_creating && widget.onForgotPassword != null)
                       TextButton(
                         onPressed: _busy ? null : widget.onForgotPassword,
-                        child: const Text('Forgot password?'),
+                        child: Text(ZtL10n.of(context).forgotPasswordQuestion),
                       ),
                   ],
                 ),

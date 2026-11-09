@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+
+import '../../l10n/zt_l10n.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../core_providers.dart';
@@ -53,7 +55,7 @@ class _ZtForgotPasswordScreenState
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     return Scaffold(
-      appBar: AppBar(title: const Text('Forgot password')),
+      appBar: AppBar(title: Text(ZtL10n.of(context).forgotPassword)),
       body: SafeArea(
         child: Form(
           key: _form,
@@ -65,21 +67,20 @@ class _ZtForgotPasswordScreenState
                         size: 48, color: theme.colorScheme.primary),
                     const SizedBox(height: 16),
                     Text(
-                      'Check ${_email.text.trim()} for a reset link. Open it on this device, '
-                      'then enter your recovery key.',
+                      ZtL10n.of(context)
+                          .checkEmailForResetLink(_email.text.trim()),
                       textAlign: TextAlign.center,
                     ),
                   ]
                 : [
-                    const Text(
-                      'Your data is encrypted with your password, so resetting it needs two '
-                      'things: a link we email you, and the recovery key you saved when you '
-                      'created your account.',
+                    Text(
+                      ZtL10n.of(context).yourDataIsEncryptedWithYour,
                     ),
                     const SizedBox(height: 24),
                     TextFormField(
                       controller: _email,
-                      decoration: const InputDecoration(labelText: 'Email'),
+                      decoration:
+                          InputDecoration(labelText: ZtL10n.of(context).email),
                       keyboardType: TextInputType.emailAddress,
                       autofillHints: const [AutofillHints.email],
                       validator: ztValidateEmail,
@@ -93,7 +94,7 @@ class _ZtForgotPasswordScreenState
                     const SizedBox(height: 24),
                     FilledButton(
                       onPressed: _busy ? null : _send,
-                      child: const Text('Email me a reset link'),
+                      child: Text(ZtL10n.of(context).emailMeAResetLink),
                     ),
                   ],
           ),

@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+
+import '../../l10n/zt_l10n.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../account/account_service.dart';
@@ -69,31 +71,31 @@ class _ZtResetPasswordScreenState extends ConsumerState<ZtResetPasswordScreen> {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     return Scaffold(
-      appBar: AppBar(title: const Text('Reset password')),
+      appBar: AppBar(title: Text(ZtL10n.of(context).resetPassword)),
       body: SafeArea(
         child: Form(
           key: _form,
           child: ListView(
             padding: const EdgeInsets.all(24),
             children: [
-              Text(
-                  'Enter the recovery key you saved when you created your account, '
-                  'then choose a new password.'),
+              Text(ZtL10n.of(context).enterTheRecoveryKeyYouSaved),
               const SizedBox(height: 24),
               TextFormField(
                 controller: _recoveryKey,
-                decoration: const InputDecoration(
-                    labelText: 'Recovery key', hintText: 'ZT-XXXX-XXXX-…'),
+                decoration: InputDecoration(
+                    labelText: ZtL10n.of(context).recoveryKey,
+                    hintText: 'ZT-XXXX-XXXX-…'),
                 textCapitalization: TextCapitalization.characters,
                 autocorrect: false,
                 validator: (v) => (v ?? '').trim().isEmpty
-                    ? 'Enter your recovery key.'
+                    ? ZtL10n.of(context).enterYourRecoveryKey
                     : null,
               ),
               const SizedBox(height: 16),
               TextFormField(
                 controller: _password,
-                decoration: const InputDecoration(labelText: 'New password'),
+                decoration:
+                    InputDecoration(labelText: ZtL10n.of(context).newPassword),
                 obscureText: true,
                 autofillHints: const [AutofillHints.newPassword],
                 validator: (v) => ztValidateNewPassword(v,
@@ -105,11 +107,12 @@ class _ZtResetPasswordScreenState extends ConsumerState<ZtResetPasswordScreen> {
               const SizedBox(height: 16),
               TextFormField(
                 controller: _confirm,
-                decoration:
-                    const InputDecoration(labelText: 'Confirm new password'),
+                decoration: InputDecoration(
+                    labelText: ZtL10n.of(context).confirmNewPassword),
                 obscureText: true,
-                validator: (v) =>
-                    v == _password.text ? null : 'Passwords don\'t match.',
+                validator: (v) => v == _password.text
+                    ? null
+                    : ZtL10n.of(context).passwordsDontMatch,
               ),
               if (_error != null) ...[
                 const SizedBox(height: 16),
@@ -118,7 +121,7 @@ class _ZtResetPasswordScreenState extends ConsumerState<ZtResetPasswordScreen> {
               const SizedBox(height: 24),
               FilledButton(
                 onPressed: _busy ? null : _submit,
-                child: const Text('Reset password'),
+                child: Text(ZtL10n.of(context).resetPassword),
               ),
             ],
           ),

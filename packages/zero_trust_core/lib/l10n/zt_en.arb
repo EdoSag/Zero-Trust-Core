@@ -1,0 +1,311 @@
+{
+  "@@locale": "en",
+  "unlockWithBiometricsQuestion": "Unlock with biometrics?",
+  "useYourFingerprintOrFaceTo": "Use your fingerprint or face to open the app on this phone. You can change this in Settings.",
+  "notNow": "Not now",
+  "turnOn": "Turn on",
+  "sentAgainCheckYourInboxAnd": "Sent again. Check your inbox and spam folder.",
+  "signUpIntro": "One account for every Zero-Trust app. Your password never leaves this device.",
+  "signInWithYourZeroTrust": "Sign in with your Zero-Trust account.",
+  "email": "Email",
+  "password": "Password",
+  "showPassword": "Show password",
+  "hidePassword": "Hide password",
+  "enterYourPassword": "Enter your password.",
+  "confirmPassword": "Confirm password",
+  "passwordsDontMatch": "Passwords don't match.",
+  "resendConfirmationEmail": "Resend confirmation email",
+  "creatingAccount": "Creating account",
+  "signingIn": "Signing in",
+  "createAccount": "Create account",
+  "signIn": "Sign in",
+  "iAlreadyHaveAnAccount": "I already have an account",
+  "createAZeroTrustAccount": "Create a Zero-Trust account",
+  "forgotPasswordQuestion": "Forgot password?",
+  "unlock": "Unlock",
+  "unlockWithBiometrics": "Unlock with biometrics",
+  "signOut": "Sign out",
+  "forgotPassword": "Forgot password",
+  "yourDataIsEncryptedWithYour": "Your data is encrypted with your password, so resetting it needs two things: a link we email you, and the recovery key you saved when you created your account.",
+  "emailMeAResetLink": "Email me a reset link",
+  "resetPassword": "Reset password",
+  "enterTheRecoveryKeyYouSaved": "Enter the recovery key you saved when you created your account, then choose a new password.",
+  "recoveryKey": "Recovery key",
+  "enterYourRecoveryKey": "Enter your recovery key.",
+  "newPassword": "New password",
+  "confirmNewPassword": "Confirm new password",
+  "saveYourRecoveryKey": "Save your recovery key",
+  "thisKeyIsTheOnlyWay": "This key is the only way back into your data if you forget your password. We can't reset it for you, because we never see your password or your data.",
+  "copy": "Copy",
+  "copiedStoreItSomewhereSafeAnd": "Copied. Store it somewhere safe and offline.",
+  "iSavedMyRecoveryKeySomewhere": "I saved my recovery key somewhere safe",
+  "continueButton": "Continue",
+  "onlyYouCanReadYourData": "Only you can read your data",
+  "everythingIsEncryptedOnThisPhone": "Everything is encrypted on this phone before it's saved or synced. We never see your password, so we can't read your data, and neither can anyone who breaks into our servers.",
+  "keepYourRecoveryKeySafe": "Keep your recovery key safe",
+  "whenYouCreateYourAccountYou": "When you create your account you get a recovery key. It's the only way back in if you forget your password, because we can't reset it for you. Write it down or keep it in a password manager.",
+  "unlockWithATouch": "Unlock with a touch",
+  "turnOnFingerprintOrFaceUnlock": "Turn on fingerprint or face unlock after you sign in. It stays on this phone, and your password still works everywhere. One account opens every Zero-Trust app.",
+  "skip": "Skip",
+  "getStarted": "Get started",
+  "next": "Next",
+  "encryptedOnYourPhone": "Encrypted on your phone",
+  "everythingYouWriteIsEncryptedOn": "Everything you write is encrypted on this device before it goes anywhere, with AES-256, the standard banks and governments use. Our servers only ever store scrambled data they can't read.",
+  "onlyYourPasswordCanUnlockIt": "Only your password can unlock it",
+  "yourEncryptionKeyIsMadeFrom": "Your encryption key is made from your password on your phone. The password itself never leaves the device: we receive a separate value derived from it, which can sign you in but can't decrypt anything. Not us, not our hosting provider, and not anyone who breaks into our servers can read your data. (An account made with an older app version sends its password once more, the first time it signs in after updating, to switch over to this.)",
+  "yourRecoveryKeyIsTheOnly": "Your recovery key is the only backup",
+  "becauseWeCantReadYourData": "Because we can't read your data, we can't reset your password for you either. Your recovery key is the one way back in if you forget your password. Keep it somewhere safe, offline. You can make a new one in Settings at any time.",
+  "protectedOnTheDeviceToo": "Protected on the device too",
+  "theCopyKeptOnYourPhone": "The copy kept on your phone is encrypted as well, and locks after the time you choose under Auto-lock. Fingerprint or face unlock keeps your key in the phone's secure hardware.",
+  "tamperProofSync": "Tamper-proof sync",
+  "eachItemIsSignedWithA": "Each item is signed with a key only your devices have, so a changed or swapped item on the server is spotted and refused rather than shown to you.",
+  "oneAccountSeparateKeys": "One account, separate keys",
+  "theSameAccountWorksInEvery": "The same account works in every Zero-Trust app, but each app encrypts with its own key, derived from yours.",
+  "whatWeCanSee": "What we can see",
+  "yourEmailAddressWhenYouSign": "Your email address, when you sign in, how many items you store and their size, and when they change. Never what they say.",
+  "breachedPasswordCheck": "Breached-password check",
+  "whenYouChooseANewPassword": "When you choose a new password, we check it against known data breaches without sending it: only the first 5 characters of a one-way fingerprint go to Have I Been Pwned, and the match is done on your phone.",
+  "deleteEverythingAnyTime": "Delete everything, any time",
+  "deletingYourAccountUnderSettingsDanger": "Deleting your account under Settings → Danger zone removes your data from our servers in every Zero-Trust app.",
+  "howYourDataIsProtected": "How your data is protected",
+  "settings": "Settings",
+  "account": "Account",
+  "notSignedIn": "Not signed in",
+  "oneAccountForEveryApp": "One account for every Zero-Trust app",
+  "changePassword": "Change password",
+  "security": "Security",
+  "autoLock": "Auto-lock",
+  "lockNow": "Lock now",
+  "newRecoveryKey": "New recovery key",
+  "yourCurrentRecoveryKeyWillStop": "Your current recovery key will stop working",
+  "endToEndEncryptionInPlain": "End-to-end encryption, in plain words",
+  "appearance": "Appearance",
+  "systemDefault": "System default",
+  "light": "Light",
+  "dark": "Dark",
+  "backup": "Backup",
+  "about": "About",
+  "endToEndEncryptedWeCant": "End-to-end encrypted. We can't read your data.",
+  "helpAndFeedback": "Help and feedback",
+  "privacyPolicy": "Privacy policy",
+  "termsOfUse": "Terms of use",
+  "openSourceLicences": "Open-source licences",
+  "otherZeroTrustApps": "Other Zero-Trust apps",
+  "dangerZone": "Danger zone",
+  "deleteAccount": "Delete account",
+  "deletesYourDataInEveryZero": "Deletes your data in every Zero-Trust app",
+  "never": "Never",
+  "immediatelyWhenYouLeaveTheApp": "Immediately when you leave the app",
+  "immediately": "Immediately",
+  "passwordChangedYourOtherDevicesWere": "Password changed. Your other devices were signed out.",
+  "enterYourPasswordYourCurrentRecovery": "Enter your password. Your current recovery key will stop working.",
+  "deleteAccountQuestion": "Delete account?",
+  "thisPermanentlyDeletesYourAccountAnd": "This permanently deletes your account and your data in every Zero-Trust app. It can't be undone.",
+  "delete": "Delete",
+  "useWallpaperColours": "Use wallpaper colours",
+  "matchYourPhonesThemeInsteadOf": "Match your phone's theme instead of the app's",
+  "enterYourPasswordToTurnOn": "Enter your password to turn on fingerprint or face unlock on this device.",
+  "fingerprintOrFaceOnThisDevice": "Fingerprint or face, on this device only",
+  "cancel": "Cancel",
+  "currentPassword": "Current password",
+  "change": "Change",
+  "syncing": "Syncing…",
+  "notSyncedYet": "Not synced yet",
+  "syncedJustNow": "Synced just now",
+  "exportMyDataQuestion": "Export my data?",
+  "youGetOneZipFileWith": "You get one ZIP file with everything in this app, readable by any computer. It isn't encrypted, so anyone who gets the file can read it. Keep it somewhere safe.",
+  "export": "Export",
+  "exportMyData": "Export my data",
+  "aZipOfEverythingInThis": "A ZIP of everything in this app, not encrypted",
+  "exporting": "Exporting",
+  "pageOf": "Page {page} of {count}",
+  "@pageOf": {
+    "placeholders": {
+      "page": {
+        "type": "int"
+      },
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "appIsLocked": "{appName} is locked",
+  "@appIsLocked": {
+    "placeholders": {
+      "appName": {
+        "type": "String"
+      }
+    }
+  },
+  "unlocking": "Unlocking",
+  "checkEmailForResetLink": "Check {email} for a reset link. Open it on this device, then enter your recovery key.",
+  "@checkEmailForResetLink": {
+    "placeholders": {
+      "email": {
+        "type": "String"
+      }
+    }
+  },
+  "recoveryKeySpelled": "Recovery key: {spelled}",
+  "@recoveryKeySpelled": {
+    "placeholders": {
+      "spelled": {
+        "type": "String"
+      }
+    }
+  },
+  "zeroTrustMeans": "Zero-trust means you don't have to trust us with your data. Here's how {appName} keeps it private.",
+  "@zeroTrustMeans": {
+    "placeholders": {
+      "appName": {
+        "type": "String"
+      }
+    }
+  },
+  "versionLabel": "Version {version}",
+  "@versionLabel": {
+    "placeholders": {
+      "version": {
+        "type": "String"
+      }
+    }
+  },
+  "taglineSameAccount": "{tagline} · same account",
+  "@taglineSameAccount": {
+    "placeholders": {
+      "tagline": {
+        "type": "String"
+      }
+    }
+  },
+  "autoLockAfterMinutesIdle": "{minutes, plural, =1{After 1 min in the background or idle} other{After {minutes} min in the background or idle}}",
+  "@autoLockAfterMinutesIdle": {
+    "placeholders": {
+      "minutes": {
+        "type": "int"
+      }
+    }
+  },
+  "autoLockAfterSecondsIdle": "After {seconds} s in the background or idle",
+  "@autoLockAfterSecondsIdle": {
+    "placeholders": {
+      "seconds": {
+        "type": "int"
+      }
+    }
+  },
+  "afterMinutes": "After {minutes} min",
+  "@afterMinutes": {
+    "placeholders": {
+      "minutes": {
+        "type": "int"
+      }
+    }
+  },
+  "afterSeconds": "After {seconds} s",
+  "@afterSeconds": {
+    "placeholders": {
+      "seconds": {
+        "type": "int"
+      }
+    }
+  },
+  "syncedMinutesAgo": "Synced {minutes} min ago",
+  "@syncedMinutesAgo": {
+    "placeholders": {
+      "minutes": {
+        "type": "int"
+      }
+    }
+  },
+  "syncedHoursAgo": "{hours, plural, =1{Synced 1 hour ago} other{Synced {hours} hours ago}}",
+  "@syncedHoursAgo": {
+    "placeholders": {
+      "hours": {
+        "type": "int"
+      }
+    }
+  },
+  "syncedDaysAgo": "{days, plural, =1{Synced yesterday} other{Synced {days} days ago}}",
+  "@syncedDaysAgo": {
+    "placeholders": {
+      "days": {
+        "type": "int"
+      }
+    }
+  },
+  "attachmentsNotIncluded": "{count, plural, =1{1 attached file couldn't be included. Try again when online.} other{{count} attached files couldn't be included. Try again when online.}}",
+  "@attachmentsNotIncluded": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "strengthVeryWeak": "Very weak",
+  "strengthWeak": "Weak",
+  "strengthFair": "Fair",
+  "strengthGood": "Good",
+  "strengthStrong": "Strong",
+  "enterAPassword": "Enter a password.",
+  "tipNoEmail": "Don't use your email in it.",
+  "tipCommonWords": "Avoid common words and passwords.",
+  "tipRepeated": "Avoid repeated characters like \"aaa\".",
+  "tipSequences": "Avoid sequences like \"1234\" or \"qwerty\".",
+  "tipYears": "Avoid years and dates.",
+  "tipLonger": "Make it longer: a few unrelated words work well.",
+  "tipMix": "Mix in words, numbers or symbols.",
+  "passwordBreached": "This password has appeared in data breaches, so attackers try it first. Choose a different one.",
+  "errOffline": "You're offline. Check your connection and try again.",
+  "errInvalidCredentials": "That email and password don't match.",
+  "errEmailNotConfirmed": "Confirm your email first: open the link we sent you.",
+  "errKeyMismatch": "This password can't unlock your data. Use your recovery key to reset it.",
+  "errBiometricChanged": "Your fingerprints or face changed, so biometric unlock was turned off. Unlock with your password, then turn it back on in Settings.",
+  "errRecoveryKeyInvalid": "That recovery key isn't valid. Check it for typos.",
+  "errSessionEnded": "Your session ended. Sign in again.",
+  "errFileTooLargeUpload": "That file is too large to upload.",
+  "errAttachmentNotFound": "This file isn't available yet. It will appear once the device that added it is back online.",
+  "errAttachmentCorrupt": "This file was damaged or changed on the server, so it wasn't opened.",
+  "errNewerVersion": "This was changed in a newer version of the app. Update the app to edit it.",
+  "errLocalStoreUnreadable": "Data on this device couldn't be opened. It will be downloaded again.",
+  "errVaultLocked": "Unlock the app first.",
+  "errTooMany": "Too many attempts. Wait a few minutes and try again.",
+  "errServerDown": "Our server isn't responding right now. Your data is safe; try again soon.",
+  "errGeneric": "Something went wrong. Check your connection and try again.",
+  "enterValidEmail": "Enter a valid email address.",
+  "useAtLeast12": "Use at least 12 characters.",
+  "tipDefaultLonger": "Make it longer.",
+  "syncFailedRetry": "Couldn't sync. Tap to retry",
+  "errConfirmationSent": "We sent a confirmation link to {email}. Open it, then sign in.",
+  "@errConfirmationSent": {
+    "placeholders": {
+      "email": {
+        "type": "String"
+      }
+    }
+  },
+  "errFileTooLarge": "That file is too large. The limit is {megabytes} MB.",
+  "@errFileTooLarge": {
+    "placeholders": {
+      "megabytes": {
+        "type": "int"
+      }
+    }
+  },
+  "tooEasyToGuess": "Too easy to guess. {hint}",
+  "@tooEasyToGuess": {
+    "placeholders": {
+      "hint": {
+        "type": "String"
+      }
+    }
+  },
+  "itemsUnreadable": "{count, plural, =1{1 item couldn't be read} other{{count} items couldn't be read}}",
+  "@itemsUnreadable": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  }
+}

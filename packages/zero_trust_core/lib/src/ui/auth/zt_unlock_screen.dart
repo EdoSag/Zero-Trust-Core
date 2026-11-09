@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+
+import '../../l10n/zt_l10n.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../account/account_service.dart';
@@ -120,7 +122,8 @@ class _ZtUnlockScreenState extends ConsumerState<ZtUnlockScreen> {
                   const SizedBox(height: 16),
                   Semantics(
                     header: true,
-                    child: Text('${config.displayName} is locked',
+                    child: Text(
+                        ZtL10n.of(context).appIsLocked(config.displayName),
                         textAlign: TextAlign.center,
                         style: theme.textTheme.headlineSmall),
                   ),
@@ -135,7 +138,8 @@ class _ZtUnlockScreenState extends ConsumerState<ZtUnlockScreen> {
                   TextField(
                     controller: _password,
                     decoration: InputDecoration(
-                        labelText: 'Password', errorText: _error),
+                        labelText: ZtL10n.of(context).password,
+                        errorText: _error),
                     obscureText: true,
                     autofocus: true,
                     autofillHints: const [AutofillHints.password],
@@ -145,28 +149,29 @@ class _ZtUnlockScreenState extends ConsumerState<ZtUnlockScreen> {
                   FilledButton(
                     onPressed: _busy ? null : _unlock,
                     child: _busy
-                        ? const SizedBox.square(
+                        ? SizedBox.square(
                             dimension: 20,
                             child: CircularProgressIndicator(
-                                strokeWidth: 2, semanticsLabel: 'Unlocking'))
-                        : const Text('Unlock'),
+                                strokeWidth: 2,
+                                semanticsLabel: ZtL10n.of(context).unlocking))
+                        : Text(ZtL10n.of(context).unlock),
                   ),
                   if (widget.onForgotPassword != null)
                     TextButton(
                         onPressed: _busy ? null : widget.onForgotPassword,
-                        child: const Text('Forgot password?')),
+                        child: Text(ZtL10n.of(context).forgotPasswordQuestion)),
                   if (_biometrics) ...[
                     const SizedBox(height: 8),
                     OutlinedButton.icon(
                       onPressed: _busy ? null : _unlockWithBiometrics,
                       icon: const Icon(Icons.fingerprint),
-                      label: const Text('Unlock with biometrics'),
+                      label: Text(ZtL10n.of(context).unlockWithBiometrics),
                     ),
                   ],
                   if (widget.onSignOut != null)
                     TextButton(
                         onPressed: widget.onSignOut,
-                        child: const Text('Sign out')),
+                        child: Text(ZtL10n.of(context).signOut)),
                 ],
               ),
             ),

@@ -2,6 +2,8 @@ import 'dart:io';
 
 import 'package:dynamic_color/dynamic_color.dart';
 import 'package:flutter/material.dart';
+
+import '../../l10n/zt_l10n.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../config/zt_app_config.dart';
@@ -83,72 +85,77 @@ class ZtSettingsPage extends ConsumerWidget {
     final theme = Theme.of(context);
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Settings')),
+      appBar: AppBar(title: Text(ZtL10n.of(context).settings)),
       body: ListView(
         children: [
-          const _Header('Account'),
+          _Header(ZtL10n.of(context).account),
           ListTile(
             leading: const Icon(Icons.account_circle_outlined),
-            title: Text(account.currentEmail ?? 'Not signed in'),
-            subtitle: const Text('One account for every Zero-Trust app'),
+            title: Text(account.currentEmail ?? ZtL10n.of(context).notSignedIn),
+            subtitle: Text(ZtL10n.of(context).oneAccountForEveryApp),
           ),
           if (showSyncStatus) const ZtSyncStatusTile(),
           ListTile(
             leading: const Icon(Icons.password),
-            title: const Text('Change password'),
+            title: Text(ZtL10n.of(context).changePassword),
             onTap: () => _changePassword(context, ref),
           ),
           ListTile(
             leading: const Icon(Icons.logout),
-            title: const Text('Sign out'),
+            title: Text(ZtL10n.of(context).signOut),
             onTap: () async {
               ref.read(vaultControllerProvider.notifier).lock();
               await account.signOut();
               onSignedOut();
             },
           ),
-          const _Header('Security'),
+          _Header(ZtL10n.of(context).security),
           ListTile(
             leading: const Icon(Icons.lock_clock_outlined),
-            title: const Text('Auto-lock'),
+            title: Text(ZtL10n.of(context).autoLock),
             subtitle: Text(_autoLockLabel(autoLock)),
             onTap: () => _pickAutoLock(context, ref, autoLock),
           ),
           const _BiometricTile(),
           ListTile(
             leading: const Icon(Icons.lock_outline),
-            title: const Text('Lock now'),
+            title: Text(ZtL10n.of(context).lockNow),
             onTap: () => ref.read(vaultControllerProvider.notifier).lock(),
           ),
           ListTile(
             leading: const Icon(Icons.key_outlined),
-            title: const Text('New recovery key'),
-            subtitle: const Text('Your current recovery key will stop working'),
+            title: Text(ZtL10n.of(context).newRecoveryKey),
+            subtitle: Text(ZtL10n.of(context).yourCurrentRecoveryKeyWillStop),
             onTap: () => _newRecoveryKey(context, ref),
           ),
           ListTile(
             leading: const Icon(Icons.verified_user_outlined),
-            title: const Text('How your data is protected'),
-            subtitle: const Text('End-to-end encryption, in plain words'),
+            title: Text(ZtL10n.of(context).howYourDataIsProtected),
+            subtitle: Text(ZtL10n.of(context).endToEndEncryptionInPlain),
             onTap: () => Navigator.of(context).push(MaterialPageRoute<void>(
                 builder: (_) => const ZtDataProtectionScreen())),
           ),
-          const _Header('Appearance'),
+          _Header(ZtL10n.of(context).appearance),
           RadioGroup<ThemeMode>(
             groupValue: themeMode,
             onChanged: (m) => ref.read(themeModeProvider.notifier).set(m!),
-            child: const Column(
+            child: Column(
               children: [
                 RadioListTile(
-                    value: ThemeMode.system, title: Text('System default')),
-                RadioListTile(value: ThemeMode.light, title: Text('Light')),
-                RadioListTile(value: ThemeMode.dark, title: Text('Dark')),
+                    value: ThemeMode.system,
+                    title: Text(ZtL10n.of(context).systemDefault)),
+                RadioListTile(
+                    value: ThemeMode.light,
+                    title: Text(ZtL10n.of(context).light)),
+                RadioListTile(
+                    value: ThemeMode.dark,
+                    title: Text(ZtL10n.of(context).dark)),
               ],
             ),
           ),
           const _DynamicColorTile(),
           if (backupSection.isNotEmpty || onDataExported != null) ...[
-            const _Header('Backup'),
+            _Header(ZtL10n.of(context).backup),
             if (onDataExported != null)
               ZtExportDataTile(onExported: onDataExported!),
             ...backupSection,
@@ -157,36 +164,36 @@ class ZtSettingsPage extends ConsumerWidget {
             _Header(config.displayName),
             ...appSection,
           ],
-          const _Header('About'),
+          _Header(ZtL10n.of(context).about),
           ListTile(
             leading: const Icon(Icons.shield_outlined),
             title: Text(config.displayName),
             subtitle: Text([
-              if (version != null) 'Version $version',
-              'End-to-end encrypted. We can\'t read your data.',
+              if (version != null) ZtL10n.of(context).versionLabel(version!),
+              ZtL10n.of(context).endToEndEncryptedWeCant,
             ].join(' · ')),
           ),
           if (supportUrl != null && onOpenUrl != null)
             ListTile(
               leading: const Icon(Icons.help_outline),
-              title: const Text('Help and feedback'),
+              title: Text(ZtL10n.of(context).helpAndFeedback),
               onTap: () => onOpenUrl!(supportUrl!),
             ),
           if (privacyPolicyUrl != null && onOpenUrl != null)
             ListTile(
               leading: const Icon(Icons.policy_outlined),
-              title: const Text('Privacy policy'),
+              title: Text(ZtL10n.of(context).privacyPolicy),
               onTap: () => onOpenUrl!(privacyPolicyUrl!),
             ),
           if (termsUrl != null && onOpenUrl != null)
             ListTile(
               leading: const Icon(Icons.gavel_outlined),
-              title: const Text('Terms of use'),
+              title: Text(ZtL10n.of(context).termsOfUse),
               onTap: () => onOpenUrl!(termsUrl!),
             ),
           ListTile(
             leading: const Icon(Icons.description_outlined),
-            title: const Text('Open-source licences'),
+            title: Text(ZtL10n.of(context).openSourceLicences),
             onTap: () => showLicensePage(
               context: context,
               applicationName: config.displayName,
@@ -198,24 +205,25 @@ class ZtSettingsPage extends ConsumerWidget {
             ),
           ),
           if (showOtherApps && onOpenUrl != null) ...[
-            const _Header('Other Zero-Trust apps'),
+            _Header(ZtL10n.of(context).otherZeroTrustApps),
             for (final app in ZtSuite.apps)
               if (app.appId != config.appId)
                 ListTile(
                   leading: ZtBrandMark(app: app, size: 40),
                   title: Text(app.fullName),
-                  subtitle: Text('${app.tagline} · same account'),
+                  subtitle:
+                      Text(ZtL10n.of(context).taglineSameAccount(app.tagline)),
                   trailing: const Icon(Icons.open_in_new, size: 20),
                   onTap: () => onOpenUrl!(app.playStoreUrl),
                 ),
           ],
-          const _Header('Danger zone'),
+          _Header(ZtL10n.of(context).dangerZone),
           ListTile(
             leading: Icon(Icons.delete_forever_outlined,
                 color: theme.colorScheme.error),
-            title: Text('Delete account',
+            title: Text(ZtL10n.of(context).deleteAccount,
                 style: TextStyle(color: theme.colorScheme.error)),
-            subtitle: const Text('Deletes your data in every Zero-Trust app'),
+            subtitle: Text(ZtL10n.of(context).deletesYourDataInEveryZero),
             onTap: () => _deleteAccount(context, ref),
           ),
           const SizedBox(height: 24),
@@ -225,19 +233,19 @@ class ZtSettingsPage extends ConsumerWidget {
   }
 
   static String _autoLockLabel(Duration? d) {
-    if (d == null) return 'Never';
-    if (d == Duration.zero) return 'Immediately when you leave the app';
+    if (d == null) return ZtL10n.current.never;
+    if (d == Duration.zero) return ZtL10n.current.immediatelyWhenYouLeaveTheApp;
     if (d.inMinutes >= 1) {
-      return 'After ${d.inMinutes} min in the background or idle';
+      return ZtL10n.current.autoLockAfterMinutesIdle(d.inMinutes);
     }
-    return 'After ${d.inSeconds} s in the background or idle';
+    return ZtL10n.current.autoLockAfterSecondsIdle(d.inSeconds);
   }
 
   static String _autoLockChoice(Duration? d) => switch (d) {
-        null => 'Never',
-        Duration.zero => 'Immediately',
-        _ when d.inMinutes >= 1 => 'After ${d.inMinutes} min',
-        _ => 'After ${d.inSeconds} s',
+        null => ZtL10n.current.never,
+        Duration.zero => ZtL10n.current.immediately,
+        _ when d.inMinutes >= 1 => ZtL10n.current.afterMinutes(d.inMinutes),
+        _ => ZtL10n.current.afterSeconds(d.inSeconds),
       };
 
   Future<void> _pickAutoLock(
@@ -246,7 +254,7 @@ class ZtSettingsPage extends ConsumerWidget {
     final picked = await showDialog<(Duration?,)>(
       context: context,
       builder: (context) => SimpleDialog(
-        title: const Text('Auto-lock'),
+        title: Text(ZtL10n.of(context).autoLock),
         children: [
           RadioGroup<Duration?>(
             groupValue: current,
@@ -274,20 +282,19 @@ class ZtSettingsPage extends ConsumerWidget {
       builder: (_) => const _ChangePasswordDialog(),
     );
     if (done == true && context.mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
           content:
-              Text('Password changed. Your other devices were signed out.')));
+              Text(ZtL10n.of(context).passwordChangedYourOtherDevicesWere)));
     }
   }
 
   Future<void> _newRecoveryKey(BuildContext context, WidgetRef ref) async {
     final password = await showDialog<String>(
       context: context,
-      builder: (_) => const _ConfirmPasswordDialog(
-        title: 'New recovery key',
-        message:
-            'Enter your password. Your current recovery key will stop working.',
-        action: 'Continue',
+      builder: (_) => _ConfirmPasswordDialog(
+        title: ZtL10n.of(context).newRecoveryKey,
+        message: ZtL10n.of(context).enterYourPasswordYourCurrentRecovery,
+        action: ZtL10n.of(context).continueButton,
       ),
     );
     if (password == null || !context.mounted) return;
@@ -326,11 +333,10 @@ class ZtSettingsPage extends ConsumerWidget {
   Future<void> _deleteAccount(BuildContext context, WidgetRef ref) async {
     final password = await showDialog<String>(
       context: context,
-      builder: (_) => const _ConfirmPasswordDialog(
-        title: 'Delete account?',
-        message: 'This permanently deletes your account and your data in every '
-            'Zero-Trust app. It can\'t be undone.',
-        action: 'Delete',
+      builder: (_) => _ConfirmPasswordDialog(
+        title: ZtL10n.of(context).deleteAccountQuestion,
+        message: ZtL10n.of(context).thisPermanentlyDeletesYourAccountAnd,
+        action: ZtL10n.of(context).delete,
         destructive: true,
       ),
     );
@@ -376,8 +382,8 @@ class _DynamicColorTileState extends ConsumerState<_DynamicColorTile> {
     if (!_available) return const SizedBox.shrink();
     return SwitchListTile(
       secondary: const Icon(Icons.palette_outlined),
-      title: const Text('Use wallpaper colours'),
-      subtitle: const Text('Match your phone\'s theme instead of the app\'s'),
+      title: Text(ZtL10n.of(context).useWallpaperColours),
+      subtitle: Text(ZtL10n.of(context).matchYourPhonesThemeInsteadOf),
       value: ref.watch(ztDynamicColorProvider),
       onChanged: (on) => ref.read(ztDynamicColorProvider.notifier).set(on),
     );
@@ -425,11 +431,10 @@ class _BiometricTileState extends ConsumerState<_BiometricTile> {
     }
     final password = await showDialog<String>(
       context: context,
-      builder: (_) => const _ConfirmPasswordDialog(
-        title: 'Unlock with biometrics',
-        message: 'Enter your password to turn on fingerprint or face unlock '
-            'on this device.',
-        action: 'Turn on',
+      builder: (_) => _ConfirmPasswordDialog(
+        title: ZtL10n.of(context).unlockWithBiometrics,
+        message: ZtL10n.of(context).enterYourPasswordToTurnOn,
+        action: ZtL10n.of(context).turnOn,
       ),
     );
     if (password == null || password.isEmpty || !mounted) return;
@@ -452,8 +457,8 @@ class _BiometricTileState extends ConsumerState<_BiometricTile> {
     if (!_available) return const SizedBox.shrink();
     return SwitchListTile(
       secondary: const Icon(Icons.fingerprint),
-      title: const Text('Unlock with biometrics'),
-      subtitle: const Text('Fingerprint or face, on this device only'),
+      title: Text(ZtL10n.of(context).unlockWithBiometrics),
+      subtitle: Text(ZtL10n.of(context).fingerprintOrFaceOnThisDevice),
       value: _enabled,
       onChanged: _busy ? null : _toggle,
     );
@@ -519,7 +524,7 @@ class _ConfirmPasswordDialogState extends State<_ConfirmPasswordDialog> {
           const SizedBox(height: 16),
           TextField(
             controller: _password,
-            decoration: const InputDecoration(labelText: 'Password'),
+            decoration: InputDecoration(labelText: ZtL10n.of(context).password),
             obscureText: true,
             autofocus: true,
             onSubmitted: (v) {
@@ -531,7 +536,7 @@ class _ConfirmPasswordDialogState extends State<_ConfirmPasswordDialog> {
       actions: [
         TextButton(
             onPressed: () => Navigator.pop(context),
-            child: const Text('Cancel')),
+            child: Text(ZtL10n.of(context).cancel)),
         FilledButton(
           style: widget.destructive
               ? FilledButton.styleFrom(backgroundColor: error)
@@ -604,7 +609,7 @@ class _ChangePasswordDialogState extends ConsumerState<_ChangePasswordDialog> {
   @override
   Widget build(BuildContext context) {
     return AlertDialog(
-      title: const Text('Change password'),
+      title: Text(ZtL10n.of(context).changePassword),
       content: Form(
         key: _form,
         child: Column(
@@ -612,12 +617,14 @@ class _ChangePasswordDialogState extends ConsumerState<_ChangePasswordDialog> {
           children: [
             TextFormField(
               controller: _current,
-              decoration: const InputDecoration(labelText: 'Current password'),
+              decoration: InputDecoration(
+                  labelText: ZtL10n.of(context).currentPassword),
               obscureText: true,
             ),
             TextFormField(
               controller: _next,
-              decoration: const InputDecoration(labelText: 'New password'),
+              decoration:
+                  InputDecoration(labelText: ZtL10n.of(context).newPassword),
               obscureText: true,
               validator: (v) => ztValidateNewPassword(v,
                   email: ref.read(accountServiceProvider).currentEmail),
@@ -627,11 +634,12 @@ class _ChangePasswordDialogState extends ConsumerState<_ChangePasswordDialog> {
                 email: ref.read(accountServiceProvider).currentEmail),
             TextFormField(
               controller: _confirm,
-              decoration:
-                  const InputDecoration(labelText: 'Confirm new password'),
+              decoration: InputDecoration(
+                  labelText: ZtL10n.of(context).confirmNewPassword),
               obscureText: true,
-              validator: (v) =>
-                  v == _next.text ? null : 'Passwords don\'t match.',
+              validator: (v) => v == _next.text
+                  ? null
+                  : ZtL10n.of(context).passwordsDontMatch,
             ),
             if (_error != null) ...[
               const SizedBox(height: 12),
@@ -644,9 +652,10 @@ class _ChangePasswordDialogState extends ConsumerState<_ChangePasswordDialog> {
       actions: [
         TextButton(
             onPressed: _busy ? null : () => Navigator.pop(context, false),
-            child: const Text('Cancel')),
+            child: Text(ZtL10n.of(context).cancel)),
         FilledButton(
-            onPressed: _busy ? null : _submit, child: const Text('Change')),
+            onPressed: _busy ? null : _submit,
+            child: Text(ZtL10n.of(context).change)),
       ],
     );
   }

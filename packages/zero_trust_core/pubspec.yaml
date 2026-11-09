@@ -10,6 +10,9 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
+  flutter_localizations:
+    sdk: flutter
+  intl: any
   flutter_riverpod: ^3.0.0
   flutter_secure_storage: ^11.2.0
   local_auth: ^3.0.2
@@ -36,3 +39,6 @@ hooks:
   user_defines:
     sqlite3:
       source: sqlite3mc
+
+flutter:
+  generate: true

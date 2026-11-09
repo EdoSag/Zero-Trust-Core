@@ -19,6 +19,7 @@ export 'src/config/zt_suite.dart';
 export 'src/core_providers.dart';
 export 'src/export/zt_data_export.dart';
 export 'src/export/zt_export_data_tile.dart';
+export 'src/l10n/zt_l10n.dart';
 export 'src/sync/device_id.dart';
 export 'src/sync/item_sync_engine.dart';
 export 'src/sync/legacy_importer.dart';
