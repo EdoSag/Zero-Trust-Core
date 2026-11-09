@@ -229,8 +229,8 @@ class AccountService {
     }
     final dek = Uint8List.fromList(result.dek);
     try {
-      await store.save(
-          _requireUserId(), (dek: dek, legacyDek: result.legacyDek));
+      await store
+          .save(_requireUserId(), (dek: dek, legacyDek: result.legacyDek));
     } finally {
       dek.fillRange(0, dek.length, 0);
     }

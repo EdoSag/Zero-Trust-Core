@@ -70,7 +70,8 @@ void main() {
 
     testWidgets('skip marks it seen', (tester) async {
       var done = false;
-      await tester.pumpWidget(app(ZtOnboardingScreen(onDone: () => done = true)));
+      await tester
+          .pumpWidget(app(ZtOnboardingScreen(onDone: () => done = true)));
       await tester.pumpAndSettle();
       await tester.tap(find.text('Skip'));
       await settle(tester);
@@ -89,7 +90,8 @@ void main() {
       expect(container.read(ztOnboardingSeenProvider), isTrue);
 
       final fresh = ProviderContainer(overrides: [
-        ztPreferencesStoreProvider.overrideWithValue(InMemoryPreferencesStore()),
+        ztPreferencesStoreProvider
+            .overrideWithValue(InMemoryPreferencesStore()),
       ]);
       addTearDown(fresh.dispose);
       fresh.read(ztOnboardingSeenProvider);
@@ -167,7 +169,11 @@ void main() {
       )));
       await settle(tester);
 
-      for (final label in ['Help and feedback', 'Privacy policy', 'Terms of use']) {
+      for (final label in [
+        'Help and feedback',
+        'Privacy policy',
+        'Terms of use'
+      ]) {
         await tester.scrollUntilVisible(find.text(label), 100);
         await tester.tap(find.text(label));
         await tester.pump();

@@ -69,8 +69,7 @@ abstract final class Kdf {
   /// matching any other service's salt for the same email.
   static Future<Uint8List> saltForEmail(String email) async {
     final normalized = email.trim().toLowerCase();
-    final hash =
-        await const DartSha256()
+    final hash = await const DartSha256()
         .hash(utf8.encode('zerotrust/kdf-salt/v2/$normalized'));
     return Uint8List.fromList(hash.bytes.sublist(0, saltLength));
   }

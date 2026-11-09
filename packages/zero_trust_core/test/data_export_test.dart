@@ -34,12 +34,14 @@ void main() {
     await store.put(LocalItem(
         itemId: 'n1', updatedAt: t, json: {'title': 'Hello', '_v': 2}));
     await store.put(LocalItem(
-        itemId: 'b1', updatedAt: t, json: {'kind': 'notebook', 'name': 'Work'}));
+        itemId: 'b1',
+        updatedAt: t,
+        json: {'kind': 'notebook', 'name': 'Work'}));
     await store.put(LocalItem(itemId: 'gone', updatedAt: t, deleted: true));
 
-    final export = await ZtDataExporter(
-            appId: 'notes', store: store, now: () => t)
-        .build();
+    final export =
+        await ZtDataExporter(appId: 'notes', store: store, now: () => t)
+            .build();
     expect(export.fileName, 'zero-trust-notes-2026-11-09.zip');
     expect(export.itemCount, 2);
 
@@ -64,8 +66,8 @@ void main() {
         }
       ],
     });
-    expect(utf8.decode(files['README.txt']!.content),
-        contains('NOT ENCRYPTED'));
+    expect(
+        utf8.decode(files['README.txt']!.content), contains('NOT ENCRYPTED'));
   });
 
   test('attachments found anywhere in an item are included decrypted',
@@ -93,7 +95,8 @@ void main() {
     expect(files['attachments/${ref.id}/beach.jpg']!.content, photo);
     expect(files['attachments/${doc.id}/${doc.id}']!.content, [1, 2, 3]);
     final index = jsonOf(files['attachments/index.json']!)! as List;
-    expect(index.map((e) => (e as Map)['id']), unorderedEquals([ref.id, doc.id]));
+    expect(
+        index.map((e) => (e as Map)['id']), unorderedEquals([ref.id, doc.id]));
   });
 
   test('unreadable attachments are listed, not fatal', () async {

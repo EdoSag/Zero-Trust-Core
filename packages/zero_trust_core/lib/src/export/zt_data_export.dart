@@ -184,8 +184,7 @@ class ZtDataExporter {
   static String _date(DateTime t) => '${t.year.toString().padLeft(4, '0')}-'
       '${t.month.toString().padLeft(2, '0')}-${t.day.toString().padLeft(2, '0')}';
 
-  String _readme(DateTime now, int items, int files, List<String> missing) =>
-      [
+  String _readme(DateTime now, int items, int files, List<String> missing) => [
         'Zero-Trust $appId export, ${now.toIso8601String()}',
         '',
         'THESE FILES ARE NOT ENCRYPTED. Anyone who gets this file can read',

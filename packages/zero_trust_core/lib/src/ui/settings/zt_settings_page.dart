@@ -54,6 +54,7 @@ class ZtSettingsPage extends ConsumerWidget {
   final Future<void> Function(File file, ZtExport export)? onDataExported;
 
   final String? version;
+
   /// Store requirement. Each link row shows only with [onOpenUrl] set.
   final Uri? privacyPolicyUrl;
 
@@ -192,8 +193,7 @@ class ZtSettingsPage extends ConsumerWidget {
               applicationVersion: version,
               applicationIcon: Padding(
                 padding: const EdgeInsets.all(8),
-                child:
-                    ZtBrandMark(app: ZtSuite.byId(config.appId), size: 48),
+                child: ZtBrandMark(app: ZtSuite.byId(config.appId), size: 48),
               ),
             ),
           ),
@@ -519,6 +519,9 @@ class _ConfirmPasswordDialogState extends State<_ConfirmPasswordDialog> {
             decoration: const InputDecoration(labelText: 'Password'),
             obscureText: true,
             autofocus: true,
+            onSubmitted: (v) {
+              if (v.isNotEmpty) Navigator.pop(context, v);
+            },
           ),
         ],
       ),
@@ -526,12 +529,19 @@ class _ConfirmPasswordDialogState extends State<_ConfirmPasswordDialog> {
         TextButton(
             onPressed: () => Navigator.pop(context),
             child: const Text('Cancel')),
-        FilledButton(
-          style: widget.destructive
-              ? FilledButton.styleFrom(backgroundColor: error)
-              : null,
-          onPressed: () => Navigator.pop(context, _password.text),
-          child: Text(widget.action),
+        // Disabled while empty: an empty password would only run the slow
+        // key derivation to fail.
+        ValueListenableBuilder(
+          valueListenable: _password,
+          builder: (context, value, _) => FilledButton(
+            style: widget.destructive
+                ? FilledButton.styleFrom(backgroundColor: error)
+                : null,
+            onPressed: value.text.isEmpty
+                ? null
+                : () => Navigator.pop(context, _password.text),
+            child: Text(widget.action),
+          ),
         ),
       ],
     );
