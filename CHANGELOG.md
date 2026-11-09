@@ -3,6 +3,20 @@
 Apps depend on the core by git tag (`ref: vX.Y.Z`). Upgrade notes list what
 an app must change.
 
+## 0.7.1
+
+Fixes sign-in and unlock in apps that include `cryptography_flutter`
+(Fitness and Notes): they showed "Something went wrong" before contacting
+the server.
+
+- Key derivation (PBKDF2, HKDF, the email salt, the recovery-key checksum)
+  now always uses the pure-Dart implementations. With `cryptography_flutter`
+  installed, HMAC ran through Android's javax.crypto, which rejects the
+  empty HMAC key that HKDF uses when there's no salt. The derived keys are
+  byte-for-byte the same as before, so no account or data changes.
+- No upgrade steps. Apps can also drop `cryptography_flutter` if they don't
+  use it.
+
 ## 0.7.0
 
 Shared building blocks the other apps need before they move onto the core.

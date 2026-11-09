@@ -3,6 +3,7 @@ import 'dart:math';
 import 'dart:typed_data';
 
 import 'package:cryptography/cryptography.dart';
+import 'package:cryptography/dart.dart';
 
 import 'background.dart';
 
@@ -41,6 +42,15 @@ class KdfParams {
 }
 
 abstract final class Kdf {
+  /// HMAC-SHA256 from the pure-Dart implementation, never from
+  /// `Cryptography.instance`. An app that depends on `cryptography_flutter`
+  /// swaps that instance for Android's javax.crypto, which refuses the
+  /// empty HMAC key HKDF uses when there's no salt ("Empty key"), so sign-in
+  /// and unlock failed before reaching the server. Key derivation must give
+  /// the same bytes on every device and in every app, so it doesn't depend
+  /// on which plugins an app happens to include.
+  static const Hmac _hmacSha256 = DartHmac(DartSha256());
+
   static const int keyLength = 32;
   static const int saltLength = 16;
 
@@ -60,7 +70,8 @@ abstract final class Kdf {
   static Future<Uint8List> saltForEmail(String email) async {
     final normalized = email.trim().toLowerCase();
     final hash =
-        await Sha256().hash(utf8.encode('zerotrust/kdf-salt/v2/$normalized'));
+        await const DartSha256()
+        .hash(utf8.encode('zerotrust/kdf-salt/v2/$normalized'));
     return Uint8List.fromList(hash.bytes.sublist(0, saltLength));
   }
 
@@ -79,8 +90,8 @@ abstract final class Kdf {
     final iterations = params.iterations;
     final nonce = List<int>.of(salt);
     Future<Uint8List> derive() async {
-      final pbkdf2 = Pbkdf2(
-        macAlgorithm: Hmac.sha256(),
+      final pbkdf2 = DartPbkdf2(
+        macAlgorithm: _hmacSha256,
         iterations: iterations,
         bits: keyLength * 8,
       );
@@ -106,7 +117,7 @@ abstract final class Kdf {
     int length = keyLength,
   }) async {
     final derived =
-        await Hkdf(hmac: Hmac.sha256(), outputLength: length).deriveKey(
+        await DartHkdf(hmac: _hmacSha256, outputLength: length).deriveKey(
       secretKey: SecretKey(key),
       nonce: salt,
       info: utf8.encode(info),

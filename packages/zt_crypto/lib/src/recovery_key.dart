@@ -1,6 +1,6 @@
 import 'dart:typed_data';
 
-import 'package:cryptography/cryptography.dart';
+import 'package:cryptography/dart.dart';
 
 import 'kdf.dart';
 
@@ -62,7 +62,7 @@ class RecoveryKey {
   }
 
   static Future<String> _checksum(List<int> bytes) async {
-    final hash = await Sha256().hash(bytes);
+    final hash = await const DartSha256().hash(bytes);
     final v = hash.bytes[0] << 8 | hash.bytes[1];
     return _alphabet[(v >> 5) & 31] + _alphabet[v & 31];
   }
