@@ -1,6 +1,6 @@
 -- zero_trust_core v2: additive only. Existing apps keep working unchanged.
 -- Applied 2026-10-18. The encrypted_vault policy fix that was part 3 is
--- deferred: see supabase/deferred/encrypted_vault_insert_policy.sql.
+-- deferred and later dropped with the table (20261110120000_drop_unused_tables).
 
 -- 1. profiles: key hierarchy columns (legacy `salt` stays for migration).
 alter table public.profiles

@@ -3,6 +3,16 @@
 Apps depend on the core by git tag (`ref: vX.Y.Z`). Upgrade notes list what
 an app must change.
 
+## Unreleased (database only)
+
+- **Old tables removed.** Migration `20261110120000_drop_unused_tables` drops
+  the pre-core tables (`encrypted_vault`, `encrypted_tasks`,
+  `encrypted_task_items`, `encrypted_notes`, `encrypted_contacts`, plus the
+  never-used `encrypted_sms`, `encrypted_note_items`,
+  `encrypted_contact_items`), the old Contacts photo bucket policies and the
+  PostGIS extension. No Dart code changes. Apps whose old-data import reads
+  these tables must treat a missing table as "nothing to import".
+
 ## 0.9.0
 
 Storage limits and server cleanup (Z17), and Supabase advisor fixes (Z18).
