@@ -50,7 +50,8 @@ jobs:
             $(for f in migrations/*.sql; do echo -f "$f"; done) \
             -f tests/key_guard_test.sql -f tests/vault_items_test.sql \
             -f tests/attachments_test.sql \
-            -f tests/storage_quota_test.sql
+            -f tests/storage_quota_test.sql \
+            -f tests/drop_unused_tables_test.sql
 
   edge_functions:
     runs-on: ubuntu-latest

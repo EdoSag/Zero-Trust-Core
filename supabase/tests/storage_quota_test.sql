@@ -136,14 +136,7 @@ end $$;
 
 -- Advisor fixes.
 set role anon;
-select pg_temp.expect_error($$delete from public.spatial_ref_sys$$, 'anon deletes spatial_ref_sys', 'spatial_ref_sys is read-only');
 select pg_temp.expect_error($$select public.profiles_keep_key_history()$$, 'anon calls trigger fn', null);
-do $$ begin
-  assert (select count(*) from public.spatial_ref_sys) = 1, 'reads still work';
-end $$;
-reset role;
-set role authenticated;
-select pg_temp.expect_error($$update public.spatial_ref_sys set auth_name = 'x'$$, 'authenticated edits spatial_ref_sys', 'spatial_ref_sys is read-only');
 reset role;
 
 \echo storage_quota_test: all checks passed
