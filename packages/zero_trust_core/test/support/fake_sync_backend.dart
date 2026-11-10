@@ -41,12 +41,38 @@ class FakeSyncBackend implements SyncBackend {
           if (rows['$app/$id'] case final row?) row,
       ];
 
+  /// Live (not deleted) rows the account may hold, like the
+  /// `vault_items_track_usage` trigger's limit. Null: no limit.
+  int? maxLiveRows;
+
+  /// Item ids the server refuses as over the per-item cap.
+  final Set<String> tooLarge = {};
+
   @override
   Future<Set<String>> pushAll(String app, List<RemoteItem> items) async {
     pushBatches.add(items.length);
     final hook = beforePush;
     beforePush = null;
     if (hook != null) await hook();
+    // Like the trigger, a refusal rolls back the whole request.
+    if (items.any((i) => !i.deleted && tooLarge.contains(i.itemId))) {
+      throw const StorageLimitExceeded(itemTooLarge: true);
+    }
+    final max = maxLiveRows;
+    if (max != null) {
+      final live = {
+        for (final e in rows.entries)
+          if (!e.value.deleted) e.key,
+      };
+      for (final i in items) {
+        i.deleted
+            ? live.remove('$app/${i.itemId}')
+            : live.add('$app/${i.itemId}');
+      }
+      final grows = items.any(
+          (i) => !i.deleted && !(rows['$app/${i.itemId}']?.deleted == false));
+      if (grows && live.length > max) throw const StorageLimitExceeded();
+    }
     final accepted = <String>{};
     for (final item in items) {
       // Mirrors the vault_items trigger: an older write never replaces a

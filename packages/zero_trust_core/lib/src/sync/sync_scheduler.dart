@@ -11,6 +11,8 @@ class SyncStatus {
     this.error,
     this.rejected = const [],
     this.conflicts = const [],
+    this.storageFull = false,
+    this.tooLarge = const [],
   });
 
   final bool isSyncing;
@@ -27,6 +29,12 @@ class SyncStatus {
   /// Local edits that lost to newer ones, kept until the app clears them.
   final List<SyncConflict> conflicts;
 
+  /// The account is at its storage limit (see [SyncResult.storageFull]).
+  final bool storageFull;
+
+  /// Items too big to sync (see [SyncResult.tooLarge]).
+  final List<String> tooLarge;
+
   SyncStatus _with({
     bool? isSyncing,
     DateTime? lastSyncedAt,
@@ -34,6 +42,8 @@ class SyncStatus {
     bool clearError = false,
     List<String>? rejected,
     List<SyncConflict>? conflicts,
+    bool? storageFull,
+    List<String>? tooLarge,
   }) =>
       SyncStatus(
         isSyncing: isSyncing ?? this.isSyncing,
@@ -41,6 +51,8 @@ class SyncStatus {
         error: clearError ? null : error ?? this.error,
         rejected: rejected ?? this.rejected,
         conflicts: conflicts ?? this.conflicts,
+        storageFull: storageFull ?? this.storageFull,
+        tooLarge: tooLarge ?? this.tooLarge,
       );
 }
 
@@ -167,6 +179,8 @@ class SyncScheduler {
         clearError: true,
         rejected: result.rejected,
         conflicts: [..._status.conflicts, ...result.conflicts],
+        storageFull: result.storageFull,
+        tooLarge: result.tooLarge,
       ));
     } catch (e) {
       final b = _backoff;

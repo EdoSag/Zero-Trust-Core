@@ -21,6 +21,7 @@ import '../auth/zt_auth_messages.dart';
 import '../auth/zt_password_strength.dart';
 import '../../sync/zt_local_store.dart';
 import '../auth/zt_recovery_key_screen.dart';
+import 'zt_storage_tile.dart';
 import 'zt_sync_status_tile.dart';
 
 /// The settings screen every Zero-Trust app shows. Sections and their order
@@ -39,6 +40,7 @@ class ZtSettingsPage extends ConsumerWidget {
     this.supportUrl,
     this.onOpenUrl,
     this.showSyncStatus = false,
+    this.showStorageUsage = false,
     this.showOtherApps = true,
   });
 
@@ -72,6 +74,10 @@ class ZtSettingsPage extends ConsumerWidget {
   /// providers (`ztSyncControllerProvider`).
   final bool showSyncStatus;
 
+  /// Shows [ZtStorageTile] (how much of the account's server storage is
+  /// used) under the account. Reads `zt_my_storage()`, core 0.9.
+  final bool showStorageUsage;
+
   /// Lists the suite's other apps (same account) with a link to each in
   /// the store, opened through [onOpenUrl]. Hidden without [onOpenUrl].
   final bool showOtherApps;
@@ -95,6 +101,7 @@ class ZtSettingsPage extends ConsumerWidget {
             subtitle: Text(ZtL10n.of(context).oneAccountForEveryApp),
           ),
           if (showSyncStatus) const ZtSyncStatusTile(),
+          if (showStorageUsage) const ZtStorageTile(),
           ListTile(
             leading: const Icon(Icons.password),
             title: Text(ZtL10n.of(context).changePassword),

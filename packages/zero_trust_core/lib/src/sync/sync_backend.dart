@@ -31,6 +31,22 @@ class RemoteItem {
   final bool deleted;
 }
 
+/// The server refused a write because of the account's storage limits
+/// (`zt_storage_usage`, core 0.9). Deletes are never refused, so the user
+/// can always free space.
+class StorageLimitExceeded implements Exception {
+  const StorageLimitExceeded({this.itemTooLarge = false});
+
+  /// One item is bigger than the per-item cap (1 MiB sealed) rather than the
+  /// account being full. That item can't sync until it is made smaller.
+  final bool itemTooLarge;
+
+  @override
+  String toString() => itemTooLarge
+      ? 'StorageLimitExceeded(item too large)'
+      : 'StorageLimitExceeded(storage full)';
+}
+
 /// Server side of per-item sync. Supabase in production; in-memory in tests.
 abstract interface class SyncBackend {
   /// Rows of [app] the server received after [since] (all when null),
@@ -45,6 +61,9 @@ abstract interface class SyncBackend {
   /// (another device wrote after this one last pulled; the next pull reports
   /// the conflict) or a write dated too far in the future (it is accepted
   /// once the writing device's time is no longer ahead of the server's).
+  ///
+  /// Throws [StorageLimitExceeded] when the server refuses the batch for the
+  /// account's storage limits; nothing in the batch is written then.
   Future<Set<String>> pushAll(String app, List<RemoteItem> items);
 
   /// Live changes from other devices. Returns a cancel function.

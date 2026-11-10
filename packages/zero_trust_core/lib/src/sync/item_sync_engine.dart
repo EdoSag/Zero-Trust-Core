@@ -22,6 +22,8 @@ class SyncResult {
     this.applied = 0,
     this.conflicts = const [],
     this.rejected = const [],
+    this.storageFull = false,
+    this.tooLarge = const [],
   });
 
   final int pushed;
@@ -35,6 +37,15 @@ class SyncResult {
   /// swap data. Retried on every sync; while non-empty, the app should say
   /// that some items couldn't be read.
   final List<String> rejected;
+
+  /// The server refused new data because the account is at its storage
+  /// limit. Unpushed edits stay on this device and go up once space is
+  /// freed (deleting is always allowed) or the limit is raised.
+  final bool storageFull;
+
+  /// Item ids bigger than the server's per-item cap. They stay on this
+  /// device, waiting, until edited to be smaller.
+  final List<String> tooLarge;
 }
 
 /// Encrypted per-item sync over the shared `vault_items` table, for any app.
@@ -47,7 +58,12 @@ class SyncResult {
 ///   `updatedAt` comes from a hybrid logical clock: never earlier than any
 ///   version this device has seen, so a phone whose clock is behind still
 ///   wins with a later edit.
-/// - Deletes are tombstones, so they reach every device.
+/// - Deletes are tombstones, so they reach every device. The server removes
+///   tombstones after [tombstoneRetention]; a device that hasn't pulled for
+///   [fullResyncAfter] pulls everything again and drops what the server no
+///   longer has.
+/// - Deletes are pushed before edits, and the server never refuses them, so
+///   an account at its storage limit can always free space.
 class ItemSyncEngine {
   ItemSyncEngine({
     required this.appId,
@@ -99,6 +115,14 @@ class ItemSyncEngine {
   /// ahead than this doesn't move the logical clock, since following it would
   /// stall every later push.
   static const Duration maxClockSkew = Duration(minutes: 10);
+
+  /// How long the server keeps tombstones (`zt_purge_tombstones`).
+  static const Duration tombstoneRetention = Duration(days: 180);
+
+  /// A device whose last pull is older than this re-syncs in full, so it
+  /// can't miss a delete whose tombstone the server has since removed. A
+  /// month short of [tombstoneRetention], for clock error.
+  static const Duration fullResyncAfter = Duration(days: 150);
 
   final String appId;
   final String deviceId;
@@ -194,13 +218,32 @@ class ItemSyncEngine {
     final rejected = <String>[];
     final readable = <String>{};
     var highWater = await store.lastPulledAt();
-    final since = highWater?.subtract(pullOverlap);
+    final full = highWater != null &&
+        _clock().toUtc().difference(highWater.toUtc()) > fullResyncAfter;
+    final since = full ? null : highWater?.subtract(pullOverlap);
+    final onServer = <String>{};
     for (final remote in await backend.pull(appId, since: since)) {
+      onServer.add(remote.itemId);
       if (await _apply(remote, conflicts, rejected)) applied++;
       if (!rejected.contains(remote.itemId)) readable.add(remote.itemId);
       final synced = remote.syncedAt;
       if (synced != null && (highWater == null || synced.isAfter(highWater))) {
         highWater = synced;
+      }
+    }
+    if (full) {
+      // Away longer than the server keeps tombstones: an item the server no
+      // longer has was deleted elsewhere. Local edits not yet pushed stay.
+      for (final local in await store.all()) {
+        if (local.deleted || local.dirty || onServer.contains(local.itemId)) {
+          continue;
+        }
+        await store.put(LocalItem(
+          itemId: local.itemId,
+          updatedAt: local.updatedAt,
+          deleted: true,
+        ));
+        applied++;
       }
     }
     if (highWater != null) await store.setLastPulledAt(highWater);
@@ -217,11 +260,37 @@ class ItemSyncEngine {
     await store.setRejectedIds(rejected.toSet());
 
     var pushed = 0;
+    var storageFull = false;
+    final tooLarge = <String>[];
     final dirty = await store.dirtyItems();
-    for (var i = 0; i < dirty.length; i += pushBatchSize) {
-      final batch = dirty.sublist(i, min(i + pushBatchSize, dirty.length));
+    // Deletes first: the server always takes them, and they free space.
+    final ordered = [
+      ...dirty.where((i) => i.deleted),
+      ...dirty.where((i) => !i.deleted),
+    ];
+    for (var i = 0; i < ordered.length && !storageFull; i += pushBatchSize) {
+      final batch = ordered.sublist(i, min(i + pushBatchSize, ordered.length));
       final sealed = [for (final item in batch) await _seal(item)];
-      final accepted = await backend.pushAll(appId, sealed);
+      Set<String> accepted;
+      try {
+        accepted = await backend.pushAll(appId, sealed);
+      } on StorageLimitExceeded {
+        // One row (or the account) is over a limit and the whole batch was
+        // refused: push one at a time so everything else still goes up.
+        accepted = {};
+        for (final row in sealed) {
+          try {
+            accepted.addAll(await backend.pushAll(appId, [row]));
+          } on StorageLimitExceeded catch (e) {
+            if (e.itemTooLarge) {
+              tooLarge.add(row.itemId);
+            } else {
+              storageFull = true;
+              break;
+            }
+          }
+        }
+      }
       for (final item in batch) {
         // Not accepted: stays dirty, so the next pull reports the conflict
         // (or the push succeeds later) instead of the edit being dropped.
@@ -240,6 +309,8 @@ class ItemSyncEngine {
       applied: applied,
       conflicts: conflicts,
       rejected: rejected,
+      storageFull: storageFull,
+      tooLarge: tooLarge,
     );
   }
 

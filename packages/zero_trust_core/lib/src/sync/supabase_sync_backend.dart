@@ -77,20 +77,33 @@ class SupabaseSyncBackend implements SyncBackend {
     // The vault_items trigger silently skips a write it refuses (older than
     // the stored row, or dated too far ahead); skipped rows are missing
     // from the result, which is how the caller tells them apart.
-    final rows = await _client.from(_table).upsert([
-      for (final item in items)
-        {
-          'user_id': userId,
-          'app': app,
-          'item_id': item.itemId,
-          'data_blob': item.dataBlob == null ? null : _toBytea(item.dataBlob!),
-          'signature':
-              item.signature == null ? null : _toBytea(item.signature!),
-          'device_id': item.deviceId,
-          'updated_at': item.updatedAt.toUtc().toIso8601String(),
-          'deleted': item.deleted,
-        },
-    ], onConflict: 'user_id,app,item_id').select('item_id');
+    final List<Map<String, dynamic>> rows;
+    try {
+      rows = await _client.from(_table).upsert([
+        for (final item in items)
+          {
+            'user_id': userId,
+            'app': app,
+            'item_id': item.itemId,
+            'data_blob':
+                item.dataBlob == null ? null : _toBytea(item.dataBlob!),
+            'signature':
+                item.signature == null ? null : _toBytea(item.signature!),
+            'device_id': item.deviceId,
+            'updated_at': item.updatedAt.toUtc().toIso8601String(),
+            'deleted': item.deleted,
+          },
+      ], onConflict: 'user_id,app,item_id').select('item_id');
+    } on PostgrestException catch (e) {
+      // Raised by the vault_items_track_usage trigger.
+      if (e.message == 'zt_storage_full') {
+        throw const StorageLimitExceeded();
+      }
+      if (e.message == 'zt_item_too_large') {
+        throw const StorageLimitExceeded(itemTooLarge: true);
+      }
+      rethrow;
+    }
     return {for (final r in rows) r['item_id'] as String};
   }
 
