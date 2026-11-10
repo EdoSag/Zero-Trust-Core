@@ -445,6 +445,23 @@ void main() {
       expect(await phone.store.dirtyItems(), isEmpty);
     });
 
+    test('after a refusal the rest still goes up when it fits', () async {
+      final phone = await device('phone');
+      final laptop = await device('laptop');
+      await phone.save('late', {'v': 'new'}); // offline, not pushed yet
+      await laptop.save('x', {'v': 1});
+      await laptop.sync();
+      server.maxLiveRows = 1;
+      await phone.sync(); // 'late' refused; pulls 'x'
+      now = now.add(const Duration(minutes: 1));
+      await phone.save('x', {'v': 'smaller'}); // queued after 'late'
+      final result = await phone.sync();
+      expect(result.storageFull, isTrue);
+      expect(await laptop.sync().then((_) => laptop.store.get('x')),
+          isA<LocalItem>().having((i) => i.json, 'json', {'v': 'smaller'}));
+      expect((await phone.store.get('late'))!.dirty, isTrue);
+    });
+
     test('an item over the size cap waits; the rest of its batch syncs',
         () async {
       final phone = await device('phone');
@@ -490,6 +507,22 @@ void main() {
       expect(server.rows.containsKey('notes/gone'), isFalse,
           reason: 'not brought back');
       expect(result.applied, greaterThanOrEqualTo(1));
+    });
+
+    test('a vault that rarely changes is not re-pulled in full', () async {
+      server.serverNow = () => now;
+      final phone = await device('phone');
+      await phone.save('n1', {'v': 1});
+      await phone.sync();
+      // Synced every month for 200 days; nothing changed on the server.
+      for (var d = 0; d < 200; d += 30) {
+        now = now.add(const Duration(days: 30));
+        await phone.sync();
+      }
+      server.rows.remove('notes/n1'); // a full re-sync would drop it
+      now = now.add(const Duration(days: 1));
+      await phone.sync();
+      expect((await phone.store.get('n1'))!.deleted, isFalse);
     });
 
     test('a recently synced device pulls only what changed', () async {

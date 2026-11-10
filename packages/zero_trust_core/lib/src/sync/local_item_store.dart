@@ -49,9 +49,28 @@ abstract interface class LocalItemStore {
   Future<void> setRejectedIds(Set<String> ids);
 }
 
-class InMemoryItemStore implements LocalItemStore {
+/// Optional for a [LocalItemStore]: when this device last finished a pull,
+/// by its own clock. [ItemSyncEngine] uses it to tell a device that has been
+/// away (and may have missed deletes whose tombstones the server has since
+/// removed) from one whose items simply haven't changed in a long time.
+/// Without it the engine falls back to the newest pulled row's time, and
+/// does at most one full re-sync per run.
+abstract interface class PullCheckpoint {
+  Future<DateTime?> lastPullCompletedAt();
+  Future<void> setLastPullCompletedAt(DateTime value);
+}
+
+class InMemoryItemStore implements LocalItemStore, PullCheckpoint {
   final Map<String, LocalItem> _items = {};
   DateTime? _lastPulled;
+  DateTime? _lastPullCompleted;
+
+  @override
+  Future<DateTime?> lastPullCompletedAt() async => _lastPullCompleted;
+
+  @override
+  Future<void> setLastPullCompletedAt(DateTime value) async =>
+      _lastPullCompleted = value;
   Set<String> _rejected = {};
 
   @override

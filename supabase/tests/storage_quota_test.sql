@@ -55,6 +55,11 @@ select pg_temp.expect_error(
   $$insert into public.vault_items (user_id, app, item_id, data_blob) values (auth.uid(), 'notes', 'q4', '\x01')$$,
   'over item limit', 'zt_storage_full');
 
+-- A tombstone for an item the server never had is still taken when full.
+insert into public.vault_items (user_id, app, item_id, deleted)
+  values (auth.uid(), 'notes', 'q9', true);
+delete from public.vault_items where item_id = 'q9';
+
 -- A write the stale-write guard skips is not counted.
 insert into public.vault_items (user_id, app, item_id, data_blob, updated_at)
   values (auth.uid(), 'notes', 'q3', '\x01', now() - interval '1 day')

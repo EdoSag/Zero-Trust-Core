@@ -142,6 +142,10 @@ class ItemSyncEngine {
   DateTime? _serverTime;
   bool _closed = false;
 
+  /// A full re-sync ran in this engine's lifetime (stores without
+  /// [PullCheckpoint] only).
+  bool _fullResyncDone = false;
+
   /// Stops live updates and zeroes this engine's copy of the app key. Call it
   /// when the vault locks; anything still in flight then fails instead of
   /// sealing with a zeroed key.
@@ -218,8 +222,15 @@ class ItemSyncEngine {
     final rejected = <String>[];
     final readable = <String>{};
     var highWater = await store.lastPulledAt();
-    final full = highWater != null &&
-        _clock().toUtc().difference(highWater.toUtc()) > fullResyncAfter;
+    final checkpoint = store is PullCheckpoint ? store as PullCheckpoint : null;
+    // When this device last caught up. The newest row's time is only a
+    // stand-in: on a vault that rarely changes it stays old however often
+    // the device syncs.
+    final caughtUpAt = checkpoint != null
+        ? (await checkpoint.lastPullCompletedAt() ?? highWater)
+        : (_fullResyncDone ? null : highWater);
+    final full = caughtUpAt != null &&
+        _clock().toUtc().difference(caughtUpAt.toUtc()) > fullResyncAfter;
     final since = full ? null : highWater?.subtract(pullOverlap);
     final onServer = <String>{};
     for (final remote in await backend.pull(appId, since: since)) {
@@ -247,6 +258,8 @@ class ItemSyncEngine {
       }
     }
     if (highWater != null) await store.setLastPulledAt(highWater);
+    if (full) _fullResyncDone = true;
+    await checkpoint?.setLastPullCompletedAt(_clock().toUtc());
 
     // Retry rows that failed before and weren't just pulled again.
     final retry = (await store.rejectedIds())
@@ -268,7 +281,7 @@ class ItemSyncEngine {
       ...dirty.where((i) => i.deleted),
       ...dirty.where((i) => !i.deleted),
     ];
-    for (var i = 0; i < ordered.length && !storageFull; i += pushBatchSize) {
+    for (var i = 0; i < ordered.length; i += pushBatchSize) {
       final batch = ordered.sublist(i, min(i + pushBatchSize, ordered.length));
       final sealed = [for (final item in batch) await _seal(item)];
       Set<String> accepted;
@@ -276,7 +289,8 @@ class ItemSyncEngine {
         accepted = await backend.pushAll(appId, sealed);
       } on StorageLimitExceeded {
         // One row (or the account) is over a limit and the whole batch was
-        // refused: push one at a time so everything else still goes up.
+        // refused: push one at a time, so everything that fits (a delete,
+        // an edit that shrinks an item) still goes up.
         accepted = {};
         for (final row in sealed) {
           try {
@@ -286,7 +300,6 @@ class ItemSyncEngine {
               tooLarge.add(row.itemId);
             } else {
               storageFull = true;
-              break;
             }
           }
         }

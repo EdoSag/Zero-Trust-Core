@@ -99,8 +99,9 @@ begin
          updated_at = now()
   returning * into v_usage;
 
-  -- Shrinking, unchanged or a tombstone: always allowed.
-  if v_bytes <= 0 and v_count = 0 then
+  -- Shrinking, unchanged or a tombstone (also a new one, for an item that
+  -- never reached the server): always allowed.
+  if (v_bytes <= 0 and v_count = 0) or new.deleted then
     return null;
   end if;
 

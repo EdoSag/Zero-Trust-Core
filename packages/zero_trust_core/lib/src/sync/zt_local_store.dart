@@ -38,7 +38,8 @@ class LocalStoreUnreadable implements Exception {
 /// Calls run on the calling isolate. That is fine for the item counts these
 /// apps keep; move the database to a background isolate if a list grows into
 /// the tens of thousands.
-class ZtLocalStore implements LocalItemStore, LegacyImportLedger {
+class ZtLocalStore
+    implements LocalItemStore, LegacyImportLedger, PullCheckpoint {
   ZtLocalStore._(this._db);
 
   final Database _db;
@@ -193,6 +194,18 @@ class ZtLocalStore implements LocalItemStore, LegacyImportLedger {
   @override
   Future<void> setLastPulledAt(DateTime value) async =>
       _setMeta('last_pulled_at', '${value.toUtc().microsecondsSinceEpoch}');
+
+  @override
+  Future<DateTime?> lastPullCompletedAt() async {
+    final v = _meta('last_pull_completed_at');
+    return v == null
+        ? null
+        : DateTime.fromMicrosecondsSinceEpoch(int.parse(v), isUtc: true);
+  }
+
+  @override
+  Future<void> setLastPullCompletedAt(DateTime value) async => _setMeta(
+      'last_pull_completed_at', '${value.toUtc().microsecondsSinceEpoch}');
 
   @override
   Future<Set<String>> rejectedIds() async {

@@ -28,7 +28,7 @@ do $$
 begin
   if to_regclass('public.spatial_ref_sys') is not null
      and not exists (select 1 from pg_trigger
-                     where tgrelid = 'public.spatial_ref_sys'::regclass
+                     where tgrelid = to_regclass('public.spatial_ref_sys')
                        and tgname = 'zt_read_only') then
     create trigger zt_read_only
       before insert or update or delete or truncate on public.spatial_ref_sys
