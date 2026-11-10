@@ -458,6 +458,25 @@ void main() {
       await expectLater(service.unlock(password), throwsA(isA<KeyMismatch>()));
     });
 
+    test('a broken device copy never surfaces once the server answers',
+        () async {
+      final cache = InMemoryKeyCache();
+      final s = AccountService(backend, params: fast, keyCache: cache);
+      final created = await s.signUp(email: email, password: password);
+      final good = (await cache.read(backend.currentUserId!))!;
+      // A copy whose params make the derivation throw an Error, not an
+      // Exception; the server's copy differs, so it is discarded.
+      await cache.write(
+          backend.currentUserId!,
+          StoredKeys(
+            kdfSalt: good.kdfSalt,
+            kdfParams: const {'alg': 'pbkdf2-sha256', 'iter': 0},
+            wrappedDek: good.wrappedDek,
+            recoveryWrappedDek: good.recoveryWrappedDek,
+          ));
+      expect((await s.unlock(password)).dek, created.dek);
+    });
+
     test('a keychain that refuses writes never fails sign-in or unlock',
         () async {
       final s = AccountService(backend, params: fast, keyCache: _BrokenCache());

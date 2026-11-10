@@ -3,6 +3,25 @@
 Apps depend on the core by git tag (`ref: vX.Y.Z`). Upgrade notes list what
 an app must change.
 
+## 0.8.1
+
+Faster password unlock. No API, key or database changes: every key comes out
+byte for byte the same.
+
+- **Key stretching about 4x faster.** The 600k-round PBKDF2 now runs on a
+  dedicated pure-Dart PBKDF2-HMAC-SHA256 (`fast_pbkdf2.dart`) that hashes
+  HMAC's key pads once and allocates nothing per round. Since 0.7.1 pinned
+  key derivation to the generic pure-Dart classes, a password unlock took
+  10-15 seconds on a mid-range phone; this brings it to a few. Checked
+  against RFC 7914 vectors, the existing golden vectors and `DartPbkdf2` on
+  random inputs. The web keeps the library code.
+- **Unlock derives while it fetches.** `AccountService.unlock` with a key
+  copy on the device runs the derivation while the server's copy is
+  fetched (up to `onlineTimeout`), instead of one after the other. The
+  server's copy still wins when it differs.
+
+Upgrade: change the ref to `v0.8.1`.
+
 ## 0.8.0
 
 Polish before launch. No breaking changes, no database changes; every
