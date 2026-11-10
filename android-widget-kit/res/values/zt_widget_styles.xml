@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Zero-Trust widget kit: text styles. Every widget uses these and no
+     sizes or colours of its own, so the family reads as one. -->
+<resources>
+    <!-- Parent of the ZtWidget.* styles (a dotted name needs it to exist). -->
+    <style name="ZtWidget"/>
+    <!-- The widget's root: rounded surface, standard padding. -->
+    <style name="ZtWidget.Root">
+        <item name="android:background">@drawable/zt_widget_background</item>
+        <item name="android:padding">@dimen/zt_widget_padding</item>
+        <item name="android:clipToOutline">true</item>
+    </style>
+    <!-- "ZT Tasks" next to the app icon. -->
+    <style name="ZtWidget.AppName">
+        <item name="android:textColor">@color/zt_widget_on_surface_variant</item>
+        <item name="android:textSize">13sp</item>
+        <item name="android:fontFamily">sans-serif-medium</item>
+        <item name="android:maxLines">1</item>
+        <item name="android:ellipsize">end</item>
+    </style>
+    <!-- The one thing the widget is about: a list name, "Up next". -->
+    <style name="ZtWidget.Title">
+        <item name="android:textColor">@color/zt_widget_on_surface</item>
+        <item name="android:textSize">16sp</item>
+        <item name="android:fontFamily">sans-serif-medium</item>
+        <item name="android:maxLines">1</item>
+        <item name="android:ellipsize">end</item>
+    </style>
+    <!-- A big number or clock. -->
+    <style name="ZtWidget.Display">
+        <item name="android:textColor">@color/zt_widget_on_surface</item>
+        <item name="android:textSize">30sp</item>
+        <item name="android:fontFamily">sans-serif-medium</item>
+        <item name="android:maxLines">1</item>
+    </style>
+    <!-- A row: a task, an event, a note title. -->
+    <style name="ZtWidget.Body">
+        <item name="android:textColor">@color/zt_widget_on_surface</item>
+        <item name="android:textSize">14sp</item>
+        <item name="android:maxLines">1</item>
+        <item name="android:ellipsize">end</item>
+    </style>
+    <!-- Second line, counts, times. -->
+    <style name="ZtWidget.Caption">
+        <item name="android:textColor">@color/zt_widget_on_surface_variant</item>
+        <item name="android:textSize">12sp</item>
+        <item name="android:maxLines">1</item>
+        <item name="android:ellipsize">end</item>
+    </style>
+    <!-- Round accent button (+, Start, Stop): 40dp, white icon. -->
+    <style name="ZtWidget.Action">
+        <item name="android:layout_width">@dimen/zt_widget_action_size</item>
+        <item name="android:layout_height">@dimen/zt_widget_action_size</item>
+        <item name="android:background">@drawable/zt_widget_accent_circle</item>
+        <item name="android:padding">9dp</item>
+        <item name="android:tint">@color/zt_widget_on_accent</item>
+        <item name="android:scaleType">fitCenter</item>
+    </style>
+</resources>

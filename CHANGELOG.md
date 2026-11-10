@@ -3,6 +3,16 @@
 Apps depend on the core by git tag (`ref: vX.Y.Z`). Upgrade notes list what
 an app must change.
 
+## Unreleased (Android widget kit)
+
+- **Home screen widget kit** (`android-widget-kit/`, roadmap W1-W3). Shared
+  Android resources for every app's widgets: rounded corners that follow the
+  launcher, Material You colours on Android 12+, light and dark, text styles,
+  buttons and icons, plus the rules for the header, the locked state, sizes
+  and the "Show details on the home screen" switch. Copied into an app with
+  `android-widget-kit/apply.sh <app> <accent>`. No Dart code changes, so no
+  new tag is needed.
+
 ## Unreleased (database only)
 
 - **Old tables removed.** Migration `20261110120000_drop_unused_tables` drops

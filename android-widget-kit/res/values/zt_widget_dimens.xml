@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Zero-Trust widget kit: corner radius and spacing. -->
+<resources>
+    <dimen name="zt_widget_radius">24dp</dimen>
+    <dimen name="zt_widget_inner_radius">16dp</dimen>
+    <dimen name="zt_widget_padding">14dp</dimen>
+    <dimen name="zt_widget_header_icon">20dp</dimen>
+    <dimen name="zt_widget_action_size">40dp</dimen>
+</resources>
