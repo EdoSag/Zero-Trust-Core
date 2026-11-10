@@ -201,8 +201,11 @@ class AccountService {
 
   Future<UnlockResult> _unlockAlongsideFetch(
       String password, StoredKeys cached) async {
-    final local = _unlock(password, cached).then<Object>((r) => r,
-        onError: (Object e) => e is Exception ? e : throw e);
+    // Every failure is captured as a value right away: the attempt may be
+    // discarded, and an error left on an unlistened future would surface
+    // as uncaught even when the server's keys then unlock fine.
+    final local = _unlock(password, cached)
+        .then<Object>((r) => r, onError: (Object e) => e);
     StoredKeys? fresh;
     var reached = false;
     try {
@@ -215,7 +218,7 @@ class AccountService {
       // Ignore the device's attempt; the server's keys decide.
       unawaited(local.then((r) {
         if (r is UnlockResult) r.dek.fillRange(0, r.dek.length, 0);
-      }, onError: (Object _) {}));
+      }));
       if (fresh == null) throw const KeyMismatch();
       return _unlock(password, fresh);
     }
