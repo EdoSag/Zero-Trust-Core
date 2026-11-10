@@ -2,6 +2,8 @@
 <!-- Zero-Trust widget kit: text styles. Every widget uses these and no
      sizes or colours of its own, so the family reads as one. -->
 <resources>
+    <!-- Parent of the ZtWidget.* styles (a dotted name needs it to exist). -->
+    <style name="ZtWidget"/>
     <!-- The widget's root: rounded surface, standard padding. -->
     <style name="ZtWidget.Root">
         <item name="android:background">@drawable/zt_widget_background</item>
