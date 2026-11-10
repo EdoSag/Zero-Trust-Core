@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Zero-Trust widget kit (Zero-Trust-Core/android-widget-kit). Copied
+     as is into every app; do not edit in the app, edit the kit and re-copy.
+     Before Android 12: fixed neutral colours. From 12 (values-v31): the
+     phone's Material You neutrals, so widgets sit well on any wallpaper. -->
+<resources>
+    <color name="zt_widget_surface">#F7F7FA</color>
+    <color name="zt_widget_tile">#ECECF1</color>
+    <color name="zt_widget_on_surface">#1B1B1F</color>
+    <color name="zt_widget_on_surface_variant">#5E5F67</color>
+    <color name="zt_widget_outline">#C6C6CE</color>
+    <color name="zt_widget_on_accent">#FFFFFF</color>
+</resources>

@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Zero-Trust widget kit: the widget's rounded surface. -->
+<shape xmlns:android="http://schemas.android.com/apk/res/android" android:shape="rectangle">
+    <solid android:color="@color/zt_widget_surface"/>
+    <corners android:radius="@dimen/zt_widget_radius"/>
+</shape>

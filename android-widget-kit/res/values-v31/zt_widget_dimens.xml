@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Zero-Trust widget kit: Android 12+ uses the launcher's own corner radius. -->
+<resources>
+    <dimen name="zt_widget_radius">@android:dimen/system_app_widget_background_radius</dimen>
+    <dimen name="zt_widget_inner_radius">@android:dimen/system_app_widget_inner_radius</dimen>
+    <dimen name="zt_widget_padding">14dp</dimen>
+    <dimen name="zt_widget_header_icon">20dp</dimen>
+    <dimen name="zt_widget_action_size">40dp</dimen>
+</resources>

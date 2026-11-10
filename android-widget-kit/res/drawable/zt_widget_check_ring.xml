@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Zero-Trust widget kit: empty tick circle for a list row. -->
+<shape xmlns:android="http://schemas.android.com/apk/res/android" android:shape="oval">
+    <stroke android:width="2dp" android:color="@color/zt_widget_on_surface_variant"/>
+    <size android:width="20dp" android:height="20dp"/>
+</shape>

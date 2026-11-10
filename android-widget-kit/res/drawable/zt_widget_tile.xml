@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Zero-Trust widget kit: an inner block (search bar, chip, note card). -->
+<shape xmlns:android="http://schemas.android.com/apk/res/android" android:shape="rectangle">
+    <solid android:color="@color/zt_widget_tile"/>
+    <corners android:radius="@dimen/zt_widget_inner_radius"/>
+</shape>

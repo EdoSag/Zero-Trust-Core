@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Zero-Trust widget kit: dark mode before Android 12. -->
+<resources>
+    <color name="zt_widget_surface">#1E1F24</color>
+    <color name="zt_widget_tile">#2B2C32</color>
+    <color name="zt_widget_on_surface">#E5E5EA</color>
+    <color name="zt_widget_on_surface_variant">#A7A8B1</color>
+    <color name="zt_widget_outline">#46474F</color>
+    <color name="zt_widget_on_accent">#FFFFFF</color>
+</resources>

@@ -240,6 +240,12 @@ It syncs first and never replaces an item that already exists (another
 device may have imported and edited it), so use the old record's own id.
 A failure leaves the import to run again on the next call.
 
+## Home screen widgets
+
+Android widgets in every app use the shared look in
+[`android-widget-kit/`](android-widget-kit/README.md): copy it in with
+`android-widget-kit/apply.sh <app repo> <accent>`.
+
 ## Tests
 
 ```bash
