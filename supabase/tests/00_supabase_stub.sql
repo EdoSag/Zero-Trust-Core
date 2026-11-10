@@ -20,6 +20,10 @@ grant usage on schema public to anon, authenticated;
 grant select, insert, update, delete on all tables in schema public to authenticated;
 alter default privileges in schema public grant select, insert, update, delete on tables to authenticated, anon;
 create table public.encrypted_vault (id uuid, user_id uuid);
+-- Old tables no app uses; 20261110120000_drop_unused_tables removes them.
+create table public.encrypted_sms (id uuid, user_id uuid);
+create table public.encrypted_note_items (id text, user_id uuid);
+create table public.encrypted_contact_items (id uuid, user_id uuid);
 
 -- Storage: buckets, objects and the folder helper the policies use.
 create schema storage;
