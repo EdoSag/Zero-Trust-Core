@@ -638,4 +638,32 @@ class ZtLocalizationsEn extends ZtLocalizations {
     );
     return '$_temp0';
   }
+
+  @override
+  String get storageFull =>
+      'Storage full. New changes stay on this device until you delete something';
+
+  @override
+  String itemsTooLarge(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count items are too large to sync',
+      one: '1 item is too large to sync',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get storage => 'Storage';
+
+  @override
+  String storageUsed(String used, String limit) {
+    return '$used of $limit used';
+  }
+
+  @override
+  String storageAttachments(String used, String limit) {
+    return 'Attachments: $used of $limit';
+  }
 }

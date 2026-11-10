@@ -3,6 +3,36 @@
 Apps depend on the core by git tag (`ref: vX.Y.Z`). Upgrade notes list what
 an app must change.
 
+## 0.9.0
+
+Storage limits and server cleanup (Z17), and Supabase advisor fixes (Z18).
+Needs the three `20261110…` migrations on the database; until they are
+applied the new code behaves exactly like 0.8.1 (no limits are reported, the
+storage row stays hidden). No key or sign-in changes.
+
+- **Per-account storage limits.** The server counts each account's synced
+  data (`zt_storage_usage`) and refuses growth past its limits: 1 MiB per
+  item, 50 MiB and 100,000 items of synced data, 500 MiB of attachments
+  (overridable per account in `zt_storage_limits`). Deleting is never
+  refused.
+- **Sync handles a full account.** Deletes are pushed before edits, so a
+  full account can always free space. When the server refuses a batch, the
+  engine pushes item by item so everything that fits still goes up; refused
+  edits stay on the device, waiting. `SyncResult` / `SyncStatus` gain
+  `storageFull` and `tooLarge`, and `ZtSyncStatusTile` says so.
+- **Storage row.** `ZtSettingsPage(showStorageUsage: true)` adds
+  `ZtStorageTile` ("2.4 MB of 50 MB used", with a bar), backed by
+  `ztStorageUsageProvider` (`zt_my_storage()`).
+- **Tombstone cleanup.** The server removes deleted-item tombstones after 180
+  days (daily `pg_cron` job). A device that hasn't synced for 150 days does a
+  full re-sync and drops items the server no longer has
+  (`ItemSyncEngine.fullResyncAfter`); its own unpushed edits are kept.
+- **Advisor fixes.** The key-history trigger function is no longer callable
+  over the API, and PostGIS's `spatial_ref_sys` is read-only to app users.
+
+Upgrade: change the ref to `v0.9.0`. Optionally pass `showStorageUsage: true`
+to `ZtSettingsPage`.
+
 ## 0.8.1
 
 Faster password unlock. No API, key or database changes: every key comes out

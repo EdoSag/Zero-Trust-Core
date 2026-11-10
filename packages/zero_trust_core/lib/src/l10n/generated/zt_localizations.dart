@@ -1125,6 +1125,36 @@ abstract class ZtLocalizations {
   /// In en, this message translates to:
   /// **'{count, plural, =1{1 item couldn\'t be read} other{{count} items couldn\'t be read}}'**
   String itemsUnreadable(int count);
+
+  /// No description provided for @storageFull.
+  ///
+  /// In en, this message translates to:
+  /// **'Storage full. New changes stay on this device until you delete something'**
+  String get storageFull;
+
+  /// No description provided for @itemsTooLarge.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 item is too large to sync} other{{count} items are too large to sync}}'**
+  String itemsTooLarge(int count);
+
+  /// No description provided for @storage.
+  ///
+  /// In en, this message translates to:
+  /// **'Storage'**
+  String get storage;
+
+  /// No description provided for @storageUsed.
+  ///
+  /// In en, this message translates to:
+  /// **'{used} of {limit} used'**
+  String storageUsed(String used, String limit);
+
+  /// No description provided for @storageAttachments.
+  ///
+  /// In en, this message translates to:
+  /// **'Attachments: {used} of {limit}'**
+  String storageAttachments(String used, String limit);
 }
 
 class _ZtLocalizationsDelegate extends LocalizationsDelegate<ZtLocalizations> {

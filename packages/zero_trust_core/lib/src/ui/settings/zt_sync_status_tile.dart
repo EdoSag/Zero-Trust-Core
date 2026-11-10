@@ -39,6 +39,12 @@ class ZtSyncStatusTile extends ConsumerWidget {
       subtitle: switch ((status.error, rejected)) {
         (final Object error, _) when !status.isSyncing =>
           Text(ztErrorMessage(error)),
+        _ when status.storageFull => Text(
+            ZtL10n.of(context).storageFull,
+            style: TextStyle(color: theme.colorScheme.error),
+          ),
+        _ when status.tooLarge.isNotEmpty =>
+          Text(ZtL10n.of(context).itemsTooLarge(status.tooLarge.length)),
         (_, 0) => null,
         _ => Text(ZtL10n.of(context).itemsUnreadable(rejected)),
       },

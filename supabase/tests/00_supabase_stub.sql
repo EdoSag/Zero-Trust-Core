@@ -24,9 +24,15 @@ create table public.encrypted_vault (id uuid, user_id uuid);
 -- Storage: buckets, objects and the folder helper the policies use.
 create schema storage;
 create table storage.buckets (id text primary key, name text not null, public boolean default false, file_size_limit bigint, allowed_mime_types text[]);
-create table storage.objects (id uuid primary key default gen_random_uuid(), bucket_id text references storage.buckets(id), name text not null, owner uuid);
+create table storage.objects (id uuid primary key default gen_random_uuid(), bucket_id text references storage.buckets(id), name text not null, owner uuid, metadata jsonb);
 alter table storage.objects enable row level security;
 create function storage.foldername(name text) returns text[] language sql immutable as $$ select (string_to_array(name, '/'))[1:array_length(string_to_array(name, '/'), 1) - 1] $$;
 grant usage on schema storage to anon, authenticated;
 grant select, insert, update, delete on storage.objects to authenticated;
 grant select on storage.buckets to authenticated;
+
+-- PostGIS's reference table, as Supabase ships it: no RLS, writable by the
+-- API roles (it is owned by supabase_admin there).
+create table public.spatial_ref_sys (srid int primary key, auth_name text);
+insert into public.spatial_ref_sys values (4326, 'EPSG');
+grant all on public.spatial_ref_sys to anon, authenticated;
