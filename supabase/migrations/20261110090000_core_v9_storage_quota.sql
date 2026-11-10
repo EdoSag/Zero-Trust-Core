@@ -142,34 +142,43 @@ begin
 end;
 $$;
 
--- Attachments: an upload is refused once the account's files already fill
--- its limit (so the total can pass the limit by at most one file, 25 MB).
--- Runs as the uploader, so it only sees the uploader's own files.
-create or replace function public.zt_attachment_bytes()
-returns bigint language sql stable set search_path = '' as $$
-  select coalesce(sum((o.metadata ->> 'size')::bigint), 0)
-  from storage.objects o
-  where o.bucket_id = 'zt-attachments'
-    and (storage.foldername(o.name))[1] = (select auth.uid())::text;
-$$;
-revoke execute on function public.zt_attachment_bytes() from public, anon;
-grant execute on function public.zt_attachment_bytes() to authenticated;
-
-create or replace function public.zt_attachments_within_limit()
+-- Attachments: a new or replaced file must fit in the account's limit
+-- together with its other files. Runs as the uploader, so it only sees the
+-- uploader's own files. When the size isn't known yet (Storage can check a
+-- row before the upload finishes), the account must still be under its
+-- limit, so the total passes it by at most one file (25 MB).
+create or replace function public.zt_attachments_fit(p_name text, p_size bigint)
 returns boolean language sql stable set search_path = '' as $$
-  select public.zt_attachment_bytes()
-         < (select max_attachment_bytes
-            from public.zt_storage_limits_for((select auth.uid())));
+  with others as (
+    select coalesce(sum((o.metadata ->> 'size')::bigint), 0) as bytes
+    from storage.objects o
+    where o.bucket_id = 'zt-attachments'
+      and (storage.foldername(o.name))[1] = (select auth.uid())::text
+      and o.name <> p_name
+  ), lim as (
+    select max_attachment_bytes as max
+    from public.zt_storage_limits_for((select auth.uid()))
+  )
+  select case when p_size is null then others.bytes < lim.max
+              else others.bytes + p_size <= lim.max end
+  from others, lim;
 $$;
-revoke execute on function public.zt_attachments_within_limit() from public, anon;
-grant execute on function public.zt_attachments_within_limit() to authenticated;
+revoke execute on function public.zt_attachments_fit(text, bigint) from public, anon;
+grant execute on function public.zt_attachments_fit(text, bigint) to authenticated;
 
--- Restrictive: applies on top of zt_attachments_insert_own. Other buckets
--- (Contacts' old photos, TimeSpot) are untouched.
+-- Restrictive: applies on top of zt_attachments_insert_own / _update_own,
+-- so replacing a file with a bigger one is limited too, and a smaller one
+-- is allowed. Other buckets (Contacts' old photos, TimeSpot) are untouched.
 create policy zt_attachments_within_limit on storage.objects
   as restrictive for insert to authenticated
   with check (bucket_id <> 'zt-attachments'
-              or (select public.zt_attachments_within_limit()));
+              or public.zt_attachments_fit(name, (metadata ->> 'size')::bigint));
+
+create policy zt_attachments_update_within_limit on storage.objects
+  as restrictive for update to authenticated
+  using (true)
+  with check (bucket_id <> 'zt-attachments'
+              or public.zt_attachments_fit(name, (metadata ->> 'size')::bigint));
 
 -- For the app's "Storage" row: what this account uses and may use. Runs as
 -- the caller, so RLS limits it to the caller's own rows and files.

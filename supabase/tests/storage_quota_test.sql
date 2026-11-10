@@ -75,16 +75,28 @@ select pg_temp.expect_error($$insert into public.zt_storage_limits (user_id, max
 select pg_temp.expect_error($$select public.zt_purge_tombstones()$$, 'client purges', null);
 select pg_temp.expect_error($$select public.vault_items_track_usage()$$, 'client calls trigger fn', null);
 
--- Attachments: allowed while under the limit (10 bytes), refused after.
+-- Attachments: a file must fit in the limit (10 bytes) with the others.
 insert into storage.objects (bucket_id, name, metadata)
-  values ('zt-attachments', '00000000-0000-0000-0000-0000000000e1/notes/a1', '{"size": 12}');
+  values ('zt-attachments', '00000000-0000-0000-0000-0000000000e1/notes/a1', '{"size": 9}');
 select pg_temp.expect_error(
   $$insert into storage.objects (bucket_id, name, metadata)
-    values ('zt-attachments', '00000000-0000-0000-0000-0000000000e1/notes/a2', '{"size": 1}')$$,
+    values ('zt-attachments', '00000000-0000-0000-0000-0000000000e1/notes/a2', '{"size": 2}')$$,
   'attachments over limit', null);
+-- Replacing a file with a bigger one is limited too; a smaller one is fine.
+select pg_temp.expect_error(
+  $$update storage.objects set metadata = '{"size": 50}' where name like '%/notes/a1'$$,
+  'growing update over limit', null);
+update storage.objects set metadata = '{"size": 8}' where name like '%/notes/a1';
 do $$ begin
-  assert (select (public.zt_my_storage() ->> 'attachment_bytes')::int) = 12, 'attachment bytes';
+  assert (select (public.zt_my_storage() ->> 'attachment_bytes')::int) = 8, 'attachment bytes';
 end $$;
+-- Under the limit again: a file that fits goes in, one that doesn't is refused.
+insert into storage.objects (bucket_id, name, metadata)
+  values ('zt-attachments', '00000000-0000-0000-0000-0000000000e1/notes/a3', '{"size": 2}');
+select pg_temp.expect_error(
+  $$insert into storage.objects (bucket_id, name, metadata)
+    values ('zt-attachments', '00000000-0000-0000-0000-0000000000e1/notes/a4', '{"size": 5}')$$,
+  'new file that does not fit', null);
 
 -- Another user: default limits, nothing of e1's visible.
 set request.jwt.claim.sub = '00000000-0000-0000-0000-0000000000e2';
