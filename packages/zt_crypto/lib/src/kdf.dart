@@ -6,6 +6,7 @@ import 'package:cryptography/cryptography.dart';
 import 'package:cryptography/dart.dart';
 
 import 'background.dart';
+import 'fast_pbkdf2.dart';
 
 /// Password KDF parameters, stored next to the salt in `profiles.kdf_params`
 /// so iterations (or the algorithm) can be raised later without breaking
@@ -89,6 +90,16 @@ abstract final class Kdf {
     final iterations = params.iterations;
     final nonce = List<int>.of(salt);
     Future<Uint8List> derive() async {
+      if (!_isWeb) {
+        // Same bytes as DartPbkdf2 below, about four times faster (see
+        // fast_pbkdf2.dart). Needs 64-bit integers, so not on the web.
+        return pbkdf2HmacSha256Password(
+          password: password,
+          salt: nonce,
+          iterations: iterations,
+          length: keyLength,
+        );
+      }
       final pbkdf2 = DartPbkdf2(
         macAlgorithm: _hmacSha256,
         iterations: iterations,
@@ -106,6 +117,10 @@ abstract final class Kdf {
 
   /// See [deriveMasterKey].
   static const backgroundFrom = 50000;
+
+  /// On the web every number is a double, so 32-bit word arithmetic needs
+  /// the slower library code.
+  static final bool _isWeb = identical(0, 0.0);
 
   /// HKDF-SHA256 expansion of [key] into an independent subkey for [info].
   /// Distinct `info` strings give keys that reveal nothing about each other.

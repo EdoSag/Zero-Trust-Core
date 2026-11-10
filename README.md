@@ -28,7 +28,7 @@ dependencies:
     git:
       url: https://github.com/EdoSag/Zero-Trust-Core.git
       path: packages/zero_trust_core
-      ref: v0.8.0   # always pin a release tag; see CHANGELOG.md
+      ref: v0.8.1   # always pin a release tag; see CHANGELOG.md
 ```
 
 ```dart

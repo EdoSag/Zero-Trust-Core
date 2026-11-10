@@ -177,7 +177,17 @@ class AccountService {
   /// Re-derive the DEK for an already signed-in session (app relaunch).
   /// Works offline: when the server can't be reached in [onlineTimeout], the
   /// device's copy of the keys from the last successful fetch is used.
+  ///
+  /// With a copy on the device, the slow key derivation runs while the
+  /// server's copy is fetched instead of after it, so unlocking takes the
+  /// longer of the two rather than both. The server's copy still decides:
+  /// if it differs (the password was changed elsewhere), the device's
+  /// result is thrown away and the server's keys are used.
   Future<UnlockResult> unlock(String password) async {
+    final cached = await _cachedKeys();
+    if (cached != null && cached.pendingWrappedDek == null) {
+      return _unlockAlongsideFetch(password, cached);
+    }
     StoredKeys? keys;
     try {
       keys = await _fetchKeys().timeout(onlineTimeout);
@@ -187,6 +197,47 @@ class AccountService {
     }
     if (keys == null) throw const KeyMismatch();
     return _unlock(password, keys);
+  }
+
+  Future<UnlockResult> _unlockAlongsideFetch(
+      String password, StoredKeys cached) async {
+    final local = _unlock(password, cached).then<Object>((r) => r,
+        onError: (Object e) => e is Exception ? e : throw e);
+    StoredKeys? fresh;
+    var reached = false;
+    try {
+      fresh = await _fetchKeys().timeout(onlineTimeout);
+      reached = true;
+    } on Object {
+      // Offline or slow: the device's copy is used, as before.
+    }
+    if (reached && (fresh == null || !_sameWrapping(fresh, cached))) {
+      // Ignore the device's attempt; the server's keys decide.
+      unawaited(local.then((r) {
+        if (r is UnlockResult) r.dek.fillRange(0, r.dek.length, 0);
+      }, onError: (Object _) {}));
+      if (fresh == null) throw const KeyMismatch();
+      return _unlock(password, fresh);
+    }
+    final result = await local;
+    if (result is UnlockResult) return result;
+    throw result;
+  }
+
+  static bool _sameWrapping(StoredKeys a, StoredKeys b) =>
+      _sameBytes(a.kdfSalt, b.kdfSalt) &&
+      _sameBytes(a.wrappedDek, b.wrappedDek) &&
+      a.legacyDek == b.legacyDek &&
+      a.pendingWrappedDek == null &&
+      b.pendingWrappedDek == null &&
+      KdfParams.fromJson(a.kdfParams) == KdfParams.fromJson(b.kdfParams);
+
+  static bool _sameBytes(List<int> a, List<int> b) {
+    if (a.length != b.length) return false;
+    for (var i = 0; i < a.length; i++) {
+      if (a[i] != b[i]) return false;
+    }
+    return true;
   }
 
   /// The device has biometrics that can hold the key.
