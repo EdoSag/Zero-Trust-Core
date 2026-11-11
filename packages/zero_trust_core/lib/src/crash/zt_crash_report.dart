@@ -59,51 +59,51 @@ class ZtCrashReport {
   final int count;
 
   ZtCrashReport copyWith({int? count}) => ZtCrashReport(
-    id: id,
-    appId: appId,
-    appVersion: appVersion,
-    platform: platform,
-    day: day,
-    errorType: errorType,
-    message: message,
-    library: library,
-    frames: frames,
-    uncaught: uncaught,
-    fingerprint: fingerprint,
-    count: count ?? this.count,
-  );
+        id: id,
+        appId: appId,
+        appVersion: appVersion,
+        platform: platform,
+        day: day,
+        errorType: errorType,
+        message: message,
+        library: library,
+        frames: frames,
+        uncaught: uncaught,
+        fingerprint: fingerprint,
+        count: count ?? this.count,
+      );
 
   /// What is sent. [id] stays on the phone.
   Map<String, Object?> toPayload() => {
-    'app': appId,
-    'version': appVersion,
-    'platform': platform,
-    'day': day,
-    'type': errorType,
-    if (message != null) 'message': message,
-    if (library != null) 'library': library,
-    'uncaught': uncaught,
-    'fingerprint': fingerprint,
-    'count': count,
-    'frames': frames,
-  };
+        'app': appId,
+        'version': appVersion,
+        'platform': platform,
+        'day': day,
+        'type': errorType,
+        if (message != null) 'message': message,
+        if (library != null) 'library': library,
+        'uncaught': uncaught,
+        'fingerprint': fingerprint,
+        'count': count,
+        'frames': frames,
+      };
 
   Map<String, Object?> toJson() => {'id': id, ...toPayload()};
 
   factory ZtCrashReport.fromJson(Map<String, Object?> json) => ZtCrashReport(
-    id: json['id'] as String,
-    appId: json['app'] as String,
-    appVersion: json['version'] as String? ?? '',
-    platform: json['platform'] as String? ?? '',
-    day: json['day'] as String? ?? '',
-    errorType: json['type'] as String? ?? 'Object',
-    message: json['message'] as String?,
-    library: json['library'] as String?,
-    frames: [...(json['frames'] as List? ?? const []).cast<String>()],
-    uncaught: json['uncaught'] as bool? ?? true,
-    fingerprint: json['fingerprint'] as String? ?? '',
-    count: json['count'] as int? ?? 1,
-  );
+        id: json['id'] as String,
+        appId: json['app'] as String,
+        appVersion: json['version'] as String? ?? '',
+        platform: json['platform'] as String? ?? '',
+        day: json['day'] as String? ?? '',
+        errorType: json['type'] as String? ?? 'Object',
+        message: json['message'] as String?,
+        library: json['library'] as String?,
+        frames: [...(json['frames'] as List? ?? const []).cast<String>()],
+        uncaught: json['uncaught'] as bool? ?? true,
+        fingerprint: json['fingerprint'] as String? ?? '',
+        count: json['count'] as int? ?? 1,
+      );
 
   /// The report as people read it in the preview, and as "Copy" copies it.
   String toText() => const JsonEncoder.withIndent('  ').convert(toPayload());
@@ -120,12 +120,10 @@ abstract final class ZtCrashScrubber {
   /// Messages are kept only when they match a fixed template the Dart
   /// runtime writes itself; any other message (including a [StateError] or
   /// [FormatException] built from the person's text) is dropped.
-  static final _nullCheck = RegExp(
-    r'^Null check operator used on a null value$',
-  );
+  static final _nullCheck =
+      RegExp(r'^Null check operator used on a null value$');
   static final _typeCast = RegExp(
-    r"^type '[^']*' is not a subtype of type '[^']*'( in type cast| of '[^']*')?$",
-  );
+      r"^type '[^']*' is not a subtype of type '[^']*'( in type cast| of '[^']*')?$");
 
   /// Words the runtime uses in [RangeError] / [IndexError] messages.
   static const _rangePhrases = [
@@ -179,8 +177,7 @@ abstract final class ZtCrashScrubber {
     final template = _templateMessage(type, error.toString());
     final text = template == null ? null : ZtCrashScrubber.message(template);
     final utc = now.toUtc();
-    final day =
-        '${utc.year.toString().padLeft(4, '0')}-'
+    final day = '${utc.year.toString().padLeft(4, '0')}-'
         '${utc.month.toString().padLeft(2, '0')}-'
         '${utc.day.toString().padLeft(2, '0')}';
     return ZtCrashReport(
@@ -213,13 +210,11 @@ abstract final class ZtCrashScrubber {
   // `#05 abs 0000007a1b2c3d4e virt 00000000002c3d4e _kDartIsolateSnapshotInstructions+0x1234`
   // (release builds with --split-debug-info). The absolute address is
   // dropped: it changes with address randomisation and says nothing.
-  static final _virtual = RegExp(
-    r'^#\d+\s+abs\s+[0-9a-f]+\s+virt\s+([0-9a-f]+)\s*(\S*)',
-  );
+  static final _virtual =
+      RegExp(r'^#\d+\s+abs\s+[0-9a-f]+\s+virt\s+([0-9a-f]+)\s*(\S*)');
 
-  static final _location = RegExp(
-    r'^(package|dart):[A-Za-z0-9_./-]+(:\d+){0,2}$',
-  );
+  static final _location =
+      RegExp(r'^(package|dart):[A-Za-z0-9_./-]+(:\d+){0,2}$');
 
   /// Keeps only the function name and `package:` / `dart:` location of
   /// each frame. File paths (`file:///home/<name>/...`) and anything the
@@ -251,15 +246,11 @@ abstract final class ZtCrashScrubber {
   static final _url = RegExp(r'[a-zA-Z][a-zA-Z0-9+.-]*://\S+');
   static final _longNumber = RegExp(r'\d{5,}');
   static final _hex = RegExp(r'\b[0-9a-fA-F-]{16,}\b');
-  static final _quoted = RegExp(
-    r'"[^"]*"'
-    "|'[^']*'",
-  );
+  static final _quoted = RegExp(r'"[^"]*"' "|'[^']*'");
   // A Dart type: identifiers with `<>?.`, spaces only after commas
   // (`Map<String, int>`), so ordinary words in quotes don't pass.
   static final _quotedType = RegExp(
-    r"^'[A-Za-z_$][A-Za-z0-9_$<>?.]*(, [A-Za-z_$][A-Za-z0-9_$<>?.]*)*'$",
-  );
+      r"^'[A-Za-z_$][A-Za-z0-9_$<>?.]*(, [A-Za-z_$][A-Za-z0-9_$<>?.]*)*'$");
 
   /// A runtime template message with anything that could be data taken
   /// out: emails, links, long numbers (phone numbers, ids), hex/uuid ids
