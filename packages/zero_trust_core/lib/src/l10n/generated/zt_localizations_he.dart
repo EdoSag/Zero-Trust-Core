@@ -722,4 +722,80 @@ class ZtLocalizationsHe extends ZtLocalizations {
 
   @override
   String get planSeePlans => 'לתוכניות';
+
+  @override
+  String get crashReports => 'דוחות קריסה';
+
+  @override
+  String get crashReportsOff => 'כבוי';
+
+  @override
+  String get crashReportsAsk => 'לשאול אותי לפני שליחה';
+
+  @override
+  String get crashReportsKeep => 'לשמור בטלפון כדי שאוכל להעתיק אותם';
+
+  @override
+  String get crashReportsAutomatic => 'לשלוח אוטומטית';
+
+  @override
+  String get crashReportsIntro =>
+      'כשהאפליקציה נתקלת בבאג, היא יכולה לכתוב דוח טכני קצר שיעזור לתקן אותו. האפשרות כבויה אלא אם תפעיל אותה.';
+
+  @override
+  String get crashReportsIncluded =>
+      'כלול: האפליקציה והגרסה שלה, אנדרואיד או אייפון, התאריך, סוג השגיאה והמקום בקוד שבו היא קרתה.';
+
+  @override
+  String get crashReportsNeverIncluded =>
+      'לעולם לא כלול: שום דבר שכתבת או שמרת, האימייל או החשבון שלך, השם או המזהה של הטלפון, או המיקום שלך.';
+
+  @override
+  String get crashReportsSaved => 'דוחות שמורים';
+
+  @override
+  String get crashReportsNone => 'אין דוחות שמורים';
+
+  @override
+  String crashReportHappened(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'קרה $count פעמים',
+      one: 'קרה פעם אחת',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get crashReportSend => 'שליחה';
+
+  @override
+  String get crashReportSent => 'הדוח נשלח. תודה!';
+
+  @override
+  String get crashReportNotSent => 'השליחה נכשלה. הדוח נשמר לפעם הבאה.';
+
+  @override
+  String get crashReportCopied => 'הדוח הועתק';
+
+  @override
+  String get crashReportsDeleteAll => 'מחיקת הכול';
+
+  @override
+  String get crashReportWholeReport =>
+      'זה הדוח כולו, בדיוק כפי שהוא ייצא מהטלפון שלך.';
+
+  @override
+  String get crashReportPromptTitle => 'האפליקציה נתקלה בבעיה';
+
+  @override
+  String get crashReportPromptBody =>
+      'לשלוח דוח קריסה שיעזור לתקן את זה? אין בו מידע אישי.';
+
+  @override
+  String get crashReportView => 'הצגת הדוח';
+
+  @override
+  String get crashReportDontSend => 'לא לשלוח';
 }

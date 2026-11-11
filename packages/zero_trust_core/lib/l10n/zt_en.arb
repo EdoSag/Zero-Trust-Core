@@ -380,5 +380,39 @@
     }
   },
   "planPaymentProblem": "Payment problem. Update your payment method to keep your plan",
-  "planSeePlans": "See plans"
+  "planSeePlans": "See plans",
+  "crashReports": "Crash reports",
+  "@crashReports": {
+    "description": "Settings row and screen title for opt-in crash reports."
+  },
+  "crashReportsOff": "Off",
+  "crashReportsAsk": "Ask me before sending",
+  "crashReportsKeep": "Keep on this phone so I can copy them",
+  "@crashReportsKeep": {
+    "description": "Choice shown instead of 'Ask me before sending' when the app has nowhere to send reports yet."
+  },
+  "crashReportsAutomatic": "Send automatically",
+  "crashReportsIntro": "When the app hits a bug, it can write a short technical report to help fix it. This is off unless you turn it on.",
+  "crashReportsIncluded": "Included: the app and its version, Android or iPhone, the date, the kind of error and where in the code it happened.",
+  "crashReportsNeverIncluded": "Never included: anything you wrote or saved, your email or account, your phone's name or id, or your location.",
+  "crashReportsSaved": "Saved reports",
+  "crashReportsNone": "No saved reports",
+  "crashReportHappened": "{count, plural, =1{Happened once} other{Happened {count} times}}",
+  "@crashReportHappened": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "crashReportSend": "Send",
+  "crashReportSent": "Report sent. Thank you!",
+  "crashReportNotSent": "Couldn't send it. It's kept for later.",
+  "crashReportCopied": "Report copied",
+  "crashReportsDeleteAll": "Delete all",
+  "crashReportWholeReport": "This is the whole report, exactly as it would leave your phone.",
+  "crashReportPromptTitle": "The app hit a problem",
+  "crashReportPromptBody": "Send a crash report to help fix it? It holds no personal data.",
+  "crashReportView": "View report",
+  "crashReportDontSend": "Don't send"
 }

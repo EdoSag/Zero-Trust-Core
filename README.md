@@ -287,6 +287,36 @@ it), and is encrypted in authenticated chunks before it leaves the device.
 Wrap pickers in `whileShowingSystemUi` so auto-lock doesn't fire while the
 picker is open.
 
+### Crash reports (opt-in)
+
+Off by default. When the person turns them on (Settings → Security → Crash
+reports), uncaught errors become short reports that carry the app and
+version, the platform, the UTC date, the error class, a scrubbed message
+for programming errors only, and `package:` stack frames. Never: user
+content, error messages from exceptions (they can quote input), account,
+email, device id or model, locale, time of day, file paths. The person can
+read each report exactly as it would be sent, copy it or delete it.
+
+```dart
+final crashes = ZtCrashReporter(
+  appId: 'notes',
+  appVersion: packageVersion,
+  sink: null, // a ZtCrashReportSink once there is a destination
+);
+crashes.install(); // before runApp
+await crashes.load();
+runApp(ProviderScope(overrides: [
+  ztCrashReporterProvider.overrideWithValue(crashes),
+  // ...
+], child: const App()));
+```
+
+Without a sink the choices are Off and "Keep on this phone" (read and
+copy). With one, "Ask me before sending" and "Send automatically" appear;
+call `maybeAskToSendZtCrashReports(context, crashes)` after unlock to offer
+sending saved reports. `ZtHttpCrashReportSink` posts the JSON to any
+endpoint without an account token.
+
 ### Look and feel
 
 `ZtThemeBuilder` gives every app the same theme: brand indigo, the app's
