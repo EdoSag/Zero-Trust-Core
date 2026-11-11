@@ -107,9 +107,24 @@ class SharedSpace {
   /// Current members (removed ones excluded), from the encrypted list.
   List<SpaceMember> get members => roster.current.toList();
 
-  Future<void> save(String itemId, Map<String, Object?> json) =>
-      engine.save(itemId, json);
-  Future<void> delete(String itemId) => engine.delete(itemId);
+  /// Items under the policy's `ownedPrefixes` can be saved only in this
+  /// account's own name.
+  Future<void> save(String itemId, Map<String, Object?> json) {
+    _checkOwner(itemId);
+    return engine.save(itemId, json);
+  }
+
+  Future<void> delete(String itemId) {
+    _checkOwner(itemId);
+    return engine.delete(itemId);
+  }
+
+  void _checkOwner(String itemId) {
+    final owner = codec.policy.ownerOf(itemId);
+    if (owner != null && owner != codec.myUserId) {
+      throw ArgumentError.value(itemId, 'itemId', 'belongs to another member');
+    }
+  }
 }
 
 /// Shared spaces for one app: create, invite (link and QR), answer, confirm

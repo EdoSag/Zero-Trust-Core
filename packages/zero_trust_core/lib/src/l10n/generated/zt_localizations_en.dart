@@ -684,4 +684,29 @@ class ZtLocalizationsEn extends ZtLocalizations {
 
   @override
   String get taglineContacts => 'Your address book';
+
+  @override
+  String planName(String name) {
+    return 'Plan: $name';
+  }
+
+  @override
+  String get planFree => 'Free';
+
+  @override
+  String planRenews(String date) {
+    return 'Renews $date';
+  }
+
+  @override
+  String planEnds(String date) {
+    return 'Ends $date';
+  }
+
+  @override
+  String get planPaymentProblem =>
+      'Payment problem. Update your payment method to keep your plan';
+
+  @override
+  String get planSeePlans => 'See plans';
 }

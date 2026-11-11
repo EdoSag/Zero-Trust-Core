@@ -14,6 +14,69 @@ waiting-to-join code), `ZtInvitePage` (QR, copy, send, invite as owner),
 `ztSharingNameProvider` (the shared name, kept in the account's own store as
 kind `zt.sharing_name`). English and Hebrew. No change to `zero_trust_core`.
 
+## Unreleased (Z25: plan groundwork)
+
+Plans and what each allows, with no payment provider yet. Needs migration
+`20261111130000_core_v11_plans` on the database. Every account stays on the
+free plan, whose limits are exactly the Z17 defaults, so nothing changes for
+users. Additive: apps change nothing unless they show the plan.
+
+- **Plans.** `zt_plans` (public catalogue: limits, translated names,
+  feature switches such as `drive` or `vpn`) and `zt_subscriptions` (who is
+  on which plan, from where: manual, Google Play, App Store or web; status
+  and period end). Clients only read; the owner or a later billing webhook
+  writes. No payment details are stored, only the store's reference.
+- **Limits follow the plan.** `zt_storage_limits_for` now takes a
+  per-account override first, then the account's plan, then free. A lapsed
+  period keeps the plan for 3 more days so late store renewals don't drop
+  anyone to free.
+- **Server checks.** `zt_has_feature('drive')` for later features' policies
+  and edge functions; `zt_grant_plan(user, plan, until, note)` for the owner
+  to give a plan by hand (SQL editor only).
+- **In the apps.** `ztPlanProvider` / `ZtPlan` (`has('drive')`, `nameFor`),
+  and `ZtPlanTile` ("Plan: Free", renewal date, payment problem), shown by
+  `ZtSettingsPage(showPlan: true, onOpenPlans: ...)`. English and Hebrew.
+
+## Unreleased (zt_places: on-device place reminders)
+
+New package `packages/zt_places` (Flutter plugin, Android): "remind me when
+I arrive at / leave a place" for Notes (N16), Tasks (T11) and later apps.
+Separate from `zero_trust_core`, so only apps that use it ask for location.
+
+- **On the phone only.** Android's own `LocationManager` proximity alerts
+  (AOSP, no Google Play services). No map tiles and no address search, since
+  both send the location to a server. The OS keeps only the place, the
+  reminder's title and text, and an app payload.
+- **API.** `ZtPlaceReminders.sync(reminders, style:)` makes the watched list
+  exactly what the app passes (apps keep reminders and "My places" in their
+  own encrypted store). A reminder fires once; a new id arms it again.
+  `ZtPlaceTrigger.arrive / leave`; "arrive" set while already there waits
+  until the phone has left once. Re-registered after reboot and app update.
+- **Per-app look.** `ZtPlaceNotificationStyle`: channel, small icon, lock
+  screen title and an optional "Done" button.
+- **Events.** `events` stream of fired / done / tap (with the payload),
+  including ones queued while the app was closed (`collect()` on unlock and
+  resume).
+- **Place picker.** `ZtPlacePickerPage`: arrive or leave, "My places", the
+  current location, or pasted coordinates and map links (`ZtLatLng.tryParse`
+  reads geo:, Google, Apple and OpenStreetMap links), name and radius. English
+  and Hebrew (`ZtPlacesStrings`), right to left.
+- **Permissions.** `permissions()`, `requestLocation()`,
+  `requestBackground()` ("Allow all the time"), `requestNotifications()`,
+  `openSettings()`. Tests use `ZtPlaceRemindersFake`.
+
+Using it from an app:
+
+```yaml
+  zt_places:
+    git:
+      url: https://github.com/EdoSag/Zero-Trust-Core.git
+      path: packages/zt_places
+      ref: <tag or commit>
+```
+
+iOS (region monitoring) is not built yet; `supported` is false there.
+
 ## Unreleased (Z24: sharing between Zero-Trust users)
 
 Shared spaces: encrypted items several accounts share (a child in Meds; later
@@ -53,6 +116,18 @@ don't use sharing change nothing.
   joins, confirm, remove, roles, rename, leave and delete. Each space has its
   own encrypted local store. `InMemorySpaceServer` stands in for Supabase in
   app tests.
+## Unreleased (owned items in shared spaces)
+
+Additive, client side only (no database change).
+
+- **Items owned by one member.** `SpacePolicy(ownedPrefixes: {...})`: an item
+  `<prefix><userId>` (or `<prefix><userId>/...`) can be written or deleted
+  only by that member, not even by an admin. `SharedSpace.save`/`delete`
+  refuse it locally, and other members' devices reject such rows from anyone
+  else (the author is signed into every row), so a changed app can't post
+  numbers in someone else's name. Fitness challenges use it for each
+  person's progress.
+
 ## 0.10.0
 
 Hebrew and English in every app.
