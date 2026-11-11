@@ -3,6 +3,46 @@
 Apps depend on the core by git tag (`ref: vX.Y.Z`). Upgrade notes list what
 an app must change.
 
+## Unreleased (Z24: sharing between Zero-Trust users)
+
+Shared spaces: encrypted items several accounts share (a child in Meds; later
+shared notes, task lists, calendars, address books). Needs migration
+`20261111090000_core_v10_shared_spaces` on the database. Additive: apps that
+don't use sharing change nothing.
+
+- **Sharing identity.** `ZtIdentity` (zt_crypto): an X25519 + Ed25519 pair
+  derived from the account DEK, the same in every app and on every device,
+  never stored on the server. `VaultUnlocked.identity` holds it while
+  unlocked; locking zeroes it.
+- **Key handover.** `KeyWrap` seals a space key for one person (X25519 with a
+  fresh ephemeral key, HKDF, AES-GCM bound to space, epoch and recipient);
+  the admin's identity signs every handover.
+- **Invites by link and QR code.** `SpaceInviteLink`: the token and the
+  inviter's key fingerprint travel only in the link's fragment; the server
+  keeps the token's hash. The invitee's answer is sealed under the token, so
+  the server can't swap their key. `VerificationCode` gives both phones the
+  same 8 digits to compare before the admin confirms.
+- **Member list inside the space.** Names and public keys are encrypted,
+  admin-signed `zt.member/<userId>` items. Trust starts from the inviter's
+  fingerprint and follows admins' signatures; rows from unknown authors,
+  forged rows, keys nobody trusted signed, admin-only rows from members and
+  rows from removed members are all refused.
+- **Roles.** Admin (members, admin-only items) and member. Apps mark their
+  admin-only kinds with `SpacePolicy`; the server enforces it too.
+- **Removal rotates the key** in the same step (`zt_remove_space_member`);
+  when someone leaves or deletes their account, an admin's device rotates on
+  its next sync. The last admin leaving promotes the longest-standing member.
+- **Sync** reuses `ItemSyncEngine` (now with a pluggable `ItemCodec`; the
+  account's own items are byte-for-byte unchanged): offline edits, hybrid
+  clock, last-writer-wins, tombstones, live updates, per-space storage limits
+  (1 MiB per item, 50 MiB and 100,000 items per space).
+- **App wiring.** `ztSpacesProvider` (`SpacesController`) lists, opens and
+  syncs the app's spaces (live, on resume, after edits, every 5 minutes, and
+  when memberships or keys change), with create, invite, answer, pending
+  joins, confirm, remove, roles, rename, leave and delete. Each space has its
+  own encrypted local store. `InMemorySpaceServer` stands in for Supabase in
+  app tests.
+
 ## Unreleased (Android widget kit)
 
 - **Home screen widget kit** (`android-widget-kit/`, roadmap W1-W3). Shared
