@@ -3,7 +3,24 @@
 Apps depend on the core by git tag (`ref: vX.Y.Z`). Upgrade notes list what
 an app must change.
 
-## Unreleased (invite links per app)
+## 0.11.0
+
+Sharing between Zero-Trust users, plans groundwork, web and desktop
+support, opt-in crash reports and the fixes found while reviewing them.
+Apps that share must all be on this version: older ones cannot read the
+member records it writes.
+
+### Shared spaces trust chain
+
+Each admin now vouches for a member in a row of their own,
+`zt.member/<userId>/by/<adminId>`, which only that admin may write. Before,
+a second admin confirming someone re-signed every member row, and a new
+device of the creator could no longer learn who is in the space.
+
+**Upgrade note:** every app that shares must move to this version together.
+Older builds cannot read the new rows.
+
+### Invite links per app
 
 Invite links are now `https://zerotrust.bz/join/<app>#zt1.…` (the app id
 was only after the `#` before). All sharing apps claimed the same `/join`
@@ -13,7 +30,7 @@ installed last. Links in the old form are still read when pasted or scanned.
 Upgrade notes: in `AndroidManifest.xml`, change the invite intent filter to
 `android:pathPrefix="/join/<appId>"` (for example `/join/meds`). The website
 serves `/join/<app>/` from Zero-Trust-Website.
-## Unreleased (space stores and locking)
+### Space stores and locking
 
 Fix: a vault lock while a shared space's local store was opening could use
 the already zeroed key, see the file as unreadable and move it aside (with
@@ -21,20 +38,20 @@ any unsynced edits), and leave a store open that nothing closed. The opener
 now copies the key first, stops when locked, closes a store that finished
 opening too late, and opens each space only once. No app change.
 
-## Unreleased (invite proof check)
+### Invite proof check
 
 Database fix (migration `20261111200000_invite_null_proof`): answering a
 shared-space invite with no proof is now refused. Before, it used up the
 invite without the link's token. No app change; run the SQL once live.
 
-## Unreleased (crash fingerprint on the web)
+### Crash fingerprint on the web
 
 Fix: `ZtCrashReport.fingerprintOf` used a 64-bit integer literal, which does
 not compile for the web, so the web build of anything using the core failed.
 It now computes the same FNV-1a hash with BigInt and always returns 16 hex
 digits (it could return a leading minus sign before). No app change.
 
-## Unreleased (sharing screens)
+### Sharing screens
 
 New package `packages/zt_sharing_ui` with the sharing screens, lifted from
 Tasks and made app-neutral so Notes, Tasks, Calendar and later apps look the
@@ -45,7 +62,7 @@ waiting-to-join code), `ZtInvitePage` (QR, copy, send, invite as owner),
 `ztSharingNameProvider` (the shared name, kept in the account's own store as
 kind `zt.sharing_name`). English and Hebrew. No change to `zero_trust_core`.
 
-## Unreleased (Z26: web and desktop)
+### Z26: web and desktop
 
 The core now builds and runs on the web and on Windows, macOS and Linux.
 Additive: Android and iOS apps change nothing.
@@ -66,7 +83,7 @@ Additive: Android and iOS apps change nothing.
 - **Export on the web** downloads the zip.
 - `example/`: a smoke-check app; CI builds it for the web.
 
-## Unreleased (Z25: plan groundwork)
+### Z25: plan groundwork
 
 Plans and what each allows, with no payment provider yet. Needs migration
 `20261111130000_core_v11_plans` on the database. Every account stays on the
@@ -93,7 +110,7 @@ users. Additive: apps change nothing unless they show the plan.
   `offered = false` until payments exist; the owner grants it to beta
   testers with `zt_grant_plan`.
 
-## Unreleased (zt_places: on-device place reminders)
+### zt_places: on-device place reminders
 
 New package `packages/zt_places` (Flutter plugin, Android): "remind me when
 I arrive at / leave a place" for Notes (N16), Tasks (T11) and later apps.
@@ -139,7 +156,7 @@ Using it from an app:
 
 iOS (region monitoring) is not built yet; `supported` is false there.
 
-## Unreleased (Z24: sharing between Zero-Trust users)
+### Z24: sharing between Zero-Trust users
 
 Shared spaces: encrypted items several accounts share (a child in Meds; later
 shared notes, task lists, calendars, address books). Needs migration
@@ -178,7 +195,7 @@ don't use sharing change nothing.
   joins, confirm, remove, roles, rename, leave and delete. Each space has its
   own encrypted local store. `InMemorySpaceServer` stands in for Supabase in
   app tests.
-## Unreleased (owned items in shared spaces)
+### Owned items in shared spaces
 
 Additive, client side only (no database change).
 
