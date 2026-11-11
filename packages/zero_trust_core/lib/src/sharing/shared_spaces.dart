@@ -203,7 +203,8 @@ class SharedSpaces {
       everAdmin: true,
     );
     space.roster.accept(me, DateTime.now().toUtc());
-    await space.save(SpaceMember.itemIdFor(myUserId), me.toJson());
+    await space.save(
+        SpaceMember.itemIdFor(myUserId, by: myUserId), me.toJson());
     await sync(space);
     return space;
   }
@@ -286,7 +287,39 @@ class SharedSpaces {
       await _rotate(space, await backend.members(space.id));
       result = await _syncOnce(space, (await _info(space.id))!);
     }
+    if (await _vouchForAll(space)) {
+      try {
+        await space.engine.sync();
+      } on Object {
+        // The rows stay waiting on this device; the next sync sends them.
+      }
+    }
     return result;
+  }
+
+  /// On an admin's device: makes sure this account vouches, in rows of its
+  /// own, for every member it trusts (itself included), so any device whose
+  /// trust starts from this account can build the whole member list. Adds
+  /// only missing rows, each dated like the entry it copies, so a copy
+  /// never overrides a newer change another admin made meanwhile. This also
+  /// repairs spaces from before per-admin rows, where one admin's confirm
+  /// had rewritten everyone's entry under its own signature. Returns
+  /// whether anything was written.
+  Future<bool> _vouchForAll(SharedSpace space) async {
+    if (!space.isAdmin || space.gone) return false;
+    if (space.codec.keyring.writeEpoch == null) return false;
+    if (space.roster[myUserId] == null) return false;
+    var wrote = false;
+    for (final m in space.roster.all.toList()) {
+      final id = SpaceMember.itemIdFor(m.userId, by: myUserId);
+      final have = await space.store.get(id);
+      if (have != null && !have.deleted) continue;
+      // After a tombstone, a fresh time, so the entry outlives it.
+      await space.engine.save(id, m.toJson(),
+          at: have == null ? space.roster.versionOf(m.userId) : null);
+      wrote = true;
+    }
+    return wrote;
   }
 
   Future<SyncResult> _syncOnce(SharedSpace space, SpaceInfo info) async {
@@ -509,13 +542,12 @@ class SharedSpaces {
         await _grant(space.id, epoch, ring[epoch]!, join.userId, join.identity),
     ];
     // The newcomer trusts the space from this account outward (their link
-    // names it), so this account vouches for every entry it knows: an entry
-    // another admin wrote would otherwise stay unverifiable for them, and
-    // so would everything that admin writes.
-    for (final m in space.roster.all.toList()) {
-      if (m.userId == join.userId) continue;
-      await space.save(SpaceMember.itemIdFor(m.userId), m.toJson());
-    }
+    // names it), so this account vouches for every entry it knows, in its
+    // own rows: an entry only another admin wrote would otherwise stay
+    // unverifiable for them, and so would everything that admin writes.
+    // Other admins' rows stay as they are, so devices whose trust starts
+    // from them keep working.
+    await _vouchForAll(space);
     final member = SpaceMember(
       userId: join.userId,
       name: join.name,
@@ -523,7 +555,7 @@ class SharedSpaces {
       role: join.role,
       everAdmin: join.role == SpaceRole.admin,
     );
-    final itemId = SpaceMember.itemIdFor(join.userId);
+    final itemId = SpaceMember.itemIdFor(join.userId, by: myUserId);
     await space.save(itemId, member.toJson());
     try {
       await backend.confirmInvite(join.inviteId, grants);
@@ -597,7 +629,8 @@ class SharedSpaces {
       if (entry == null) continue;
       final gone = entry.copyWith(removedAtEpoch: epoch);
       space.roster.accept(gone, DateTime.now().toUtc());
-      await space.save(SpaceMember.itemIdFor(userId), gone.toJson());
+      await space.save(
+          SpaceMember.itemIdFor(userId, by: myUserId), gone.toJson());
     }
     await _syncOnce(space, (await _info(space.id))!);
   }
@@ -626,7 +659,7 @@ class SharedSpaces {
     // The member list first, while this account is surely still an admin
     // (it may be demoting itself), then the server.
     final updated = entry.copyWith(role: role);
-    final itemId = SpaceMember.itemIdFor(userId);
+    final itemId = SpaceMember.itemIdFor(userId, by: myUserId);
     space.roster.accept(updated, DateTime.now().toUtc());
     await space.save(itemId, updated.toJson());
     await sync(space);
@@ -649,7 +682,8 @@ class SharedSpaces {
     if (entry == null) throw StateError('Unknown member');
     final updated = entry.copyWith(name: name);
     space.roster.accept(updated, DateTime.now().toUtc());
-    await space.save(SpaceMember.itemIdFor(userId), updated.toJson());
+    await space.save(
+        SpaceMember.itemIdFor(userId, by: myUserId), updated.toJson());
     await sync(space);
   }
 
