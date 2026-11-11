@@ -23,6 +23,7 @@ import '../auth/zt_auth_messages.dart';
 import '../auth/zt_password_strength.dart';
 import '../../sync/zt_local_store.dart';
 import '../auth/zt_recovery_key_screen.dart';
+import 'zt_plan_tile.dart';
 import 'zt_storage_tile.dart';
 import 'zt_sync_status_tile.dart';
 
@@ -43,6 +44,8 @@ class ZtSettingsPage extends ConsumerWidget {
     this.onOpenUrl,
     this.showSyncStatus = false,
     this.showStorageUsage = false,
+    this.showPlan = false,
+    this.onOpenPlans,
     this.showOtherApps = true,
   });
 
@@ -80,6 +83,14 @@ class ZtSettingsPage extends ConsumerWidget {
   /// used) under the account. Reads `zt_my_storage()`, core 0.9.
   final bool showStorageUsage;
 
+  /// Shows [ZtPlanTile] (the account's plan) under the account. Reads
+  /// `zt_my_plan()`, core 0.11.
+  final bool showPlan;
+
+  /// Opens the app's plans screen from the plan row. Leave null where the
+  /// build may not sell (see [ZtPlanTile]).
+  final VoidCallback? onOpenPlans;
+
   /// Lists the suite's other apps (same account) with a link to each in
   /// the store, opened through [onOpenUrl]. Hidden without [onOpenUrl].
   final bool showOtherApps;
@@ -104,6 +115,7 @@ class ZtSettingsPage extends ConsumerWidget {
             subtitle: Text(ZtL10n.of(context).oneAccountForEveryApp),
           ),
           if (showSyncStatus) const ZtSyncStatusTile(),
+          if (showPlan) ZtPlanTile(onTap: onOpenPlans),
           if (showStorageUsage) const ZtStorageTile(),
           ListTile(
             leading: const Icon(Icons.password),
