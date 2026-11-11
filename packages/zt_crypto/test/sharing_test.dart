@@ -92,7 +92,8 @@ void main() {
           throwsA(anything));
     });
 
-    test('the server sees a proof, which neither is the token nor opens '
+    test(
+        'the server sees a proof, which neither is the token nor opens '
         'answers', () async {
       final secret = InviteSecret.generate();
       final proof = await secret.proof();
