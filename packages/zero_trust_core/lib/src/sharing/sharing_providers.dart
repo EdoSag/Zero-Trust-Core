@@ -51,6 +51,9 @@ class ZtSpaceStoreOpener implements SpaceStoreOpener {
 
   /// Open and opening stores. An open that fails takes itself out again.
   final Map<String, Future<ZtLocalStore>> _stores = {};
+
+  /// The ones that finished opening, for [closeAll].
+  final Map<String, ZtLocalStore> _open = {};
   bool _closed = false;
 
   Future<String> _path(String spaceId) =>
@@ -85,6 +88,7 @@ class ZtSpaceStoreOpener implements SpaceStoreOpener {
         await store.close();
         throw const VaultIsLocked();
       }
+      _open[spaceId] = store;
       return store;
     } catch (_) {
       _stores.remove(spaceId)?.ignore();
@@ -97,6 +101,7 @@ class ZtSpaceStoreOpener implements SpaceStoreOpener {
   @override
   Future<void> delete(String spaceId) async {
     final opening = _stores.remove(spaceId);
+    _open.remove(spaceId);
     if (opening != null) {
       try {
         await (await opening).close();
@@ -110,17 +115,15 @@ class ZtSpaceStoreOpener implements SpaceStoreOpener {
   @override
   Future<void> closeAll() async {
     _closed = true;
-    final all = [..._stores.values];
+    final open = [..._open.values];
+    _open.clear();
     _stores.clear();
     _appKey.fillRange(0, _appKey.length, 0);
-    for (final opening in all) {
-      // One still opening sees [_closed], closes itself and fails here.
-      try {
-        await (await opening).close();
-      } on Object {
-        // Nothing was opened.
-      }
-    }
+    // The open ones together, so a slow one holds up no other. One still
+    // opening is not waited for: it sees [_closed] and closes itself.
+    await Future.wait([
+      for (final store in open) store.close().catchError((Object _) {}),
+    ]);
   }
 }
 
