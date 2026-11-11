@@ -89,7 +89,8 @@ void main() {
       final space = await a.spaces.create(myName: 'Alice');
       final link = await a.spaces.invite(space.id);
       final text = link.toString();
-      expect(text, startsWith('https://zerotrust.bz/join#zt1.meds.'));
+      // The app is in the path too: each app claims only its own links.
+      expect(text, startsWith('https://zerotrust.bz/join/meds#zt1.meds.'));
       final back = SpaceInviteLink.parse(text);
       expect(back.inviteId, link.inviteId);
       expect(back.secret.token, link.secret.token);
