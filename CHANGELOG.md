@@ -25,6 +25,11 @@ users. Additive: apps change nothing unless they show the plan.
 - **In the apps.** `ztPlanProvider` / `ZtPlan` (`has('drive')`, `nameFor`),
   and `ZtPlanTile` ("Plan: Free", renewal date, payment problem), shown by
   `ZtSettingsPage(showPlan: true, onOpenPlans: ...)`. English and Hebrew.
+- **Plus plan, hidden.** Migration `20261111150000_core_v11_plus_plan` adds
+  `plus` (one plan for every app: 1 GiB synced data, 20 GiB attachments) with
+  `offered = false` until payments exist; the owner grants it to beta
+  testers with `zt_grant_plan`.
+
 ## Unreleased (zt_places: on-device place reminders)
 
 New package `packages/zt_places` (Flutter plugin, Android): "remind me when
