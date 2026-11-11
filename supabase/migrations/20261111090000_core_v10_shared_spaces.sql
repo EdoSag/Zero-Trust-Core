@@ -13,9 +13,10 @@
 --     them);
 --   - sealed, signed items (zt_space_items), with the key epoch they were
 --     sealed under and whether only admins may change them;
---   - open invites: the SHA-256 of the invite token (the token itself only
---     travels in the invite link or QR code) and, once answered, the
---     invitee's answer, sealed under the token.
+--   - open invites: the SHA-256 of a proof derived from the invite token
+--     (the token itself only travels in the invite link or QR code) and,
+--     once answered, the invitee's answer, sealed under a key derived from
+--     the token.
 -- Names, public keys and every item's content stay inside the encrypted
 -- items. Members check each other's signatures against the space's own
 -- (encrypted, signed) member list, so the server can neither read nor
@@ -341,12 +342,13 @@ begin
 end;
 $$;
 
--- The invitee answers with the token from the link and their answer
--- (public identity and name), sealed under the token. Returns the space and
+-- The invitee answers with a proof derived from the link's token (never the
+-- token itself) and their answer (public identity and name), sealed under a
+-- key derived from the token, which the server never sees. Returns the space and
 -- the inviter so the invitee's app can check the inviter's key once it can
 -- read the space. One answer per invite.
 create or replace function public.zt_answer_space_invite(
-  p_invite uuid, p_token bytea, p_answer bytea)
+  p_invite uuid, p_proof bytea, p_answer bytea)
 returns json language plpgsql security definer set search_path = '' as $$
 declare
   v_me  uuid := (select auth.uid());
@@ -355,7 +357,7 @@ declare
 begin
   if v_me is null then raise exception 'not signed in' using errcode = '42501'; end if;
   select * into v_inv from public.zt_space_invites where id = p_invite for update;
-  if not found or v_inv.token_hash <> sha256(p_token) or v_inv.expires_at <= now()
+  if not found or v_inv.token_hash <> sha256(p_proof) or v_inv.expires_at <= now()
      or v_inv.status <> 'open' or octet_length(p_answer) > 4096 then
     raise exception using errcode = 'P0001', message = 'zt_invite_invalid';
   end if;

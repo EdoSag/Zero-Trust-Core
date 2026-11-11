@@ -127,12 +127,12 @@ class SupabaseSpaceBackend implements SpaceBackend {
   @override
   Future<InviteAnswered> answerInvite({
     required String inviteId,
-    required Uint8List token,
+    required Uint8List proof,
     required Uint8List answer,
   }) async {
     final res = await _rpc('zt_answer_space_invite', {
       'p_invite': inviteId,
-      'p_token': _toBytea(token),
+      'p_proof': _toBytea(proof),
       'p_answer': _toBytea(answer),
     });
     final json = (res is String ? jsonDecode(res) : res) as Map;

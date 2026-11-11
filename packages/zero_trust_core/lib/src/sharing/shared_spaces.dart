@@ -253,6 +253,19 @@ class SharedSpaces {
       return const SyncResult();
     }
     space.myRole = info.myRole;
+    if (info.rotationNeeded && space.isAdmin) {
+      // Someone left: make the new key before anything waiting on this
+      // device is pushed, so they can't read it. When this device doesn't
+      // know every remaining member's key yet, it syncs first (below).
+      await _refreshKeys(space, info);
+      try {
+        await _rotate(space, await backend.members(space.id));
+        final after = (await _info(space.id))!;
+        if (!after.rotationNeeded) return await _syncOnce(space, after);
+      } on StateError {
+        // falls through
+      }
+    }
     var result = await _syncOnce(space, info);
     if (info.rotationNeeded && space.isAdmin) {
       await _rotate(space, await backend.members(space.id));
@@ -309,34 +322,39 @@ class SharedSpaces {
     final ring = space.codec.keyring;
     ring.currentEpoch = info.keyEpoch;
     for (final row in await backend.myKeys(space.id)) {
-      if (ring[row.epoch] == null) {
-        try {
-          ring.put(
-            row.epoch,
-            await KeyWrap.unwrap(
-              wrapped: row.wrappedKey,
-              identity: _identity,
-              context: spaceKeyContext(space.id, row.epoch, myUserId),
-            ),
-          );
-        } on Object {
-          continue; // not for us, or damaged: never used
-        }
-      }
       if (ring.isVerified(row.epoch)) continue;
-      // Trust a key only when a trusted admin (or this account) signed it.
+      final Uint8List key;
+      try {
+        key = await KeyWrap.unwrap(
+          wrapped: row.wrappedKey,
+          identity: _identity,
+          context: spaceKeyContext(space.id, row.epoch, myUserId),
+        );
+      } on Object {
+        continue; // not for us, or damaged: never used
+      }
+      // Trust a key only when a trusted admin (or this account) signed the
+      // very row it came from. A key cached from another row is replaced,
+      // never promoted by this row's signature.
       final by = row.wrappedBy;
       final ZtPublicIdentity? signer = by == myUserId
           ? _identity.public
           : (by != null && space.roster.canVouch(by, row.epoch)
               ? space.roster[by]!.identity
               : null);
-      if (signer == null) continue;
-      if (await Signing.verify(
-          spaceKeySignedBytes(space.id, row.epoch, myUserId, row.wrappedKey),
-          signature: row.signature,
-          publicKey: signer.signPublic)) {
-        ring.markVerified(row.epoch);
+      final signed = signer != null &&
+          await Signing.verify(
+              spaceKeySignedBytes(
+                  space.id, row.epoch, myUserId, row.wrappedKey),
+              signature: row.signature,
+              publicKey: signer.signPublic);
+      if (signed) {
+        ring.put(row.epoch, key, verified: true);
+      } else {
+        // Unconfirmed: the latest row's key may open rows (whose authors
+        // sign them), never seal new ones. Replacing an earlier unconfirmed
+        // key lets a real row recover from a planted one.
+        ring.put(row.epoch, key);
       }
     }
   }
@@ -384,11 +402,19 @@ class SharedSpaces {
       'name': myName,
       'identity': _identity.public.toJson(),
     });
-    final res = await backend.answerInvite(
-      inviteId: link.inviteId,
-      token: link.secret.token,
-      answer: sealed,
-    );
+    // The server gets a proof derived from the token, never the token
+    // itself, which is what seals the answer.
+    final proof = await link.secret.proof();
+    final InviteAnswered res;
+    try {
+      res = await backend.answerInvite(
+        inviteId: link.inviteId,
+        proof: proof,
+        answer: sealed,
+      );
+    } finally {
+      proof.fillRange(0, proof.length, 0);
+    }
     if (res.invitedBy != link.inviterUserId) {
       throw const FormatException('The invite does not match its link');
     }
@@ -458,6 +484,8 @@ class SharedSpaces {
   /// so they see the space's history too.
   Future<void> confirm(PendingJoin join) async {
     final space = await open(join.spaceId);
+    // Latest member list and key first (vouching below rewrites entries).
+    await sync(space);
     await _refreshKeys(space, (await _info(space.id))!);
     final ring = space.codec.keyring;
     if (ring.writeEpoch == null) throw const SpaceKeyUnavailable();
@@ -465,6 +493,14 @@ class SharedSpaces {
       for (final epoch in ring.epochs.where(ring.isVerified))
         await _grant(space.id, epoch, ring[epoch]!, join.userId, join.identity),
     ];
+    // The newcomer trusts the space from this account outward (their link
+    // names it), so this account vouches for every entry it knows: an entry
+    // another admin wrote would otherwise stay unverifiable for them, and
+    // so would everything that admin writes.
+    for (final m in space.roster.all.toList()) {
+      if (m.userId == join.userId) continue;
+      await space.save(SpaceMember.itemIdFor(m.userId), m.toJson());
+    }
     final member = SpaceMember(
       userId: join.userId,
       name: join.name,

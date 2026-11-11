@@ -219,11 +219,11 @@ class InMemorySpaceBackend implements SpaceBackend {
   @override
   Future<InviteAnswered> answerInvite({
     required String inviteId,
-    required Uint8List token,
+    required Uint8List proof,
     required Uint8List answer,
   }) async {
     final inv = _server._invites[inviteId];
-    final hash = (await const DartSha256().hash(token)).bytes;
+    final hash = (await const DartSha256().hash(proof)).bytes;
     if (inv == null ||
         !_same(hash, inv.tokenHash) ||
         inv.status != InviteStatus.open ||

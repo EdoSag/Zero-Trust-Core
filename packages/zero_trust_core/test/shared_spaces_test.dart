@@ -200,6 +200,79 @@ void main() {
           server.rowsOf(space.id).where((r) => r.itemId == 'dose1'), isEmpty);
     });
 
+    test('a planted key is replaced, not confirmed, by the real signed row',
+        () async {
+      final space = await a.spaces.create(myName: 'Alice');
+      final link = await a.spaces.invite(space.id);
+      await b.spaces.answer(SpaceInviteLink.parse('$link'), myName: 'Bob');
+      await a.spaces.confirm((await a.spaces.pendingJoins(space.id)).single);
+      final real = (await server.backendFor(bob).myKeys(space.id)).single;
+
+      // First the server hands Bob a key it knows, badly signed...
+      final known = Uint8List(32);
+      server.plantKey(
+          space.id,
+          bob,
+          SpaceKeyGrant(
+              userId: bob,
+              epoch: 1,
+              wrappedKey: await KeyWrap.wrap(
+                  key: known,
+                  recipient: (await ZtIdentity.fromDek(dek(2))).public,
+                  context: spaceKeyContext(space.id, 1, bob)),
+              signature: Uint8List(64)),
+          wrappedBy: alice);
+      final bs = await b.spaces.open(space.id);
+      await b.spaces.sync(bs);
+      expect(bs.codec.keyring.writeEpoch, isNull);
+
+      // ...then the real row, signed by Alice.
+      server.plantKey(
+          space.id,
+          bob,
+          SpaceKeyGrant(
+              userId: bob,
+              epoch: 1,
+              wrappedKey: real.wrappedKey,
+              signature: real.signature),
+          wrappedBy: real.wrappedBy);
+      await b.spaces.sync(bs);
+      expect(bs.codec.keyring.writeEpoch, 1);
+      final as = await a.spaces.open(space.id);
+      expect(bs.codec.keyring[1], as.codec.keyring[1]);
+      expect(bs.codec.keyring[1], isNot(known));
+    });
+
+    test('someone invited by a second admin trusts the whole space', () async {
+      final spaceId = await share(a, b, role: SpaceRole.admin);
+      final as = await a.spaces.open(spaceId);
+      await as.save('med', {'kind': 'medication', 'name': 'Amoxicillin'});
+      await a.spaces.sync(as);
+
+      // Bob (admitted by Alice) invites Carol.
+      final bs = await b.spaces.open(spaceId);
+      await b.spaces.sync(bs);
+      final link = await b.spaces.invite(spaceId);
+      final started = await c.spaces
+          .answer(SpaceInviteLink.parse('$link'), myName: 'Carol');
+      final join = (await b.spaces.pendingJoins(spaceId)).single;
+      expect(join.verificationCode, started.verificationCode);
+      await b.spaces.confirm(join);
+
+      final cs = await c.spaces.open(spaceId);
+      await c.spaces.sync(cs);
+      expect(cs.roster[alice], isNotNull);
+      expect(cs.roster[bob], isNotNull);
+      expect(cs.codec.keyring.writeEpoch, 1);
+      expect(await c.read(spaceId, 'med'), containsPair('name', 'Amoxicillin'));
+      // And what Alice writes next reaches her too.
+      await as.save('med2', {'kind': 'medication', 'name': 'Paracetamol'});
+      await a.spaces.sync(as);
+      await c.spaces.sync(cs);
+      expect(
+          await c.read(spaceId, 'med2'), containsPair('name', 'Paracetamol'));
+    });
+
     test('rows the server forges or alters are rejected', () async {
       final spaceId = await share(a, b);
       final as = await a.spaces.open(spaceId);
@@ -326,6 +399,21 @@ void main() {
       final bs = await b.spaces.open(spaceId);
       await bs.save('dose', {'kind': 'dose'});
       await b.spaces.sync(bs);
+      expect(
+          server.rowsOf(spaceId).firstWhere((r) => r.itemId == 'dose').keyEpoch,
+          2);
+    });
+
+    test('edits waiting on the admin\'s phone go out under the new key',
+        () async {
+      final spaceId = await share(a, b);
+      await share(a, c, name: 'Carol');
+      await c.spaces.leave(spaceId);
+      // Alice edited offline before learning Carol left.
+      final as = await a.spaces.open(spaceId);
+      await as.save('dose', {'kind': 'dose', 'note': 'after Carol left'});
+      await a.spaces.sync(as);
+      expect(as.keyEpoch, 2);
       expect(
           server.rowsOf(spaceId).firstWhere((r) => r.itemId == 'dose').keyEpoch,
           2);

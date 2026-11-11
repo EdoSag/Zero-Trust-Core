@@ -92,13 +92,19 @@ void main() {
           throwsA(anything));
     });
 
-    test('hash is SHA-256 of the token', () async {
-      final secret = InviteSecret(List.filled(32, 0));
-      expect(
-          (await secret.hash())
-              .map((b) => b.toRadixString(16).padLeft(2, '0'))
-              .join(),
-          '66687aadf862bd776c8fc18b8e9f8e20089714856ee233b3902a591d0d5f2925');
+    test('the server sees a proof, which neither is the token nor opens '
+        'answers', () async {
+      final secret = InviteSecret.generate();
+      final proof = await secret.proof();
+      expect(proof, isNot(secret.token));
+      final sealed = await secret.sealAnswer('inv1', {'name': 'Grandma'});
+      await expectLater(
+          InviteSecret(proof).openAnswer('inv1', sealed), throwsA(anything));
+      // What the server stores is the hash of the proof it will receive.
+      final hash = await secret.hash();
+      expect(hash, isNot(proof));
+      expect(hash, hasLength(32));
+      expect(await secret.hash(), hash);
     });
   });
 

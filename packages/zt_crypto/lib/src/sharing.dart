@@ -184,9 +184,20 @@ class InviteSecret {
 
   final Uint8List token;
 
-  /// What the server keeps, to check that an answer comes from a link holder.
-  Future<Uint8List> hash() async =>
-      Uint8List.fromList((await _sha256.hash(token)).bytes);
+  /// What the invitee sends the server to show they hold the link. Derived
+  /// from the token one way, so the server (which sees it) still can't
+  /// derive the key that seals the answer, read the answer or forge one.
+  Future<Uint8List> proof() => Kdf.hkdf(token, 'zt/invite-proof/v1');
+
+  /// What the server keeps, to check an answer's [proof].
+  Future<Uint8List> hash() async {
+    final p = await proof();
+    try {
+      return Uint8List.fromList((await _sha256.hash(p)).bytes);
+    } finally {
+      p.fillRange(0, p.length, 0);
+    }
+  }
 
   /// Seals the invitee's answer (their public identity and display name).
   Future<Uint8List> sealAnswer(

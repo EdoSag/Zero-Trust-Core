@@ -158,7 +158,7 @@ abstract interface class SpaceBackend {
 
   Future<InviteAnswered> answerInvite({
     required String inviteId,
-    required Uint8List token,
+    required Uint8List proof,
     required Uint8List answer,
   });
 
