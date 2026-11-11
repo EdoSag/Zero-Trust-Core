@@ -1,6 +1,7 @@
 import 'dart:io';
 
 import 'package:dynamic_color/dynamic_color.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
 import '../../l10n/zt_l10n.dart';
@@ -10,6 +11,7 @@ import '../../config/zt_app_config.dart';
 import '../../export/zt_data_export.dart';
 import '../../export/zt_export_data_tile.dart';
 import '../../attachments/attachment_cache.dart';
+import '../../attachments/database_attachment_cache.dart';
 import '../../config/zt_language.dart';
 import '../../config/zt_preferences.dart';
 import '../../config/zt_suite.dart';
@@ -401,7 +403,11 @@ class ZtSettingsPage extends ConsumerWidget {
       final appId = ref.read(ztAppConfigProvider).appId;
       await ZtLocalStore.deleteFiles(
           await ZtLocalStore.pathFor(appId: appId, userId: userId));
-      await FileAttachmentCache.deleteFor(appId: appId, userId: userId);
+      if (kIsWeb) {
+        await DatabaseAttachmentCache.deleteFor(appId: appId, userId: userId);
+      } else {
+        await FileAttachmentCache.deleteFor(appId: appId, userId: userId);
+      }
     } on Object {
       // No platform storage (tests), or already gone.
     }

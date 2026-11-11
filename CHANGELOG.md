@@ -14,6 +14,27 @@ waiting-to-join code), `ZtInvitePage` (QR, copy, send, invite as owner),
 `ztSharingNameProvider` (the shared name, kept in the account's own store as
 kind `zt.sharing_name`). English and Hebrew. No change to `zero_trust_core`.
 
+## Unreleased (Z26: web and desktop)
+
+The core now builds and runs on the web and on Windows, macOS and Linux.
+Additive: Android and iOS apps change nothing.
+
+- **Encrypted local store in the browser.** `ZtLocalStore` opens SQLite3
+  Multiple Ciphers as WebAssembly with the file in IndexedDB, encrypted under
+  the same key as on a phone. Web apps ship `web/sqlite3mc.wasm` from
+  `tool/fetch_sqlite3mc_wasm.sh` (pinned version and checksum).
+- **Biometric unlock only where hardware gates the key** (Android, iOS).
+  Desktop and web report it unavailable instead of keeping the key in an
+  ordinary keychain.
+- **One browser tab at a time** per account store (Web Locks); another tab
+  gets `LocalStoreInUse`, shown as "already open in another tab" (English and
+  Hebrew).
+- **Attachments on the web** go into `DatabaseAttachmentCache` (IndexedDB), so
+  attachments added offline and their waiting uploads and deletes survive a
+  reload.
+- **Export on the web** downloads the zip.
+- `example/`: a smoke-check app; CI builds it for the web.
+
 ## Unreleased (Z25: plan groundwork)
 
 Plans and what each allows, with no payment provider yet. Needs migration
@@ -36,6 +57,10 @@ users. Additive: apps change nothing unless they show the plan.
 - **In the apps.** `ztPlanProvider` / `ZtPlan` (`has('drive')`, `nameFor`),
   and `ZtPlanTile` ("Plan: Free", renewal date, payment problem), shown by
   `ZtSettingsPage(showPlan: true, onOpenPlans: ...)`. English and Hebrew.
+- **Plus plan, hidden.** Migration `20261111150000_core_v11_plus_plan` adds
+  `plus` (one plan for every app: 1 GiB synced data, 20 GiB attachments) with
+  `offered = false` until payments exist; the owner grants it to beta
+  testers with `zt_grant_plan`.
 
 ## Unreleased (zt_places: on-device place reminders)
 

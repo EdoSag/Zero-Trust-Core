@@ -1058,6 +1058,12 @@ abstract class ZtLocalizations {
   /// **'Data on this device couldn\'t be opened. It will be downloaded again.'**
   String get errLocalStoreUnreadable;
 
+  /// No description provided for @errStoreInUse.
+  ///
+  /// In en, this message translates to:
+  /// **'This app is already open in another tab or window. Close it there, then reload this page.'**
+  String get errStoreInUse;
+
   /// No description provided for @errVaultLocked.
   ///
   /// In en, this message translates to:

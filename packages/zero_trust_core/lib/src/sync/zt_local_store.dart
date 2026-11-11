@@ -1,11 +1,11 @@
 import 'dart:async';
 import 'dart:convert';
-import 'dart:io';
 import 'dart:typed_data';
 
-import 'package:path_provider/path_provider.dart';
-import 'package:sqlite3/sqlite3.dart';
+import 'package:sqlite3/common.dart';
 import 'package:zt_crypto/zt_crypto.dart';
+
+import '../platform/zt_platform.dart';
 
 import 'legacy_importer.dart';
 import 'local_item_store.dart';
@@ -35,14 +35,19 @@ class LocalStoreUnreadable implements Exception {
 ///
 /// Without it [open] throws rather than writing plain text.
 ///
+/// On the web the same encrypted file lives in the browser's IndexedDB
+/// (SQLite3 Multiple Ciphers as WebAssembly; the app ships
+/// `web/sqlite3mc.wasm`), so the browser only ever stores ciphertext.
+///
 /// Calls run on the calling isolate. That is fine for the item counts these
 /// apps keep; move the database to a background isolate if a list grows into
 /// the tens of thousands.
 class ZtLocalStore
     implements LocalItemStore, LegacyImportLedger, PullCheckpoint {
-  ZtLocalStore._(this._db);
+  ZtLocalStore._(this._handle);
 
-  final Database _db;
+  final ZtDatabaseHandle _handle;
+  CommonDatabase get _db => _handle.db;
   final _changes = StreamController<Set<String>>.broadcast();
   bool _closed = false;
 
@@ -62,7 +67,8 @@ class ZtLocalStore
     final hex = key.map((b) => b.toRadixString(16).padLeft(2, '0')).join();
     key.fillRange(0, key.length, 0);
 
-    final db = path == null ? sqlite3.openInMemory() : sqlite3.open(path);
+    final handle = await ztOpenDatabase(path);
+    final db = handle.db;
     try {
       if (db.select('pragma cipher').isEmpty) {
         throw StateError(
@@ -78,17 +84,17 @@ class ZtLocalStore
         } on SqliteException {
           throw LocalStoreUnreadable(path);
         }
-        db.execute('pragma journal_mode = wal');
+        if (handle.supportsWal) db.execute('pragma journal_mode = wal');
       }
       _migrate(db);
-      return ZtLocalStore._(db);
+      return ZtLocalStore._(handle);
     } catch (_) {
-      db.close();
+      await handle.close();
       rethrow;
     }
   }
 
-  static void _migrate(Database db) {
+  static void _migrate(CommonDatabase db) {
     final version = db.userVersion;
     if (version > _schemaVersion) {
       throw StateError('Local store schema $version is newer than this app');
@@ -114,30 +120,17 @@ class ZtLocalStore
   static Future<String> pathFor({
     required String appId,
     required String userId,
-  }) async {
-    final dir = await getApplicationSupportDirectory();
-    await dir.create(recursive: true);
-    return '${dir.path}/zt_${appId}_$userId.db';
-  }
+  }) =>
+      ztDatabasePath('zt_${appId}_$userId.db');
 
   /// Deletes a closed store's files, for example after account deletion.
-  static Future<void> deleteFiles(String path) async {
-    for (final suffix in ['', '-wal', '-shm']) {
-      final f = File('$path$suffix');
-      if (await f.exists()) await f.delete();
-    }
-  }
+  static Future<void> deleteFiles(String path) => ztDeleteDatabase(path);
 
   /// Renames a store that can't be opened to `<path>.unreadable-<time>`, so
   /// a fresh store can take its place without destroying what might still
-  /// be recovered. Earlier set-aside copies are never replaced.
-  static Future<void> moveAside(String path) async {
-    final stamp = DateTime.now().toUtc().microsecondsSinceEpoch;
-    for (final suffix in ['', '-wal', '-shm']) {
-      final f = File('$path$suffix');
-      if (await f.exists()) await f.rename('$path.unreadable-$stamp$suffix');
-    }
-  }
+  /// be recovered. Earlier set-aside copies are never replaced. (On the web,
+  /// which can't rename, the unreadable store is deleted.)
+  static Future<void> moveAside(String path) => ztMoveDatabaseAside(path);
 
   /// Ids of items that changed, after each write. For refreshing lists.
   Stream<Set<String>> get changes => _changes.stream;
@@ -150,7 +143,7 @@ class ZtLocalStore
   Future<void> close() async {
     if (_closed) return;
     _closed = true;
-    _db.close();
+    await _handle.close();
     await _changes.close();
   }
 
@@ -230,16 +223,19 @@ class ZtLocalStore
           LocalItem(
             itemId: row['item_id'] as String,
             updatedAt: DateTime.fromMicrosecondsSinceEpoch(
-                row['updated_at'] as int,
+                _int(row['updated_at']),
                 isUtc: true),
-            deleted: row['deleted'] == 1,
-            dirty: row['dirty'] == 1,
+            deleted: _int(row['deleted']) == 1,
+            dirty: _int(row['dirty']) == 1,
             json: switch (row['json']) {
               final String s => (jsonDecode(s) as Map).cast<String, Object?>(),
               _ => null,
             },
           ),
       ];
+
+  /// The web build may hand 64-bit integers back as [BigInt].
+  static int _int(Object? v) => v is BigInt ? v.toInt() : v as int;
 
   String? _meta(String key) {
     final rows = _db.select('select value from meta where key = ?', [key]);
