@@ -71,12 +71,16 @@ void main() {
     });
 
     test('release frames keep the virtual address only', () {
-      final r = build(StateError('x'),
-          stack: StackTrace.fromString(
-              '#00 abs 0000007a1b2c3d4e virt 00000000002c3d4e '
-              '_kDartIsolateSnapshotInstructions+0x1234\n'));
-      expect(r.frames,
-          ['virt 00000000002c3d4e _kDartIsolateSnapshotInstructions+0x1234']);
+      final r = build(
+        StateError('x'),
+        stack: StackTrace.fromString(
+          '#00 abs 0000007a1b2c3d4e virt 00000000002c3d4e '
+          '_kDartIsolateSnapshotInstructions+0x1234\n',
+        ),
+      );
+      expect(r.frames, [
+        'virt 00000000002c3d4e _kDartIsolateSnapshotInstructions+0x1234',
+      ]);
     });
 
     test('exceptions that can quote input never keep their message', () {
@@ -91,35 +95,64 @@ void main() {
       expect(build(StateError('Patient Alice Smith')).message, isNull);
       expect(build(StateError("'Alice Smith'")).message, isNull);
       expect(build(UnsupportedError('note: buy milk')).message, isNull);
-      expect(build(RangeError.index(5, [1, 2, 3])).message,
-          contains('Index out of range'));
-      expect(build(RangeError.range(7, 0, 3, 'day')).message,
-          'RangeError (day): Invalid value: Not in inclusive range 0..3: 7');
+      expect(
+        build(RangeError.index(5, [1, 2, 3])).message,
+        contains('Index out of range'),
+      );
+      expect(
+        build(RangeError.range(7, 0, 3, 'day')).message,
+        'RangeError (day): Invalid value: Not in inclusive range 0..3: 7',
+      );
       expect(build(RangeError('Alice Smith')).message, isNull);
-      expect(build(RangeError.value(1234567)).message,
-          'RangeError: Value not in range: <number>');
+      expect(
+        build(RangeError.value(1234567)).message,
+        'RangeError: Value not in range: <number>',
+      );
       Object? cast;
       try {
         cast = (null as dynamic) as String;
       } on TypeError catch (e) {
         cast = e;
       }
-      expect(build(cast).message,
-          "type 'Null' is not a subtype of type 'String' in type cast");
+      expect(
+        build(cast).message,
+        "type 'Null' is not a subtype of type 'String' in type cast",
+      );
     });
 
     test('quoted text only survives when it looks like a type', () {
       expect(
-          ZtCrashScrubber.message(
-              "type 'Map<String, int>' is not a subtype of type 'String'"),
-          "type 'Map<String, int>' is not a subtype of type 'String'");
-      expect(ZtCrashScrubber.message("type 'Alice Smith' is not"),
-          "type <text> is not");
-      expect(ZtCrashScrubber.message('id 0521234567 at https://x.y/z?q=1'),
-          'id <number> at <link>');
+        ZtCrashScrubber.message(
+          "type 'Map<String, int>' is not a subtype of type 'String'",
+        ),
+        "type 'Map<String, int>' is not a subtype of type 'String'",
+      );
+      expect(
+        ZtCrashScrubber.message("type 'Alice Smith' is not"),
+        "type <text> is not",
+      );
+      expect(
+        ZtCrashScrubber.message('id 0521234567 at https://x.y/z?q=1'),
+        'id <number> at <link>',
+      );
       expect(ZtCrashScrubber.message('mail edo@example.com'), 'mail <email>');
       // Hebrew (or any non-ASCII) text can only be user content here.
       expect(ZtCrashScrubber.message('a שלום'), 'a');
+    });
+
+    test('fingerprint is plain 64-bit FNV-1a, 16 hex digits, no sign', () {
+      // Known FNV-1a 64 values; the second has the top bit set.
+      expect(
+        ZtCrashScrubber.fingerprintOf('a', 'b', const []),
+        isNot(startsWith('-')),
+      );
+      expect(
+        ZtCrashScrubber.fingerprintOf('zt_notes', 'StateError', const [
+          'a.dart:1',
+          'b.dart:2',
+        ]),
+        'dbab10180e6ffe86',
+      );
     });
 
     test('same bug, same fingerprint; different place, different one', () {
@@ -127,9 +160,12 @@ void main() {
       final b = build(StateError('b'));
       expect(a.fingerprint, b.fingerprint);
       expect(a.fingerprint, hasLength(16));
-      final c = build(StateError('a'),
-          stack: StackTrace.fromString(
-              '#0      Other.place (package:zt_notes/x.dart:1:1)\n'));
+      final c = build(
+        StateError('a'),
+        stack: StackTrace.fromString(
+          '#0      Other.place (package:zt_notes/x.dart:1:1)\n',
+        ),
+      );
       expect(c.fingerprint, isNot(a.fingerprint));
     });
 
@@ -151,7 +187,8 @@ void main() {
     test('saved reports round-trip', () {
       final r = build(StateError('x'));
       final back = ZtCrashReport.fromJson(
-          (jsonDecode(jsonEncode(r.toJson())) as Map).cast());
+        (jsonDecode(jsonEncode(r.toJson())) as Map).cast(),
+      );
       expect(back.toText(), r.toText());
       expect(back.id, r.id);
     });
@@ -169,14 +206,14 @@ void main() {
     });
 
     ZtCrashReporter reporter({bool withSink = true}) => ZtCrashReporter(
-          appId: 'notes',
-          appVersion: '0.4.1+12',
-          sink: withSink ? sink : null,
-          preferences: prefs,
-          store: store,
-          platform: 'android',
-          now: () => now,
-        );
+      appId: 'notes',
+      appVersion: '0.4.1+12',
+      sink: withSink ? sink : null,
+      preferences: prefs,
+      store: store,
+      platform: 'android',
+      now: () => now,
+    );
 
     test('off by default: records and keeps nothing', () async {
       final r = reporter();
@@ -217,8 +254,10 @@ void main() {
       final r = reporter();
       await r.load();
       for (var i = 0; i < 15; i++) {
-        r.record(StateError('x'),
-            StackTrace.fromString('#0      F$i (package:a/b.dart:1:1)\n'));
+        r.record(
+          StateError('x'),
+          StackTrace.fromString('#0      F$i (package:a/b.dart:1:1)\n'),
+        );
       }
       expect(r.reports, hasLength(ZtCrashReporter.maxSaved));
       expect(r.reports.first.frames.single, startsWith('F14'));
@@ -266,15 +305,18 @@ void main() {
       final gate = Completer<void>();
       final slow = _GatedSink(gate);
       final r = ZtCrashReporter(
-          appId: 'notes',
-          sink: slow,
-          preferences: prefs..values[ZtCrashReporter.prefKey] = 'ask',
-          store: store,
-          platform: 'android');
+        appId: 'notes',
+        sink: slow,
+        preferences: prefs..values[ZtCrashReporter.prefKey] = 'ask',
+        store: store,
+        platform: 'android',
+      );
       await r.load();
       for (var i = 0; i < 3; i++) {
-        r.record(StateError('x'),
-            StackTrace.fromString('#0      F$i (package:a/b.dart:1:1)\n'));
+        r.record(
+          StateError('x'),
+          StackTrace.fromString('#0      F$i (package:a/b.dart:1:1)\n'),
+        );
       }
       final batch = r.sendAll(); // e.g. "Send" on the prompt
       await r.setMode(ZtCrashReportMode.off);
@@ -287,11 +329,12 @@ void main() {
       final gate = Completer<void>();
       final slow = _GatedSink(gate);
       final r = ZtCrashReporter(
-          appId: 'notes',
-          sink: slow,
-          preferences: prefs..values[ZtCrashReporter.prefKey] = 'ask',
-          store: store,
-          platform: 'android');
+        appId: 'notes',
+        sink: slow,
+        preferences: prefs..values[ZtCrashReporter.prefKey] = 'ask',
+        store: store,
+        platform: 'android',
+      );
       await r.load();
       r.record(StateError('x'), _stack);
       final sending = r.send(r.reports.single.id);
@@ -311,14 +354,19 @@ void main() {
       FlutterError.onError = (_) => forwarded++;
       addTearDown(() => FlutterError.onError = before);
       final platformBefore = WidgetsBinding.instance.platformDispatcher.onError;
-      addTearDown(() =>
-          WidgetsBinding.instance.platformDispatcher.onError = platformBefore);
+      addTearDown(
+        () =>
+            WidgetsBinding.instance.platformDispatcher.onError = platformBefore,
+      );
 
       r.install();
-      FlutterError.onError!(FlutterErrorDetails(
+      FlutterError.onError!(
+        FlutterErrorDetails(
           exception: StateError('x'),
           stack: _stack,
-          library: 'widgets library'));
+          library: 'widgets library',
+        ),
+      );
       expect(forwarded, 1);
       expect(r.reports.single.uncaught, isFalse);
       expect(r.reports.single.library, 'widgets library');
@@ -338,12 +386,16 @@ void main() {
     final report = build(StateError('x'));
     await sink.send(report);
     expect(seen.method, 'POST');
-    expect(seen.headers.keys.map((k) => k.toLowerCase()),
-        isNot(contains('authorization')));
+    expect(
+      seen.headers.keys.map((k) => k.toLowerCase()),
+      isNot(contains('authorization')),
+    );
     expect(jsonDecode(seen.body), report.toPayload());
 
-    final refusing = ZtHttpCrashReportSink(Uri.parse('https://example.test'),
-        client: MockClient((_) async => http.Response('', 500)));
+    final refusing = ZtHttpCrashReportSink(
+      Uri.parse('https://example.test'),
+      client: MockClient((_) async => http.Response('', 500)),
+    );
     expect(() => refusing.send(report), throwsA(anything));
   });
 
@@ -366,40 +418,46 @@ void main() {
       );
     });
 
-    Widget app(Widget home,
-            {Locale? locale, bool withReporter = true, double textScale = 1}) =>
-        ProviderScope(
-          overrides: [
-            accountServiceProvider
-                .overrideWithValue(AccountService(FakeBackend(), params: fast)),
-            ztPreferencesStoreProvider.overrideWithValue(prefs),
-            ztAppConfigProvider.overrideWithValue(const ZtAppConfig(
-                appId: 'notes', displayName: 'Zero-Trust Notes')),
-            if (withReporter)
-              ztCrashReporterProvider.overrideWithValue(reporter),
-          ],
-          child: MaterialApp(
-            theme: ZtTheme.light(),
-            locale: locale,
-            localizationsDelegates: ZtLanguages.delegates,
-            supportedLocales: ZtL10n.supportedLocales,
-            builder: (context, child) => MediaQuery(
-              data: MediaQuery.of(context)
-                  .copyWith(textScaler: TextScaler.linear(textScale)),
-              child: child!,
-            ),
-            home: home,
-          ),
-        );
+    Widget app(
+      Widget home, {
+      Locale? locale,
+      bool withReporter = true,
+      double textScale = 1,
+    }) => ProviderScope(
+      overrides: [
+        accountServiceProvider.overrideWithValue(
+          AccountService(FakeBackend(), params: fast),
+        ),
+        ztPreferencesStoreProvider.overrideWithValue(prefs),
+        ztAppConfigProvider.overrideWithValue(
+          const ZtAppConfig(appId: 'notes', displayName: 'Zero-Trust Notes'),
+        ),
+        if (withReporter) ztCrashReporterProvider.overrideWithValue(reporter),
+      ],
+      child: MaterialApp(
+        theme: ZtTheme.light(),
+        locale: locale,
+        localizationsDelegates: ZtLanguages.delegates,
+        supportedLocales: ZtL10n.supportedLocales,
+        builder: (context, child) => MediaQuery(
+          data: MediaQuery.of(context)
+              .copyWith(textScaler: TextScaler.linear(textScale)),
+          child: child!,
+        ),
+        home: home,
+      ),
+    );
 
-    testWidgets('settings row only when the app set up reports',
-        (tester) async {
+    testWidgets('settings row only when the app set up reports', (
+      tester,
+    ) async {
       tester.view.physicalSize = const Size(1080, 9000);
       tester.view.devicePixelRatio = 3;
       addTearDown(tester.view.reset);
       await reporter.load();
       await tester.pumpWidget(
-          app(ZtSettingsPage(onSignedOut: () {}), withReporter: false));
+        app(ZtSettingsPage(onSignedOut: () {}), withReporter: false),
+      );
       await tester.pumpAndSettle();
       expect(find.text('Crash reports'), findsNothing);
 
@@ -410,11 +468,15 @@ void main() {
       expect(find.text('Off'), findsOneWidget);
       // In Security, right under "How your data is protected".
       expect(
-          tester.getRect(find.text('Crash reports')).top,
-          greaterThan(
-              tester.getRect(find.text('How your data is protected')).bottom));
-      expect(tester.getRect(find.text('Crash reports')).bottom,
-          lessThan(tester.getRect(find.text('Appearance')).top));
+        tester.getRect(find.text('Crash reports')).top,
+        greaterThan(
+          tester.getRect(find.text('How your data is protected')).bottom,
+        ),
+      );
+      expect(
+        tester.getRect(find.text('Crash reports')).bottom,
+        lessThan(tester.getRect(find.text('Appearance')).top),
+      );
     });
 
     testWidgets('turn on, read the exact report, send it', (tester) async {
@@ -465,7 +527,9 @@ void main() {
       await tester.pumpAndSettle();
       expect(find.text('Send automatically'), findsNothing);
       expect(
-          find.text('Keep on this phone so I can copy them'), findsOneWidget);
+        find.text('Keep on this phone so I can copy them'),
+        findsOneWidget,
+      );
       await tester.tap(find.text('StateError'));
       await tester.pumpAndSettle();
       expect(find.widgetWithText(TextButton, 'Send'), findsNothing);
@@ -479,8 +543,13 @@ void main() {
       await reporter.load();
       await reporter.setMode(ZtCrashReportMode.ask);
       reporter.record(StateError('x'), _stack);
-      await tester.pumpWidget(app(ZtCrashReportsScreen(reporter: reporter),
-          locale: ZtLanguages.hebrew, textScale: 2));
+      await tester.pumpWidget(
+        app(
+          ZtCrashReportsScreen(reporter: reporter),
+          locale: ZtLanguages.hebrew,
+          textScale: 2,
+        ),
+      );
       await tester.pumpAndSettle();
       expect(tester.takeException(), isNull);
       expect(find.text('דוחות קריסה'), findsOneWidget);
@@ -496,14 +565,19 @@ void main() {
       await reporter.load();
       await reporter.setMode(ZtCrashReportMode.ask);
       reporter.record(StateError('x'), _stack);
-      await tester.pumpWidget(app(Builder(
-        builder: (context) => Scaffold(
-          body: TextButton(
-            onPressed: () => maybeAskToSendZtCrashReports(context, reporter),
-            child: const Text('go'),
+      await tester.pumpWidget(
+        app(
+          Builder(
+            builder: (context) => Scaffold(
+              body: TextButton(
+                onPressed: () =>
+                    maybeAskToSendZtCrashReports(context, reporter),
+                child: const Text('go'),
+              ),
+            ),
           ),
         ),
-      )));
+      );
       await tester.pumpAndSettle();
       await tester.tap(find.text('go'));
       await tester.pumpAndSettle();
