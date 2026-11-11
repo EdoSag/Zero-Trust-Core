@@ -71,6 +71,31 @@ void main() {
     await next.closeAll();
   });
 
+  test('a space that is stuck opening does not hold up closing the others',
+      () async {
+    final stuck = Completer<void>();
+    final o = ZtSpaceStoreOpener(
+        appKey: appKey,
+        appId: 'notes',
+        userId: 'u1',
+        pathFor: (id) async {
+          if (id == 's2') await stuck.future;
+          return path(id);
+        });
+    final open = await o.open('s1');
+    await open.put(LocalItem(itemId: 'a', updatedAt: DateTime.utc(2026)));
+    final opening = o.open('s2');
+    final failed = expectLater(opening, throwsA(isA<VaultIsLocked>()));
+
+    // Returns with s2 still stuck, and s1 is closed.
+    await o.closeAll().timeout(const Duration(seconds: 5));
+    await expectLater(open.all(), throwsA(anything));
+
+    stuck.complete();
+    await failed;
+    expect(File(path('s2')).existsSync(), isFalse);
+  });
+
   test('delete removes the files of an open space', () async {
     final o = opener();
     await o.open('s1');
