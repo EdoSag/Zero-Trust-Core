@@ -181,6 +181,10 @@ class ZtCrashReporter extends ChangeNotifier {
   bool _recording = false;
   Future<void>? _sending;
 
+  /// Changes whenever the person changes the choice or deletes reports, so
+  /// a batch upload already under way stops before its next report.
+  int _consent = 0;
+
   ZtCrashReportMode get mode => _mode;
 
   /// Reports on this phone not yet sent, newest first.
@@ -291,6 +295,7 @@ class ZtCrashReporter extends ChangeNotifier {
       throw StateError('No crash report destination configured');
     }
     _mode = mode;
+    _consent++;
     if (mode == ZtCrashReportMode.off) {
       _reports = [];
       _store.save(const []);
@@ -306,7 +311,20 @@ class ZtCrashReporter extends ChangeNotifier {
     if (target == null) throw StateError('No crash report destination');
     final report = _reports.firstWhere((r) => r.id == id);
     await target.send(report);
-    _reports.removeWhere((r) => r.id == id);
+    _acknowledge(report);
+  }
+
+  /// Takes what [sent] covered off the queue. The same bug may have
+  /// happened again during the upload: those extra times stay pending.
+  void _acknowledge(ZtCrashReport sent) {
+    final i = _reports.indexWhere((r) => r.id == sent.id);
+    if (i < 0) return;
+    final now = _reports[i];
+    if (now.count > sent.count) {
+      _reports[i] = now.copyWith(count: now.count - sent.count);
+    } else {
+      _reports.removeAt(i);
+    }
     _store.save(_reports);
     notifyListeners();
   }
@@ -319,25 +337,32 @@ class ZtCrashReporter extends ChangeNotifier {
   Future<void> _sendAll() async {
     final target = sink;
     if (target == null) return;
-    for (final report in [..._reports]) {
+    final consent = _consent;
+    for (final queued in [..._reports]) {
+      // Stop if the person turned reports off, switched to asking, or
+      // deleted reports since this batch started.
+      if (_consent != consent || _mode == ZtCrashReportMode.off) return;
+      final i = _reports.indexWhere((r) => r.id == queued.id);
+      if (i < 0) continue;
+      final report = _reports[i];
       try {
         await target.send(report);
       } on Object {
         return; // Offline or refused: try again on the next start.
       }
-      _reports.removeWhere((r) => r.id == report.id);
-      _store.save(_reports);
-      notifyListeners();
+      _acknowledge(report);
     }
   }
 
   void delete(String id) {
+    _consent++;
     _reports.removeWhere((r) => r.id == id);
     _store.save(_reports);
     notifyListeners();
   }
 
   void deleteAll() {
+    _consent++;
     _reports = [];
     _store.save(const []);
     notifyListeners();

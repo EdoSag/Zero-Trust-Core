@@ -117,23 +117,49 @@ abstract final class ZtCrashScrubber {
 
   static const maxMessageLength = 160;
 
-  /// Errors raised by code mistakes, whose message is written by a
-  /// programmer (`Null check operator used on a null value`, `RangeError
-  /// (index): Invalid value: Not in inclusive range 0..2: 3`). Exceptions
-  /// such as [FormatException] or a server error often quote the input,
-  /// which can be the user's text, so their message is never kept.
-  static const _errorsWithSafeMessage = {
-    'TypeError',
-    '_TypeError',
+  /// Messages are kept only when they match a fixed template the Dart
+  /// runtime writes itself; any other message (including a [StateError] or
+  /// [FormatException] built from the person's text) is dropped.
+  static final _nullCheck =
+      RegExp(r'^Null check operator used on a null value$');
+  static final _typeCast = RegExp(
+      r"^type '[^']*' is not a subtype of type '[^']*'( in type cast| of '[^']*')?$");
+
+  /// Words the runtime uses in [RangeError] / [IndexError] messages.
+  static const _rangePhrases = [
     'RangeError',
     'IndexError',
-    'StateError',
-    'UnsupportedError',
-    'UnimplementedError',
-    'ConcurrentModificationError',
-    'StackOverflowError',
-    'OutOfMemoryError',
-  };
+    'Index out of range',
+    'index should be less than',
+    'index must not be negative',
+    'Invalid value',
+    'Not in inclusive range',
+    'Not in range',
+    'Value not in range',
+    'Not greater than or equal to',
+    'Not less than or equal to',
+    'Only valid value is',
+    'Valid value range is empty',
+    'no indices are valid',
+  ];
+
+  /// [text] if it is one of the runtime's own templates, else null.
+  static String? _templateMessage(String type, String text) {
+    if (type == 'TypeError' || type == '_TypeError') {
+      return _nullCheck.hasMatch(text) || _typeCast.hasMatch(text)
+          ? text
+          : null;
+    }
+    if (type == 'RangeError' || type == 'IndexError') {
+      var rest = text.replaceAll(RegExp(r'\([A-Za-z_]+\)'), '');
+      for (final phrase in _rangePhrases) {
+        rest = rest.replaceAll(phrase, '');
+      }
+      // Only numbers and punctuation may be left.
+      return rest.contains(RegExp(r'[^0-9\s:.,()\-]')) ? null : text;
+    }
+    return null;
+  }
 
   static ZtCrashReport build({
     required Object error,
@@ -148,9 +174,8 @@ abstract final class ZtCrashScrubber {
   }) {
     final type = typeName(error);
     final frames = ZtCrashScrubber.frames(stack);
-    final text = _errorsWithSafeMessage.contains(type)
-        ? ZtCrashScrubber.message(error.toString())
-        : null;
+    final template = _templateMessage(type, error.toString());
+    final text = template == null ? null : ZtCrashScrubber.message(template);
     final utc = now.toUtc();
     final day = '${utc.year.toString().padLeft(4, '0')}-'
         '${utc.month.toString().padLeft(2, '0')}-'
@@ -222,9 +247,12 @@ abstract final class ZtCrashScrubber {
   static final _longNumber = RegExp(r'\d{5,}');
   static final _hex = RegExp(r'\b[0-9a-fA-F-]{16,}\b');
   static final _quoted = RegExp(r'"[^"]*"' "|'[^']*'");
-  static final _quotedType = RegExp(r"^'[A-Za-z0-9_<>?, .]*'$");
+  // A Dart type: identifiers with `<>?.`, spaces only after commas
+  // (`Map<String, int>`), so ordinary words in quotes don't pass.
+  static final _quotedType = RegExp(
+      r"^'[A-Za-z_$][A-Za-z0-9_$<>?.]*(, [A-Za-z_$][A-Za-z0-9_$<>?.]*)*'$");
 
-  /// A programming error's message with anything that could be data taken
+  /// A runtime template message with anything that could be data taken
   /// out: emails, links, long numbers (phone numbers, ids), hex/uuid ids
   /// and quoted text other than type names (`type 'Null' is not a subtype
   /// of type 'String'` keeps its types; `Bad state: "my note"` doesn't).

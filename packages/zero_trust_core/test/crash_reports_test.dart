@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 
 import 'package:flutter/material.dart';
@@ -8,6 +9,18 @@ import 'package:http/testing.dart';
 import 'package:zero_trust_core/zero_trust_core.dart';
 
 import 'support/fake_backend.dart';
+
+class _GatedSink implements ZtCrashReportSink {
+  _GatedSink(this.gate);
+  final Completer<void> gate;
+  final sent = <ZtCrashReport>[];
+
+  @override
+  Future<void> send(ZtCrashReport report) async {
+    await gate.future;
+    sent.add(report);
+  }
+}
 
 class FakeSink implements ZtCrashReportSink {
   final sent = <ZtCrashReport>[];
@@ -73,26 +86,40 @@ void main() {
       expect(build(Exception('call 0521234567')).message, isNull);
     });
 
-    test('programming errors keep a scrubbed message', () {
-      expect(
-          build(StateError('Bad note "Shopping list" for edo@example.com'))
-              .message,
-          'Bad state: Bad note <text> for <email>');
+    test('only the runtime\'s own message templates are kept', () {
+      // Code can build a StateError from anything, including user text.
+      expect(build(StateError('Patient Alice Smith')).message, isNull);
+      expect(build(StateError("'Alice Smith'")).message, isNull);
+      expect(build(UnsupportedError('note: buy milk')).message, isNull);
       expect(build(RangeError.index(5, [1, 2, 3])).message,
           contains('Index out of range'));
-      expect(build(StateError('id 0521234567 at https://x.y/z?q=1')).message,
-          'Bad state: id <number> at <link>');
-      expect(
-          build(StateError('row 3f2a9c1e-4b7d-4e2a-9c3b-1d2e3f4a5b6c')).message,
-          'Bad state: row <id>');
-      // Hebrew (or any non-ASCII) text can only be user content here.
-      expect(build(StateError('שלום')).message, 'Bad state:');
+      expect(build(RangeError.range(7, 0, 3, 'day')).message,
+          'RangeError (day): Invalid value: Not in inclusive range 0..3: 7');
+      expect(build(RangeError('Alice Smith')).message, isNull);
+      expect(build(RangeError.value(1234567)).message,
+          'RangeError: Value not in range: <number>');
+      Object? cast;
+      try {
+        cast = (null as dynamic) as String;
+      } on TypeError catch (e) {
+        cast = e;
+      }
+      expect(build(cast).message,
+          "type 'Null' is not a subtype of type 'String' in type cast");
     });
 
-    test('type names inside quotes survive', () {
-      final r = ZtCrashScrubber.message(
-          "type 'Null' is not a subtype of type 'String' in type cast");
-      expect(r, "type 'Null' is not a subtype of type 'String' in type cast");
+    test('quoted text only survives when it looks like a type', () {
+      expect(
+          ZtCrashScrubber.message(
+              "type 'Map<String, int>' is not a subtype of type 'String'"),
+          "type 'Map<String, int>' is not a subtype of type 'String'");
+      expect(ZtCrashScrubber.message("type 'Alice Smith' is not"),
+          "type <text> is not");
+      expect(ZtCrashScrubber.message('id 0521234567 at https://x.y/z?q=1'),
+          'id <number> at <link>');
+      expect(ZtCrashScrubber.message('mail edo@example.com'), 'mail <email>');
+      // Hebrew (or any non-ASCII) text can only be user content here.
+      expect(ZtCrashScrubber.message('a שלום'), 'a');
     });
 
     test('same bug, same fingerprint; different place, different one', () {
@@ -114,7 +141,6 @@ void main() {
         'platform',
         'day',
         'type',
-        'message',
         'uncaught',
         'fingerprint',
         'count',
@@ -234,6 +260,46 @@ void main() {
       expect(r.mode, ZtCrashReportMode.ask);
       expect(r.canSend, isFalse);
       expect(() => r.setMode(ZtCrashReportMode.automatic), throwsStateError);
+    });
+
+    test('turning reports off stops an upload batch under way', () async {
+      final gate = Completer<void>();
+      final slow = _GatedSink(gate);
+      final r = ZtCrashReporter(
+          appId: 'notes',
+          sink: slow,
+          preferences: prefs..values[ZtCrashReporter.prefKey] = 'ask',
+          store: store,
+          platform: 'android');
+      await r.load();
+      for (var i = 0; i < 3; i++) {
+        r.record(StateError('x'),
+            StackTrace.fromString('#0      F$i (package:a/b.dart:1:1)\n'));
+      }
+      final batch = r.sendAll(); // e.g. "Send" on the prompt
+      await r.setMode(ZtCrashReportMode.off);
+      gate.complete();
+      await batch;
+      expect(slow.sent, hasLength(1)); // only the one already in flight
+    });
+
+    test('the same crash during an upload is kept, not lost', () async {
+      final gate = Completer<void>();
+      final slow = _GatedSink(gate);
+      final r = ZtCrashReporter(
+          appId: 'notes',
+          sink: slow,
+          preferences: prefs..values[ZtCrashReporter.prefKey] = 'ask',
+          store: store,
+          platform: 'android');
+      await r.load();
+      r.record(StateError('x'), _stack);
+      final sending = r.send(r.reports.single.id);
+      r.record(StateError('x'), _stack); // happens again meanwhile
+      gate.complete();
+      await sending;
+      expect(slow.sent.single.count, 1);
+      expect(r.reports.single.count, 1);
     });
 
     test('install hooks Flutter errors and keeps the old handler', () async {
