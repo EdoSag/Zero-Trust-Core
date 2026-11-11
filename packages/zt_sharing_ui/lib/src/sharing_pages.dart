@@ -133,6 +133,20 @@ class ZtSpacePage extends ConsumerStatefulWidget {
 class _ZtSpacePageState extends ConsumerState<ZtSpacePage> {
   bool _busy = false;
 
+  /// For a space this account answered an invite to but isn't let in yet:
+  /// it isn't listed among the spaces until then, so the code comes from
+  /// the join kept on this phone. Null until looked up.
+  Future<String?>? _pendingJoinCode;
+
+  Future<String?> _lookUpJoinCode() async {
+    try {
+      final spaces = await ref.read(ztSharedSpacesProvider.future);
+      return await spaces.joinCode(widget.spaceId);
+    } on Object {
+      return null;
+    }
+  }
+
   @override
   void initState() {
     super.initState();
@@ -252,8 +266,42 @@ class _ZtSpacePageState extends ConsumerState<ZtSpacePage> {
     final s = ZtSharingStrings.of(context);
     final entry = ref.watch(ztSpacesProvider)[widget.spaceId];
     if (entry == null) {
-      return Scaffold(appBar: AppBar(), body: Center(child: Text(s.gone)));
+      final lookup = _pendingJoinCode ??= _lookUpJoinCode();
+      return FutureBuilder<String?>(
+        future: lookup,
+        builder: (context, snap) {
+          if (snap.connectionState != ConnectionState.done) {
+            return Scaffold(
+              appBar: AppBar(),
+              body: const Center(child: CircularProgressIndicator()),
+            );
+          }
+          final code = snap.data;
+          if (code == null) {
+            return Scaffold(
+                appBar: AppBar(), body: Center(child: Text(s.gone)));
+          }
+          return Scaffold(
+            key: const Key('zt-space-waiting'),
+            appBar: AppBar(title: Text(s.waitingToJoin)),
+            body: ListView(padding: const EdgeInsets.all(24), children: [
+              const Icon(Icons.hourglass_top, size: 48),
+              const SizedBox(height: 16),
+              Text(s.waitingExplain, textAlign: TextAlign.center),
+              const SizedBox(height: 16),
+              Text(code,
+                  textAlign: TextAlign.center,
+                  textDirection: TextDirection.ltr,
+                  style: Theme.of(context)
+                      .textTheme
+                      .displaySmall
+                      ?.copyWith(letterSpacing: 3)),
+            ]),
+          );
+        },
+      );
     }
+    _pendingJoinCode = null;
     final me = ref.watch(accountServiceProvider).currentUserId;
     final space = entry.space;
     final members = space?.members ?? const <SpaceMember>[];
@@ -480,9 +528,14 @@ class _ZtInvitePageState extends ConsumerState<ZtInvitePage> {
                 child: FilledButton.icon(
                   key: const Key('zt-invite-send'),
                   style: FilledButton.styleFrom(minimumSize: const Size(0, 48)),
-                  onPressed: () => SharePlus.instance.share(ShareParams(
-                      text:
-                          s.inviteMessage(widget.title, app, link.toString()))),
+                  // The share sheet leaves the app; it mustn't lock the
+                  // vault behind it.
+                  onPressed: () => ref
+                      .read(vaultControllerProvider.notifier)
+                      .whileShowingSystemUi(() => SharePlus.instance.share(
+                          ShareParams(
+                              text: s.inviteMessage(
+                                  widget.title, app, link.toString())))),
                   icon: const Icon(Icons.share),
                   label: Text(s.sendLink),
                 ),

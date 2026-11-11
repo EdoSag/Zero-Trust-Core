@@ -253,4 +253,29 @@ void main() {
         TextDirection.rtl);
     await done(tester, [a, b]);
   });
+
+  testWidgets('before being let in, the space page shows the code to compare',
+      timeout: const Timeout(Duration(seconds: 60)), (tester) async {
+    late ProviderContainer a, b;
+    late JoinStarted join;
+    await tester.runAsync(() async {
+      a = await unlocked(alice, 1);
+      b = await unlocked(bob, 2);
+      final spaces = a.read(ztSpacesProvider.notifier);
+      final space = await spaces.create(myName: 'Alice');
+      final link = await spaces.invite(space.id);
+      join = await b
+          .read(ztSpacesProvider.notifier)
+          .answer(SpaceInviteLink.parse('$link'), myName: 'Bob');
+      await b.read(ztSpacesProvider.notifier).refresh();
+    });
+    expect(b.read(ztSpacesProvider)[join.spaceId], isNull,
+        reason: 'not listed until let in');
+    await pump(tester, b, ZtSpacePage(spaceId: join.spaceId, title: 'Trip'));
+    await settle(tester);
+    expect(find.byKey(const Key('zt-space-waiting')), findsOneWidget);
+    expect(find.text(join.verificationCode), findsOneWidget);
+    expect(find.text(ZtSharingStrings.en.gone), findsNothing);
+    await done(tester, [a, b]);
+  });
 }
