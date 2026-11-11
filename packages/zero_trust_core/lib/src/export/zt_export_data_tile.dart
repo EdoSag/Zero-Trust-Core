@@ -1,5 +1,6 @@
 import 'dart:io';
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
 import '../l10n/zt_l10n.dart';
@@ -9,6 +10,7 @@ import 'package:path_provider/path_provider.dart';
 import '../attachments/attachment_providers.dart';
 import '../attachments/zt_attachments.dart';
 import '../config/zt_app_config.dart';
+import '../platform/zt_platform.dart';
 import '../sync/sync_providers.dart';
 import '../ui/auth/zt_auth_messages.dart';
 import 'zt_data_export.dart';
@@ -26,7 +28,9 @@ final ztExportFileWriterProvider =
 /// "Export my data" for the shared settings screen. Warns that the export
 /// isn't encrypted, builds it from this device's store (see
 /// [ZtDataExporter]), saves it with [ztExportFileWriterProvider] and passes
-/// the file to [onExported], which usually opens the share sheet.
+/// the file to [onExported], which usually opens the share sheet. On the
+/// web the zip is downloaded by the browser instead and [onExported] isn't
+/// called.
 class ZtExportDataTile extends ConsumerStatefulWidget {
   const ZtExportDataTile({super.key, required this.onExported});
 
@@ -74,8 +78,12 @@ class _ZtExportDataTileState extends ConsumerState<ZtExportDataTile> {
         store: store,
         attachments: attachments,
       ).build();
-      final file = await ref.read(ztExportFileWriterProvider)(export);
-      await widget.onExported(file, export);
+      if (kIsWeb) {
+        await ztDownloadFile(export.fileName, export.zip);
+      } else {
+        final file = await ref.read(ztExportFileWriterProvider)(export);
+        await widget.onExported(file, export);
+      }
       if (export.missingAttachments.isNotEmpty) {
         messenger.showSnackBar(SnackBar(
             content: Text(ZtL10n.current

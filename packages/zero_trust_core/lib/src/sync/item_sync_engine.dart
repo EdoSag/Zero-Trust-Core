@@ -66,17 +66,39 @@ class SyncResult {
 ///   an account at its storage limit can always free space.
 class ItemSyncEngine {
   ItemSyncEngine({
-    required this.appId,
+    required String appId,
     required Uint8List appKey,
+    required String deviceId,
+    required LocalItemStore store,
+    required SyncBackend backend,
+    required Ed25519KeyMaterial signingKeys,
+    DateTime Function()? clock,
+    Duration pullOverlap = const Duration(seconds: 30),
+    int pushBatchSize = 200,
+  }) : this.withCodec(
+          appId: appId,
+          codec: AppItemCodec(
+              appId: appId, appKey: appKey, signingKeys: signingKeys),
+          deviceId: deviceId,
+          store: store,
+          backend: backend,
+          clock: clock,
+          pullOverlap: pullOverlap,
+          pushBatchSize: pushBatchSize,
+        );
+
+  /// An engine that seals and checks rows with [codec] instead of the
+  /// account's own app key: shared spaces (`SpaceItemCodec`) use this.
+  ItemSyncEngine.withCodec({
+    required this.appId,
+    required this.codec,
     required this.deviceId,
     required this.store,
     required this.backend,
-    required this.signingKeys,
     DateTime Function()? clock,
     this.pullOverlap = const Duration(seconds: 30),
     this.pushBatchSize = 200,
-  })  : _appKey = Uint8List.fromList(appKey),
-        _clock = clock ?? DateTime.now;
+  }) : _clock = clock ?? DateTime.now;
 
   /// An engine for the unlocked vault's [appKey], with the signing keys
   /// derived from it.
@@ -128,8 +150,9 @@ class ItemSyncEngine {
   final String deviceId;
   final LocalItemStore store;
   final SyncBackend backend;
-  final Ed25519KeyMaterial signingKeys;
-  final Uint8List _appKey;
+
+  /// Seals and opens rows: the account's app key by default.
+  final ItemCodec codec;
   final DateTime Function() _clock;
 
   Future<void> Function()? _cancelLive;
@@ -151,7 +174,7 @@ class ItemSyncEngine {
   /// sealing with a zeroed key.
   Future<void> close() async {
     _closed = true;
-    _appKey.fillRange(0, _appKey.length, 0);
+    codec.close();
     await stopLive();
   }
 
@@ -190,6 +213,7 @@ class ItemSyncEngine {
         if (_closed) return const SyncResult();
         final conflicts = <SyncConflict>[];
         final rejected = <String>[];
+        await codec.prepare([item]);
         final applied = await _apply(item, conflicts, rejected);
         if (rejected.isNotEmpty) {
           await store
@@ -233,7 +257,9 @@ class ItemSyncEngine {
         _clock().toUtc().difference(caughtUpAt.toUtc()) > fullResyncAfter;
     final since = full ? null : highWater?.subtract(pullOverlap);
     final onServer = <String>{};
-    for (final remote in await backend.pull(appId, since: since)) {
+    final pulled = await backend.pull(appId, since: since);
+    await codec.prepare(pulled);
+    for (final remote in pulled) {
       onServer.add(remote.itemId);
       if (await _apply(remote, conflicts, rejected)) applied++;
       if (!rejected.contains(remote.itemId)) readable.add(remote.itemId);
@@ -266,7 +292,9 @@ class ItemSyncEngine {
         .difference(readable)
         .difference(rejected.toSet());
     if (retry.isNotEmpty) {
-      for (final remote in await backend.fetch(appId, retry)) {
+      final again = await backend.fetch(appId, retry);
+      await codec.prepare(again);
+      for (final remote in again) {
         if (await _apply(remote, conflicts, rejected)) applied++;
       }
     }
@@ -371,59 +399,14 @@ class ItemSyncEngine {
 
   Future<RemoteItem> _seal(LocalItem item) async {
     _checkOpen();
-    final blob = item.deleted
-        ? null
-        : await SealedBox.seal(
-            utf8.encode(jsonEncode(item.json)),
-            _appKey,
-            aad: _aad(item.itemId),
-          );
-    final updatedAt = item.updatedAt.toUtc();
-    return RemoteItem(
-      itemId: item.itemId,
-      updatedAt: updatedAt,
-      deviceId: deviceId,
-      dataBlob: blob,
-      deleted: item.deleted,
-      signature: await Signing.sign(
-        _signedBytes(item.itemId, updatedAt, item.deleted, blob),
-        signingKeys,
-      ),
-    );
+    return codec.seal(item, deviceId);
   }
 
-  /// Verifies the signature and decrypts. Throws on any mismatch.
+  /// Verifies and decrypts. Throws on any mismatch.
   Future<Map<String, Object?>?> _open(RemoteItem remote) async {
     _checkOpen();
-    final signature = remote.signature;
-    if (signature == null) throw const FormatException('Unsigned row');
-    final ok = await Signing.verify(
-      _signedBytes(remote.itemId, remote.updatedAt.toUtc(), remote.deleted,
-          remote.dataBlob),
-      signature: signature,
-      publicKey: signingKeys.publicKeyBytes,
-    );
-    if (!ok) throw const FormatException('Bad signature');
-    if (remote.deleted) return null;
-    final blob = remote.dataBlob;
-    if (blob == null) throw const FormatException('Missing blob');
-    final clear = await SealedBox.open(blob, _appKey, aad: _aad(remote.itemId));
-    return (jsonDecode(utf8.decode(clear)) as Map).cast<String, Object?>();
+    return codec.open(remote);
   }
-
-  List<int> _aad(String itemId) => utf8.encode('zt/item/v1|$appId|$itemId');
-
-  List<int> _signedBytes(
-    String itemId,
-    DateTime updatedAt,
-    bool deleted,
-    Uint8List? blob,
-  ) =>
-      [
-        ...utf8.encode(
-            'zt/sig/v1|$appId|$itemId|${updatedAt.microsecondsSinceEpoch}|$deleted|'),
-        ...?blob,
-      ];
 
   /// The next edit time: this device's clock, or just after the newest
   /// version it has seen when that is later.
@@ -475,4 +458,97 @@ class ItemSyncEngine {
           rethrow;
         }
       }();
+}
+
+/// How an [ItemSyncEngine] turns local items into server rows and back.
+abstract interface class ItemCodec {
+  /// Seals and signs [item] for upload.
+  Future<RemoteItem> seal(LocalItem item, String deviceId);
+
+  /// Checks and decrypts [remote]; null for a tombstone. Throws when the row
+  /// fails any check, so it is never applied.
+  Future<Map<String, Object?>?> open(RemoteItem remote);
+
+  /// Called with every batch of pulled rows before any of them is opened, so
+  /// a codec can learn from the batch first (a shared space's member list).
+  Future<void> prepare(List<RemoteItem> batch);
+
+  /// Zeroes keys. Called when the engine closes.
+  void close();
+}
+
+/// The account's own items: sealed under the app key with the item id as
+/// AAD, and signed with the Ed25519 key derived from it over (app, id,
+/// updatedAt, deleted, blob).
+class AppItemCodec implements ItemCodec {
+  AppItemCodec({
+    required this.appId,
+    required Uint8List appKey,
+    required this.signingKeys,
+  }) : _appKey = Uint8List.fromList(appKey);
+
+  final String appId;
+  final Ed25519KeyMaterial signingKeys;
+  final Uint8List _appKey;
+
+  @override
+  void close() => _appKey.fillRange(0, _appKey.length, 0);
+
+  @override
+  Future<void> prepare(List<RemoteItem> batch) async {}
+
+  @override
+  Future<RemoteItem> seal(LocalItem item, String deviceId) async {
+    final blob = item.deleted
+        ? null
+        : await SealedBox.seal(
+            utf8.encode(jsonEncode(item.json)),
+            _appKey,
+            aad: _aad(item.itemId),
+          );
+    final updatedAt = item.updatedAt.toUtc();
+    return RemoteItem(
+      itemId: item.itemId,
+      updatedAt: updatedAt,
+      deviceId: deviceId,
+      dataBlob: blob,
+      deleted: item.deleted,
+      signature: await Signing.sign(
+        _signedBytes(item.itemId, updatedAt, item.deleted, blob),
+        signingKeys,
+      ),
+    );
+  }
+
+  @override
+  Future<Map<String, Object?>?> open(RemoteItem remote) async {
+    final signature = remote.signature;
+    if (signature == null) throw const FormatException('Unsigned row');
+    final ok = await Signing.verify(
+      _signedBytes(remote.itemId, remote.updatedAt.toUtc(), remote.deleted,
+          remote.dataBlob),
+      signature: signature,
+      publicKey: signingKeys.publicKeyBytes,
+    );
+    if (!ok) throw const FormatException('Bad signature');
+    if (remote.deleted) return null;
+    final blob = remote.dataBlob;
+    if (blob == null) throw const FormatException('Missing blob');
+    final clear = await SealedBox.open(blob, _appKey, aad: _aad(remote.itemId));
+    return (jsonDecode(utf8.decode(clear)) as Map).cast<String, Object?>();
+  }
+
+  List<int> _aad(String itemId) => utf8.encode('zt/item/v1|$appId|$itemId');
+
+  List<int> _signedBytes(
+    String itemId,
+    DateTime updatedAt,
+    bool deleted,
+    Uint8List? blob,
+  ) =>
+      [
+        ...utf8.encode(
+            'zt/sig/v1|$appId|$itemId|${updatedAt.microsecondsSinceEpoch}|$deleted|'),
+        ...?blob,
+      ];
 }

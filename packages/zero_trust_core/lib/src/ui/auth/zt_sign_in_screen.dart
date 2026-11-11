@@ -208,6 +208,8 @@ class _ZtSignInScreenState extends ConsumerState<ZtSignInScreen> {
                       decoration:
                           InputDecoration(labelText: ZtL10n.of(context).email),
                       keyboardType: TextInputType.emailAddress,
+                      // Addresses are Latin: keep them left-to-right in Hebrew.
+                      textDirection: TextDirection.ltr,
                       autofillHints: const [AutofillHints.email],
                       textInputAction: TextInputAction.next,
                       validator: ztValidateEmail,

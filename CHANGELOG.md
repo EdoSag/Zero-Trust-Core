@@ -3,6 +3,214 @@
 Apps depend on the core by git tag (`ref: vX.Y.Z`). Upgrade notes list what
 an app must change.
 
+## Unreleased (invite links per app)
+
+Invite links are now `https://zerotrust.bz/join/<app>#zt1.…` (the app id
+was only after the `#` before). All sharing apps claimed the same `/join`
+path, so on a phone with two of them Android opened every invite in the one
+installed last. Links in the old form are still read when pasted or scanned.
+
+Upgrade notes: in `AndroidManifest.xml`, change the invite intent filter to
+`android:pathPrefix="/join/<appId>"` (for example `/join/meds`). The website
+serves `/join/<app>/` from Zero-Trust-Website.
+## Unreleased (space stores and locking)
+
+Fix: a vault lock while a shared space's local store was opening could use
+the already zeroed key, see the file as unreadable and move it aside (with
+any unsynced edits), and leave a store open that nothing closed. The opener
+now copies the key first, stops when locked, closes a store that finished
+opening too late, and opens each space only once. No app change.
+
+## Unreleased (invite proof check)
+
+Database fix (migration `20261111200000_invite_null_proof`): answering a
+shared-space invite with no proof is now refused. Before, it used up the
+invite without the link's token. No app change; run the SQL once live.
+
+## Unreleased (crash fingerprint on the web)
+
+Fix: `ZtCrashReport.fingerprintOf` used a 64-bit integer literal, which does
+not compile for the web, so the web build of anything using the core failed.
+It now computes the same FNV-1a hash with BigInt and always returns 16 hex
+digits (it could return a leading minus sign before). No app change.
+
+## Unreleased (sharing screens)
+
+New package `packages/zt_sharing_ui` with the sharing screens, lifted from
+Tasks and made app-neutral so Notes, Tasks, Calendar and later apps look the
+same: `ZtSpacePage` (members, roles, remove, leave, delete for everyone,
+waiting-to-join code), `ZtInvitePage` (QR, copy, send, invite as owner),
+`ZtJoinSpacePage` (paste or scan, refuses other apps' links, shows the code),
+`ztConfirmJoin`, `ZtJoinRequestCards`, `ztAskSharingName` and
+`ztSharingNameProvider` (the shared name, kept in the account's own store as
+kind `zt.sharing_name`). English and Hebrew. No change to `zero_trust_core`.
+
+## Unreleased (Z26: web and desktop)
+
+The core now builds and runs on the web and on Windows, macOS and Linux.
+Additive: Android and iOS apps change nothing.
+
+- **Encrypted local store in the browser.** `ZtLocalStore` opens SQLite3
+  Multiple Ciphers as WebAssembly with the file in IndexedDB, encrypted under
+  the same key as on a phone. Web apps ship `web/sqlite3mc.wasm` from
+  `tool/fetch_sqlite3mc_wasm.sh` (pinned version and checksum).
+- **Biometric unlock only where hardware gates the key** (Android, iOS).
+  Desktop and web report it unavailable instead of keeping the key in an
+  ordinary keychain.
+- **One browser tab at a time** per account store (Web Locks); another tab
+  gets `LocalStoreInUse`, shown as "already open in another tab" (English and
+  Hebrew).
+- **Attachments on the web** go into `DatabaseAttachmentCache` (IndexedDB), so
+  attachments added offline and their waiting uploads and deletes survive a
+  reload.
+- **Export on the web** downloads the zip.
+- `example/`: a smoke-check app; CI builds it for the web.
+
+## Unreleased (Z25: plan groundwork)
+
+Plans and what each allows, with no payment provider yet. Needs migration
+`20261111130000_core_v11_plans` on the database. Every account stays on the
+free plan, whose limits are exactly the Z17 defaults, so nothing changes for
+users. Additive: apps change nothing unless they show the plan.
+
+- **Plans.** `zt_plans` (public catalogue: limits, translated names,
+  feature switches such as `drive` or `vpn`) and `zt_subscriptions` (who is
+  on which plan, from where: manual, Google Play, App Store or web; status
+  and period end). Clients only read; the owner or a later billing webhook
+  writes. No payment details are stored, only the store's reference.
+- **Limits follow the plan.** `zt_storage_limits_for` now takes a
+  per-account override first, then the account's plan, then free. A lapsed
+  period keeps the plan for 3 more days so late store renewals don't drop
+  anyone to free.
+- **Server checks.** `zt_has_feature('drive')` for later features' policies
+  and edge functions; `zt_grant_plan(user, plan, until, note)` for the owner
+  to give a plan by hand (SQL editor only).
+- **In the apps.** `ztPlanProvider` / `ZtPlan` (`has('drive')`, `nameFor`),
+  and `ZtPlanTile` ("Plan: Free", renewal date, payment problem), shown by
+  `ZtSettingsPage(showPlan: true, onOpenPlans: ...)`. English and Hebrew.
+- **Plus plan, hidden.** Migration `20261111150000_core_v11_plus_plan` adds
+  `plus` (one plan for every app: 1 GiB synced data, 20 GiB attachments) with
+  `offered = false` until payments exist; the owner grants it to beta
+  testers with `zt_grant_plan`.
+
+## Unreleased (zt_places: on-device place reminders)
+
+New package `packages/zt_places` (Flutter plugin, Android): "remind me when
+I arrive at / leave a place" for Notes (N16), Tasks (T11) and later apps.
+Separate from `zero_trust_core`, so only apps that use it ask for location.
+
+- **On the phone only.** Android's own `LocationManager` proximity alerts
+  (AOSP, no Google Play services). No map tiles and no address search, since
+  both send the location to a server. The OS keeps only the place, the
+  reminder's title and text, and an app payload.
+- **API.** `ZtPlaceReminders.sync(reminders, style:)` makes the watched list
+  exactly what the app passes (apps keep reminders and "My places" in their
+  own encrypted store). A reminder fires once; a new id arms it again.
+  `ZtPlaceTrigger.arrive / leave`; "arrive" set while already there waits
+  until the phone has left once. Re-registered after reboot and app update.
+- **Per-app look.** `ZtPlaceNotificationStyle`: channel, small icon, lock
+  screen title and an optional "Done" button.
+- **Events.** `events` stream of fired / done / tap (with the payload),
+  including ones queued while the app was closed (`collect()` on unlock and
+  resume).
+- **Place picker.** `ZtPlacePickerPage`: arrive or leave, "My places", the
+  current location, or pasted coordinates and map links (`ZtLatLng.tryParse`
+  reads geo:, Google, Apple and OpenStreetMap links), name and radius. English
+  and Hebrew (`ZtPlacesStrings`), right to left.
+- **Permissions.** `permissions()`, `requestLocation()`,
+  `requestBackground()` ("Allow all the time"), `requestNotifications()`,
+  `openSettings()`. Tests use `ZtPlaceRemindersFake`.
+- **Fixes after review.** An "arrive" reminder set while known to be
+  outside, or that has seen the phone leave, now fires on the next arrival
+  even within the first two minutes. Events read from the phone's queue
+  while no app code listens (before unlock) wait for the first listener
+  instead of being dropped. `ZtLatLng.tryParse` returns null instead of
+  throwing on a broken %-escape.
+
+Using it from an app:
+
+```yaml
+  zt_places:
+    git:
+      url: https://github.com/EdoSag/Zero-Trust-Core.git
+      path: packages/zt_places
+      ref: <tag or commit>
+```
+
+iOS (region monitoring) is not built yet; `supported` is false there.
+
+## Unreleased (Z24: sharing between Zero-Trust users)
+
+Shared spaces: encrypted items several accounts share (a child in Meds; later
+shared notes, task lists, calendars, address books). Needs migration
+`20261111090000_core_v10_shared_spaces` on the database. Additive: apps that
+don't use sharing change nothing.
+
+- **Sharing identity.** `ZtIdentity` (zt_crypto): an X25519 + Ed25519 pair
+  derived from the account DEK, the same in every app and on every device,
+  never stored on the server. `VaultUnlocked.identity` holds it while
+  unlocked; locking zeroes it.
+- **Key handover.** `KeyWrap` seals a space key for one person (X25519 with a
+  fresh ephemeral key, HKDF, AES-GCM bound to space, epoch and recipient);
+  the admin's identity signs every handover.
+- **Invites by link and QR code.** `SpaceInviteLink`: the token and the
+  inviter's key fingerprint travel only in the link's fragment; the server
+  keeps the token's hash. The invitee's answer is sealed under the token, so
+  the server can't swap their key. `VerificationCode` gives both phones the
+  same 8 digits to compare before the admin confirms.
+- **Member list inside the space.** Names and public keys are encrypted,
+  admin-signed `zt.member/<userId>` items. Trust starts from the inviter's
+  fingerprint and follows admins' signatures; rows from unknown authors,
+  forged rows, keys nobody trusted signed, admin-only rows from members and
+  rows from removed members are all refused.
+- **Roles.** Admin (members, admin-only items) and member. Apps mark their
+  admin-only kinds with `SpacePolicy`; the server enforces it too.
+- **Removal rotates the key** in the same step (`zt_remove_space_member`);
+  when someone leaves or deletes their account, an admin's device rotates on
+  its next sync. The last admin leaving promotes the longest-standing member.
+- **Sync** reuses `ItemSyncEngine` (now with a pluggable `ItemCodec`; the
+  account's own items are byte-for-byte unchanged): offline edits, hybrid
+  clock, last-writer-wins, tombstones, live updates, per-space storage limits
+  (1 MiB per item, 50 MiB and 100,000 items per space).
+- **App wiring.** `ztSpacesProvider` (`SpacesController`) lists, opens and
+  syncs the app's spaces (live, on resume, after edits, every 5 minutes, and
+  when memberships or keys change), with create, invite, answer, pending
+  joins, confirm, remove, roles, rename, leave and delete. Each space has its
+  own encrypted local store. `InMemorySpaceServer` stands in for Supabase in
+  app tests.
+## Unreleased (owned items in shared spaces)
+
+Additive, client side only (no database change).
+
+- **Items owned by one member.** `SpacePolicy(ownedPrefixes: {...})`: an item
+  `<prefix><userId>` (or `<prefix><userId>/...`) can be written or deleted
+  only by that member, not even by an admin. `SharedSpace.save`/`delete`
+  refuse it locally, and other members' devices reject such rows from anyone
+  else (the author is signed into every row), so a changed app can't post
+  numbers in someone else's name. Fitness challenges use it for each
+  person's progress.
+
+## 0.10.0
+
+Hebrew and English in every app.
+
+- **Hebrew** for every core screen (sign-in, unlock, recovery, onboarding,
+  "How your data is protected", settings, errors), right-to-left.
+- **Language setting** under Settings → Appearance → Language: English (the
+  default), עברית, or the phone's language. Kept per install, like the theme
+  (`ztLanguageProvider`, `ZtLanguageController.preload()`).
+- `ZtLanguages.supported` and `ZtLanguages.delegates` for `MaterialApp`.
+- Loading a language sets `Intl.defaultLocale`, so dates and numbers follow
+  the app's language.
+- Email and recovery key fields stay left-to-right in Hebrew.
+
+Upgrade: in `main()` call `await ZtLanguageController.preload();` before
+`runApp`, and give `MaterialApp`
+`locale: ref.watch(ztLanguageProvider)`,
+`supportedLocales: ZtLanguages.supported` and
+`localizationsDelegates: [AppL10n.delegate, ...ZtLanguages.delegates]`.
+An app that skips this keeps working in English.
+
 ## Unreleased (Android widget kit)
 
 - **Home screen widget kit** (`android-widget-kit/`, roadmap W1-W3). Shared

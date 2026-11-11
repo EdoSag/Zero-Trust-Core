@@ -10,6 +10,7 @@ import '../../account/biometric_key_store.dart';
 import '../../account/password_check.dart';
 import '../../attachments/attachment_backend.dart';
 import '../../attachments/zt_attachments.dart';
+import '../../platform/zt_database.dart';
 import '../../sync/sync_providers.dart';
 import '../../sync/zt_collection.dart';
 import '../../sync/zt_local_store.dart';
@@ -65,6 +66,7 @@ String ztErrorMessage(Object error) {
     AttachmentCorrupt() => l.errAttachmentCorrupt,
     ItemFromNewerVersion() => l.errNewerVersion,
     LocalStoreUnreadable() => l.errLocalStoreUnreadable,
+    LocalStoreInUse() => l.errStoreInUse,
     VaultIsLocked() => l.errVaultLocked,
     _ when _looksOffline(error) => l.errOffline,
     _ => l.errGeneric,

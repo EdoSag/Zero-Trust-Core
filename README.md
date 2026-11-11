@@ -5,7 +5,9 @@ Shared foundation for every Zero-Trust app (Fitness, Contacts, Tasks, Notes, …
 | Path | What |
 |---|---|
 | `packages/zt_crypto` | Pure Dart: canonical base64, AES-256-GCM sealed boxes, Ed25519, PBKDF2/HKDF, key hierarchy, recovery key |
+| `packages/zt_places` | Flutter plugin: on-device place reminders (arrive / leave) and the shared place picker |
 | `packages/zero_trust_core` | Flutter: account service (sign-up, sign-in with legacy upgrade, change password, recovery, delete account), vault lock with auto-lock, shared theme |
+| `packages/zt_sharing_ui` | Flutter: the sharing screens every app uses (space members, invite with QR, join, compare codes), English and Hebrew |
 | `supabase/migrations` | The only schema source of truth for the shared Supabase project |
 | `supabase/functions/delete-account` | Edge Function behind in-app account deletion |
 
@@ -28,7 +30,7 @@ dependencies:
     git:
       url: https://github.com/EdoSag/Zero-Trust-Core.git
       path: packages/zero_trust_core
-      ref: v0.9.0   # always pin a release tag; see CHANGELOG.md
+      ref: v0.10.0  # always pin a release tag; see CHANGELOG.md
 ```
 
 ```dart
@@ -60,10 +62,28 @@ attachment (`ZtDataExporter`), handed to the app to share.
 
 ### Languages
 
-Every string the core shows is in `packages/zero_trust_core/lib/l10n/zt_en.arb`.
-Add `ZtL10n.delegate` to `MaterialApp.localizationsDelegates`. A language the
-core doesn't have yet shows English. To add one, copy `zt_en.arb` to
-`zt_<code>.arb`, translate it, and run `flutter gen-l10n` in that package.
+Every app is in English (the default) and Hebrew, chosen under
+Settings → Appearance → Language (English, עברית, or the phone's language).
+The core's own strings are in `packages/zero_trust_core/lib/l10n/zt_en.arb`
+and `zt_he.arb`. An app wires the choice into `MaterialApp` once:
+
+```dart
+// main(), before runApp, so the first frame is already in the right language:
+await ZtLanguageController.preload();
+
+MaterialApp(
+  locale: ref.watch(ztLanguageProvider),
+  supportedLocales: ZtLanguages.supported,
+  localizationsDelegates: [AppL10n.delegate, ...ZtLanguages.delegates],
+)
+```
+
+The app's own strings go in its own `lib/l10n/app_en.arb` and `app_he.arb`
+(same `flutter gen-l10n` setup). Hebrew turns the app right-to-left: use
+`EdgeInsetsDirectional`, `AlignmentDirectional` and `start`/`end` rather than
+`left`/`right`, and keep emails, URLs, phone numbers and codes in
+`TextDirection.ltr` fields. Loading a language also sets
+`Intl.defaultLocale`, so `DateFormat` and `NumberFormat` follow it.
 
 ### Unlock: offline and biometrics
 
@@ -195,6 +215,92 @@ await notes.save(sync, store, note);    // synced to every device
 await notes.newerItems(store);          // "Update the app to see N items"
 ```
 
+### Sharing between Zero-Trust users (shared spaces)
+
+A *space* is a set of items several accounts share: a child in Meds, later a
+shared notebook, list or calendar. The server sees only who belongs to which
+space and sealed, signed rows; names, keys and content stay encrypted.
+
+```dart
+final spaces = ref.read(ztSpacesProvider.notifier);
+final space = await spaces.create(myName: 'Dana');           // you are admin
+await spaces.save(space.id, 'child', {'kind': 'child', ...}); // synced to all
+
+// Invite: share the link, or show link.qrData as a QR code.
+final link = await spaces.invite(space.id, role: SpaceRole.member);
+
+// On the other phone (link pasted or scanned):
+final join = await spaces.answer(SpaceInviteLink.parse(text), myName: 'Grandpa');
+// join.verificationCode, e.g. "4821 0937"
+
+// Back on the admin's phone, after both read out the same code:
+final pending = await spaces.pendingJoins(space.id);
+await spaces.confirm(pending.single);   // or revokeInvite(...) if it differs
+
+await spaces.remove(space.id, userId);  // new key for everyone else
+ref.watch(ztSpacesProvider)             // spaces, their stores and status
+```
+
+- Read a space's items from `entry.space!.store` (a `ZtLocalStore`; use a
+  `ZtCollection` on it like on the app's own store).
+- Mark what only admins may write with `ztSpacePolicyProvider`
+  (`SpacePolicy(adminOnlyKinds: {...})`).
+- Every member holds every key epoch they were given, so history stays
+  readable; a removed member gets nothing written after their removal.
+- Invite links look like `https://zerotrust.bz/join#zt1.<app>.…`; register
+  that link (or let users paste it) in the app.
+
+#### Sharing screens (`packages/zt_sharing_ui`)
+
+The screens on top of `ztSpacesProvider`, the same in every app. A separate
+package, so apps that don't share don't get the camera permission the QR
+scanner needs. Pin it to the same commit as `zero_trust_core`:
+
+```yaml
+zt_sharing_ui:
+  git: { url: https://github.com/EdoSag/Zero-Trust-Core.git, path: packages/zt_sharing_ui, ref: <sha> }
+```
+
+```dart
+final name = await ztAskSharingName(context, ref, title: 'Share “Trip”');
+final space = await ref.read(ztSpacesProvider.notifier).create(myName: name!);
+ZtSpacePage.open(context, spaceId: space.id, title: 'Trip', inviteNow: true);
+ZtJoinSpacePage.open(context, initialLink: link);   // from a pasted/opened link
+ZtJoinRequestCards(titleOf: (spaceId) => ...);      // on the home screen
+```
+
+`ZtSpacePage` lists members (owners can make owner, make member, remove),
+people waiting to join, Invite, Leave and Delete for everyone; a person who
+answered but isn't let in yet sees the code to compare. `ZtInvitePage` makes a
+one-person invite (optionally as owner) with a QR code, Copy and Send.
+`ZtJoinSpacePage` refuses links for another app. The name others see is
+remembered in the account's own store (`ztSharingNameProvider`). Text comes
+from `ZtSharingStrings` (English and Hebrew, by the app's locale); the app's
+name comes from `ZtAppConfig.displayName`.
+
+### Place reminders (`packages/zt_places`)
+
+"Remind me when I arrive at / leave a place", watched by the phone itself
+(Android's `LocationManager` proximity alerts; no Google Play services, no
+map tiles, no address search), so the location never leaves the phone. A
+separate package, so only apps that use it ask for location.
+
+```dart
+final places = ZtPlaceRemindersAndroid();       // ZtPlaceRemindersFake in tests
+final choice = await ZtPlacePickerPage.show(context,
+    reminders: places, savedPlaces: myPlaces, newId: newUuid);
+await places.sync([
+  ZtPlaceReminder(id: '$noteId@$setAt', place: choice!.place,
+      trigger: choice.trigger, title: note.title, payload: noteId),
+], style: const ZtPlaceNotificationStyle(
+    channelId: 'place_reminders', channelName: 'Place reminders'));
+places.events.listen((e) { /* fired, done, tap: e.payload */ });
+await places.collect();                         // on unlock and resume
+```
+
+Keep reminders and "My places" in the app's own encrypted store and pass
+the full list to `sync` whenever it changes. iOS is not built yet.
+
 ### Attachments
 
 ```dart
@@ -209,6 +315,36 @@ Each file has its own key, stored in the item (so only the account can read
 it), and is encrypted in authenticated chunks before it leaves the device.
 Wrap pickers in `whileShowingSystemUi` so auto-lock doesn't fire while the
 picker is open.
+
+### Crash reports (opt-in)
+
+Off by default. When the person turns them on (Settings → Security → Crash
+reports), uncaught errors become short reports that carry the app and
+version, the platform, the UTC date, the error class, a scrubbed message
+for programming errors only, and `package:` stack frames. Never: user
+content, error messages from exceptions (they can quote input), account,
+email, device id or model, locale, time of day, file paths. The person can
+read each report exactly as it would be sent, copy it or delete it.
+
+```dart
+final crashes = ZtCrashReporter(
+  appId: 'notes',
+  appVersion: packageVersion,
+  sink: null, // a ZtCrashReportSink once there is a destination
+);
+crashes.install(); // before runApp
+await crashes.load();
+runApp(ProviderScope(overrides: [
+  ztCrashReporterProvider.overrideWithValue(crashes),
+  // ...
+], child: const App()));
+```
+
+Without a sink the choices are Off and "Keep on this phone" (read and
+copy). With one, "Ask me before sending" and "Send automatically" appear;
+call `maybeAskToSendZtCrashReports(context, crashes)` after unlock to offer
+sending saved reports. `ZtHttpCrashReportSink` posts the JSON to any
+endpoint without an account token.
 
 ### Look and feel
 
@@ -240,6 +376,43 @@ It syncs first and never replaces an item that already exists (another
 device may have imported and edited it), so use the old record's own id.
 A failure leaves the import to run again on the next call.
 
+## Web and desktop
+
+The same core builds for the web (any modern browser) and for Windows, macOS
+and Linux, with the same zero-trust model: keys are derived and used only in
+the browser or on the computer, and the server only ever sees ciphertext.
+
+What is different off the phone:
+
+- **Local store on the web.** `ZtLocalStore` uses SQLite3 Multiple Ciphers
+  compiled to WebAssembly and keeps the same encrypted file in the browser's
+  IndexedDB, so the browser only holds ciphertext and the vault unlocks
+  offline after the first sync. The app must ship the WebAssembly file:
+
+  ```sh
+  path/to/Zero-Trust-Core/tool/fetch_sqlite3mc_wasm.sh web/
+  ```
+
+  (pinned version and checksum; set `ztSqliteWasmUrl` if it lives elsewhere).
+  A store the key can't open is deleted and re-synced, since browsers can't
+  rename it aside.
+- **One tab at a time.** An account's store can be open in only one browser
+  tab (Web Locks); a second tab gets `LocalStoreInUse` ("already open in
+  another tab"), so two tabs can't overwrite each other's changes.
+- **Build web apps with `--no-web-resources-cdn`**, so the Flutter engine is
+  served from the app's own site rather than fetched from Google's CDN.
+- **Biometric unlock is Android and iOS only.** Only there is the stored key
+  gated by biometrics in hardware; on desktop and the web
+  `SecureBiometricKeyStore.isAvailable()` is false and the password unlocks.
+- **Attachments on the web** (sealed files plus waiting uploads and deletes)
+  are kept in a `DatabaseAttachmentCache` in IndexedDB, so ones added offline
+  survive a reload.
+- **Export my data on the web** downloads the zip through the browser;
+  `onDataExported` is only called on devices.
+
+`packages/zero_trust_core/example` is a small app that checks the encrypted
+store on each platform; CI builds it for the web. Run it on Linux, Windows or macOS by hand (see its README); the Actions runners here cannot reach the Ubuntu package servers to install GTK.
+
 ## Home screen widgets
 
 Android widgets in every app use the shared look in
@@ -251,6 +424,7 @@ Android widgets in every app use the shared look in
 ```bash
 (cd packages/zt_crypto && dart pub get && dart test)
 (cd packages/zero_trust_core && flutter pub get && flutter test)
+(cd packages/zt_sharing_ui && flutter pub get && flutter test)
 # Database: every migration plus the guard tests, on a plain Postgres 16
 (cd supabase && psql -v ON_ERROR_STOP=1 -f tests/00_supabase_stub.sql \
   $(for f in migrations/*.sql; do echo -f "$f"; done) -f tests/key_guard_test.sql \
@@ -259,7 +433,7 @@ Android widgets in every app use the shared look in
 
 ## License
 
-Copyright (C) 2026 EdoSag (https://zerotrust.bz)
+Copyright (C) 2026 Edo Sagron (https://zerotrust.bz)
 
 Zero-Trust is open source under the [GNU Affero General Public License v3.0](LICENSE)
 (AGPL-3.0-only), the same licence Signal uses.

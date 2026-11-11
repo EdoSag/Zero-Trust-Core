@@ -6,6 +6,7 @@ import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:intl/intl.dart' as intl;
 
 import 'zt_localizations_en.dart';
+import 'zt_localizations_he.dart';
 
 // ignore_for_file: type=lint
 
@@ -92,7 +93,10 @@ abstract class ZtLocalizations {
   ];
 
   /// A list of this localizations delegate's supported locales.
-  static const List<Locale> supportedLocales = <Locale>[Locale('en')];
+  static const List<Locale> supportedLocales = <Locale>[
+    Locale('en'),
+    Locale('he')
+  ];
 
   /// No description provided for @unlockWithBiometricsQuestion.
   ///
@@ -1054,6 +1058,12 @@ abstract class ZtLocalizations {
   /// **'Data on this device couldn\'t be opened. It will be downloaded again.'**
   String get errLocalStoreUnreadable;
 
+  /// No description provided for @errStoreInUse.
+  ///
+  /// In en, this message translates to:
+  /// **'This app is already open in another tab or window. Close it there, then reload this page.'**
+  String get errStoreInUse;
+
   /// No description provided for @errVaultLocked.
   ///
   /// In en, this message translates to:
@@ -1155,6 +1165,204 @@ abstract class ZtLocalizations {
   /// In en, this message translates to:
   /// **'Attachments: {used} of {limit}'**
   String storageAttachments(String used, String limit);
+
+  /// Settings row and dialog title for the app's language.
+  ///
+  /// In en, this message translates to:
+  /// **'Language'**
+  String get language;
+
+  /// Language choice that follows the phone's own language.
+  ///
+  /// In en, this message translates to:
+  /// **'Phone\'s language'**
+  String get languagePhone;
+
+  /// No description provided for @taglineNotes.
+  ///
+  /// In en, this message translates to:
+  /// **'Notes, lists and notebooks'**
+  String get taglineNotes;
+
+  /// No description provided for @taglineTasks.
+  ///
+  /// In en, this message translates to:
+  /// **'To-dos, reminders and lists'**
+  String get taglineTasks;
+
+  /// No description provided for @taglineFitness.
+  ///
+  /// In en, this message translates to:
+  /// **'Activity, workouts and health'**
+  String get taglineFitness;
+
+  /// No description provided for @taglineContacts.
+  ///
+  /// In en, this message translates to:
+  /// **'Your address book'**
+  String get taglineContacts;
+
+  /// Settings row: the account's plan, e.g. 'Plan: Free'
+  ///
+  /// In en, this message translates to:
+  /// **'Plan: {name}'**
+  String planName(String name);
+
+  /// No description provided for @planFree.
+  ///
+  /// In en, this message translates to:
+  /// **'Free'**
+  String get planFree;
+
+  /// No description provided for @planRenews.
+  ///
+  /// In en, this message translates to:
+  /// **'Renews {date}'**
+  String planRenews(String date);
+
+  /// No description provided for @planEnds.
+  ///
+  /// In en, this message translates to:
+  /// **'Ends {date}'**
+  String planEnds(String date);
+
+  /// No description provided for @planPaymentProblem.
+  ///
+  /// In en, this message translates to:
+  /// **'Payment problem. Update your payment method to keep your plan'**
+  String get planPaymentProblem;
+
+  /// No description provided for @planSeePlans.
+  ///
+  /// In en, this message translates to:
+  /// **'See plans'**
+  String get planSeePlans;
+
+  /// Settings row and screen title for opt-in crash reports.
+  ///
+  /// In en, this message translates to:
+  /// **'Crash reports'**
+  String get crashReports;
+
+  /// No description provided for @crashReportsOff.
+  ///
+  /// In en, this message translates to:
+  /// **'Off'**
+  String get crashReportsOff;
+
+  /// No description provided for @crashReportsAsk.
+  ///
+  /// In en, this message translates to:
+  /// **'Ask me before sending'**
+  String get crashReportsAsk;
+
+  /// Choice shown instead of 'Ask me before sending' when the app has nowhere to send reports yet.
+  ///
+  /// In en, this message translates to:
+  /// **'Keep on this phone so I can copy them'**
+  String get crashReportsKeep;
+
+  /// No description provided for @crashReportsAutomatic.
+  ///
+  /// In en, this message translates to:
+  /// **'Send automatically'**
+  String get crashReportsAutomatic;
+
+  /// No description provided for @crashReportsIntro.
+  ///
+  /// In en, this message translates to:
+  /// **'When the app hits a bug, it can write a short technical report to help fix it. This is off unless you turn it on.'**
+  String get crashReportsIntro;
+
+  /// No description provided for @crashReportsIncluded.
+  ///
+  /// In en, this message translates to:
+  /// **'Included: the app and its version, Android or iPhone, the date, the kind of error and where in the code it happened.'**
+  String get crashReportsIncluded;
+
+  /// No description provided for @crashReportsNeverIncluded.
+  ///
+  /// In en, this message translates to:
+  /// **'Never included: anything you wrote or saved, your email or account, your phone\'s name or id, or your location.'**
+  String get crashReportsNeverIncluded;
+
+  /// No description provided for @crashReportsSaved.
+  ///
+  /// In en, this message translates to:
+  /// **'Saved reports'**
+  String get crashReportsSaved;
+
+  /// No description provided for @crashReportsNone.
+  ///
+  /// In en, this message translates to:
+  /// **'No saved reports'**
+  String get crashReportsNone;
+
+  /// No description provided for @crashReportHappened.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{Happened once} other{Happened {count} times}}'**
+  String crashReportHappened(int count);
+
+  /// No description provided for @crashReportSend.
+  ///
+  /// In en, this message translates to:
+  /// **'Send'**
+  String get crashReportSend;
+
+  /// No description provided for @crashReportSent.
+  ///
+  /// In en, this message translates to:
+  /// **'Report sent. Thank you!'**
+  String get crashReportSent;
+
+  /// No description provided for @crashReportNotSent.
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t send it. It\'s kept for later.'**
+  String get crashReportNotSent;
+
+  /// No description provided for @crashReportCopied.
+  ///
+  /// In en, this message translates to:
+  /// **'Report copied'**
+  String get crashReportCopied;
+
+  /// No description provided for @crashReportsDeleteAll.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete all'**
+  String get crashReportsDeleteAll;
+
+  /// No description provided for @crashReportWholeReport.
+  ///
+  /// In en, this message translates to:
+  /// **'This is the whole report, exactly as it would leave your phone.'**
+  String get crashReportWholeReport;
+
+  /// No description provided for @crashReportPromptTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'The app hit a problem'**
+  String get crashReportPromptTitle;
+
+  /// No description provided for @crashReportPromptBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Send a crash report to help fix it? It holds no personal data.'**
+  String get crashReportPromptBody;
+
+  /// No description provided for @crashReportView.
+  ///
+  /// In en, this message translates to:
+  /// **'View report'**
+  String get crashReportView;
+
+  /// No description provided for @crashReportDontSend.
+  ///
+  /// In en, this message translates to:
+  /// **'Don\'t send'**
+  String get crashReportDontSend;
 }
 
 class _ZtLocalizationsDelegate extends LocalizationsDelegate<ZtLocalizations> {
@@ -1167,7 +1375,7 @@ class _ZtLocalizationsDelegate extends LocalizationsDelegate<ZtLocalizations> {
 
   @override
   bool isSupported(Locale locale) =>
-      <String>['en'].contains(locale.languageCode);
+      <String>['en', 'he'].contains(locale.languageCode);
 
   @override
   bool shouldReload(_ZtLocalizationsDelegate old) => false;
@@ -1178,6 +1386,8 @@ ZtLocalizations lookupZtLocalizations(Locale locale) {
   switch (locale.languageCode) {
     case 'en':
       return ZtLocalizationsEn();
+    case 'he':
+      return ZtLocalizationsHe();
   }
 
   throw FlutterError(

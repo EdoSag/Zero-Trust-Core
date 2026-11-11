@@ -46,7 +46,10 @@ void main() {
         ),
   };
 
-  Widget app(Widget home, {required bool dark, double textScale = 1}) =>
+  Widget app(Widget home,
+          {required bool dark,
+          double textScale = 1,
+          Locale locale = ZtLanguages.english}) =>
       ProviderScope(
         overrides: [
           accountServiceProvider.overrideWithValue(account),
@@ -60,6 +63,9 @@ void main() {
           theme: ZtTheme.light(),
           darkTheme: ZtTheme.dark(),
           themeMode: dark ? ThemeMode.dark : ThemeMode.light,
+          locale: locale,
+          supportedLocales: ZtLanguages.supported,
+          localizationsDelegates: ZtLanguages.delegates,
           builder: (context, child) => MediaQuery(
             data: MediaQuery.of(context)
                 .copyWith(textScaler: TextScaler.linear(textScale)),
@@ -96,6 +102,28 @@ void main() {
         handle.dispose();
       });
     }
+
+    testWidgets(
+        '$name in Hebrew (right-to-left) meets the guidelines and '
+        'lays out at 200% text size', (tester) async {
+      final handle = tester.ensureSemantics();
+      tester.view.physicalSize = const Size(1080, 9000);
+      tester.view.devicePixelRatio = 3;
+      addTearDown(tester.view.reset);
+      await tester
+          .pumpWidget(app(build(), dark: false, locale: ZtLanguages.hebrew));
+      await settle(tester);
+      await expectLater(tester, meetsGuideline(androidTapTargetGuideline));
+      await expectLater(tester, meetsGuideline(labeledTapTargetGuideline));
+      await expectLater(tester, meetsGuideline(textContrastGuideline));
+      handle.dispose();
+
+      tester.view.physicalSize = const Size(1080, 2340);
+      await tester.pumpWidget(
+          app(build(), dark: false, textScale: 2, locale: ZtLanguages.hebrew));
+      await settle(tester);
+      expect(tester.takeException(), isNull);
+    });
 
     testWidgets('$name lays out at 200% text size', (tester) async {
       tester.view.physicalSize = const Size(1080, 2340); // a common phone

@@ -10,6 +10,9 @@ class RemoteItem {
     this.signature,
     this.deleted = false,
     this.syncedAt,
+    this.keyEpoch,
+    this.authorId,
+    this.adminOnly = false,
   });
 
   final String itemId;
@@ -29,6 +32,15 @@ class RemoteItem {
   /// the server cannot forge rows or swap one item's blob into another.
   final Uint8List? signature;
   final bool deleted;
+
+  /// Shared spaces only: the key epoch the blob is sealed under.
+  final int? keyEpoch;
+
+  /// Shared spaces only: the account that wrote the row (set by the server).
+  final String? authorId;
+
+  /// Shared spaces only: only the space's admins may change this row.
+  final bool adminOnly;
 }
 
 /// The server refused a write because of the account's storage limits

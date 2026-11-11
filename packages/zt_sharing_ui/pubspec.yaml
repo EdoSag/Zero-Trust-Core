@@ -1,0 +1,31 @@
+name: zt_sharing_ui
+description: The shared screens for sharing between Zero-Trust users (invite by link or QR, join, compare codes, members). Separate from zero_trust_core so only apps that share ask for the camera.
+version: 0.1.0
+publish_to: none
+
+environment:
+  sdk: ^3.5.0
+  flutter: ">=3.24.0"
+
+dependencies:
+  flutter:
+    sdk: flutter
+  flutter_riverpod: ^3.0.0
+  # Same repository, same commit as the app's zero_trust_core pin.
+  zero_trust_core:
+    path: ../zero_trust_core
+  qr_flutter: ^4.1.0
+  qr_code_scanner_plus: ">=2.1.2 <2.2.0"
+  share_plus: ^13.3.1
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_localizations:
+    sdk: flutter
+  flutter_lints: ^5.0.0
+
+hooks:
+  user_defines:
+    sqlite3:
+      source: sqlite3mc

@@ -1,6 +1,7 @@
 import 'dart:io';
 
 import 'package:dynamic_color/dynamic_color.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
 import '../../l10n/zt_l10n.dart';
@@ -10,9 +11,12 @@ import '../../config/zt_app_config.dart';
 import '../../export/zt_data_export.dart';
 import '../../export/zt_export_data_tile.dart';
 import '../../attachments/attachment_cache.dart';
+import '../../attachments/database_attachment_cache.dart';
+import '../../config/zt_language.dart';
 import '../../config/zt_preferences.dart';
 import '../../config/zt_suite.dart';
 import '../brand/zt_brand_mark.dart';
+import 'zt_crash_reports_screen.dart';
 import 'zt_data_protection_screen.dart';
 import '../../core_providers.dart';
 import '../../vault/vault_controller.dart';
@@ -21,6 +25,7 @@ import '../auth/zt_auth_messages.dart';
 import '../auth/zt_password_strength.dart';
 import '../../sync/zt_local_store.dart';
 import '../auth/zt_recovery_key_screen.dart';
+import 'zt_plan_tile.dart';
 import 'zt_storage_tile.dart';
 import 'zt_sync_status_tile.dart';
 
@@ -41,6 +46,8 @@ class ZtSettingsPage extends ConsumerWidget {
     this.onOpenUrl,
     this.showSyncStatus = false,
     this.showStorageUsage = false,
+    this.showPlan = false,
+    this.onOpenPlans,
     this.showOtherApps = true,
   });
 
@@ -78,6 +85,14 @@ class ZtSettingsPage extends ConsumerWidget {
   /// used) under the account. Reads `zt_my_storage()`, core 0.9.
   final bool showStorageUsage;
 
+  /// Shows [ZtPlanTile] (the account's plan) under the account. Reads
+  /// `zt_my_plan()`, core 0.11.
+  final bool showPlan;
+
+  /// Opens the app's plans screen from the plan row. Leave null where the
+  /// build may not sell (see [ZtPlanTile]).
+  final VoidCallback? onOpenPlans;
+
   /// Lists the suite's other apps (same account) with a link to each in
   /// the store, opened through [onOpenUrl]. Hidden without [onOpenUrl].
   final bool showOtherApps;
@@ -87,6 +102,7 @@ class ZtSettingsPage extends ConsumerWidget {
     final config = ref.watch(ztAppConfigProvider);
     final account = ref.watch(accountServiceProvider);
     final themeMode = ref.watch(themeModeProvider);
+    final language = ref.watch(ztLanguageProvider);
     final autoLock = ref.watch(ztAutoLockProvider);
     final theme = Theme.of(context);
 
@@ -101,6 +117,7 @@ class ZtSettingsPage extends ConsumerWidget {
             subtitle: Text(ZtL10n.of(context).oneAccountForEveryApp),
           ),
           if (showSyncStatus) const ZtSyncStatusTile(),
+          if (showPlan) ZtPlanTile(onTap: onOpenPlans),
           if (showStorageUsage) const ZtStorageTile(),
           ListTile(
             leading: const Icon(Icons.password),
@@ -142,7 +159,16 @@ class ZtSettingsPage extends ConsumerWidget {
             onTap: () => Navigator.of(context).push(MaterialPageRoute<void>(
                 builder: (_) => const ZtDataProtectionScreen())),
           ),
+          const ZtCrashReportsTile(),
           _Header(ZtL10n.of(context).appearance),
+          ListTile(
+            leading: const Icon(Icons.language),
+            title: Text(ZtL10n.of(context).language),
+            subtitle: Text(language == null
+                ? ZtL10n.of(context).languagePhone
+                : ZtLanguages.nativeName(language)),
+            onTap: () => _pickLanguage(context, ref, language),
+          ),
           RadioGroup<ThemeMode>(
             groupValue: themeMode,
             onChanged: (m) => ref.read(themeModeProvider.notifier).set(m!),
@@ -218,8 +244,8 @@ class ZtSettingsPage extends ConsumerWidget {
                 ListTile(
                   leading: ZtBrandMark(app: app, size: 40),
                   title: Text(app.fullName),
-                  subtitle:
-                      Text(ZtL10n.of(context).taglineSameAccount(app.tagline)),
+                  subtitle: Text(ZtL10n.of(context)
+                      .taglineSameAccount(_tagline(context, app))),
                   trailing: const Icon(Icons.open_in_new, size: 20),
                   onTap: () => onOpenUrl!(app.playStoreUrl),
                 ),
@@ -237,6 +263,18 @@ class ZtSettingsPage extends ConsumerWidget {
         ],
       ),
     );
+  }
+
+  /// The app's one-line description in the current language.
+  static String _tagline(BuildContext context, ZtSuiteApp app) {
+    final l = ZtL10n.of(context);
+    return switch (app.appId) {
+      'notes' => l.taglineNotes,
+      'tasks' => l.taglineTasks,
+      'fitness' => l.taglineFitness,
+      'contacts' => l.taglineContacts,
+      _ => app.tagline,
+    };
   }
 
   static String _autoLockLabel(Duration? d) {
@@ -281,6 +319,42 @@ class ZtSettingsPage extends ConsumerWidget {
     if (picked != null) {
       await ref.read(ztAutoLockProvider.notifier).set(picked.$1);
     }
+  }
+
+  Future<void> _pickLanguage(
+      BuildContext context, WidgetRef ref, Locale? current) async {
+    const phone = 'phone';
+    final picked = await showDialog<String>(
+      context: context,
+      builder: (context) => SimpleDialog(
+        title: Text(ZtL10n.of(context).language),
+        children: [
+          RadioGroup<String>(
+            groupValue: current?.languageCode ?? phone,
+            onChanged: (code) => Navigator.pop(context, code),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                for (final locale in ZtLanguages.supported)
+                  RadioListTile<String>(
+                    value: locale.languageCode,
+                    // Each name in its own language, so it can be found
+                    // whatever the app is showing now.
+                    title: Text(ZtLanguages.nativeName(locale)),
+                  ),
+                RadioListTile<String>(
+                    value: phone,
+                    title: Text(ZtL10n.of(context).languagePhone)),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+    if (picked == null) return;
+    await ref
+        .read(ztLanguageProvider.notifier)
+        .set(picked == phone ? null : Locale(picked));
   }
 
   Future<void> _changePassword(BuildContext context, WidgetRef ref) async {
@@ -331,7 +405,11 @@ class ZtSettingsPage extends ConsumerWidget {
       final appId = ref.read(ztAppConfigProvider).appId;
       await ZtLocalStore.deleteFiles(
           await ZtLocalStore.pathFor(appId: appId, userId: userId));
-      await FileAttachmentCache.deleteFor(appId: appId, userId: userId);
+      if (kIsWeb) {
+        await DatabaseAttachmentCache.deleteFor(appId: appId, userId: userId);
+      } else {
+        await FileAttachmentCache.deleteFor(appId: appId, userId: userId);
+      }
     } on Object {
       // No platform storage (tests), or already gone.
     }
