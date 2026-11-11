@@ -257,6 +257,10 @@ class ZtPlaceRemindersAndroid implements ZtPlaceReminders {
   /// for the first listener.
   final _held = <ZtPlaceEvent>[];
 
+  /// Bumped by [clear] (sign-out), so events read or held before it are
+  /// never handed to the next account's listener.
+  int _epoch = 0;
+
   void _emit(ZtPlaceEvent e) {
     if (_events.hasListener) {
       _events.add(e);
@@ -269,8 +273,11 @@ class ZtPlaceRemindersAndroid implements ZtPlaceReminders {
     if (_held.isEmpty) return;
     final held = [..._held];
     _held.clear();
+    final epoch = _epoch;
     // After the listener is attached, so it receives them.
-    scheduleMicrotask(() => held.forEach(_emit));
+    scheduleMicrotask(() {
+      if (epoch == _epoch) held.forEach(_emit);
+    });
   }
 
   @override
@@ -289,6 +296,8 @@ class ZtPlaceRemindersAndroid implements ZtPlaceReminders {
 
   @override
   Future<void> clear() async {
+    _epoch++;
+    _held.clear();
     if (supported) await _channel.invokeMethod<void>('clear');
   }
 
@@ -333,7 +342,9 @@ class ZtPlaceRemindersAndroid implements ZtPlaceReminders {
   Stream<ZtPlaceEvent> get events => _events.stream;
 
   Future<void> _takeQueued() async {
+    final epoch = _epoch;
     final queued = await _channel.invokeMethod<List<Object?>>('takeEvents');
+    if (epoch != _epoch) return; // cleared while reading
     for (final m in queued ?? const []) {
       final e = ZtPlaceEvent.fromChannel(m);
       if (e != null) _emit(e);

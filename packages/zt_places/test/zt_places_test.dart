@@ -147,6 +147,22 @@ void main() {
       await sub.cancel();
     });
 
+    test('clearing (sign-out) drops events held for a listener', () async {
+      final r = ZtPlaceRemindersAndroid();
+      await TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+          .handlePlatformMessage(
+              channel.name,
+              channel.codec.encodeMethodCall(const MethodCall('event')),
+              (_) {});
+      await pumpEventQueue();
+      await r.clear();
+      final events = <ZtPlaceEvent>[];
+      final sub = r.events.listen(events.add);
+      await pumpEventQueue();
+      expect(events, isEmpty);
+      await sub.cancel();
+    });
+
     test('events taken while nothing listens wait for the first listener',
         () async {
       final r = ZtPlaceRemindersAndroid();
