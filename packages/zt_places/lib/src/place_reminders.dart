@@ -241,14 +241,37 @@ class ZtPlaceRemindersAndroid implements ZtPlaceReminders {
         case 'tap':
           final e =
               ZtPlaceEvent.fromChannel(call.arguments, ZtPlaceEventType.tap);
-          if (e != null) _events.add(e);
+          if (e != null) _emit(e);
       }
       return null;
     });
   }
 
   static const _channel = MethodChannel('dev.sagron.zt_places');
-  final _events = StreamController<ZtPlaceEvent>.broadcast();
+  late final _events = StreamController<ZtPlaceEvent>.broadcast(
+    onListen: _flushHeld,
+  );
+
+  /// Events taken from the native queue while nothing listened (before
+  /// unlock, say). A broadcast stream would drop them, so they wait here
+  /// for the first listener.
+  final _held = <ZtPlaceEvent>[];
+
+  void _emit(ZtPlaceEvent e) {
+    if (_events.hasListener) {
+      _events.add(e);
+    } else {
+      _held.add(e);
+    }
+  }
+
+  void _flushHeld() {
+    if (_held.isEmpty) return;
+    final held = [..._held];
+    _held.clear();
+    // After the listener is attached, so it receives them.
+    scheduleMicrotask(() => held.forEach(_emit));
+  }
 
   @override
   bool get supported => defaultTargetPlatform == TargetPlatform.android;
@@ -313,7 +336,7 @@ class ZtPlaceRemindersAndroid implements ZtPlaceReminders {
     final queued = await _channel.invokeMethod<List<Object?>>('takeEvents');
     for (final m in queued ?? const []) {
       final e = ZtPlaceEvent.fromChannel(m);
-      if (e != null) _events.add(e);
+      if (e != null) _emit(e);
     }
   }
 
@@ -323,7 +346,7 @@ class ZtPlaceRemindersAndroid implements ZtPlaceReminders {
     await _takeQueued();
     final tap = await _channel.invokeMethod<Object?>('takeLaunchTap');
     final e = ZtPlaceEvent.fromChannel(tap, ZtPlaceEventType.tap);
-    if (e != null) _events.add(e);
+    if (e != null) _emit(e);
   }
 }
 

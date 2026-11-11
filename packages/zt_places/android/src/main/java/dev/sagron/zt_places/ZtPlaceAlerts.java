@@ -142,11 +142,14 @@ final class ZtPlaceAlerts {
             ZtPlaceStore.Reminder prev = old.get(r.id);
             if (r.samePlace(prev)) {
                 r.armed = prev.armed;
+                r.settled = prev.settled;
                 r.registeredAt = prev.registeredAt;
             } else {
                 if (prev != null) unregister(c, r.id);
                 Boolean inside = lastKnownInside(c, r);
                 r.armed = !r.arrive || !Boolean.TRUE.equals(inside);
+                // Known to be outside: the first arrival counts, even right away.
+                r.settled = !r.arrive || Boolean.FALSE.equals(inside);
                 r.registeredAt = now;
             }
             next.put(r.id, r);
@@ -180,11 +183,18 @@ final class ZtPlaceAlerts {
         boolean fire;
         if (r.arrive) {
             if (!entering) {
+                // A departure was seen: the next arrival is a real one.
                 r.armed = true;
+                r.settled = true;
                 fire = false;
-            } else if (!r.armed || System.currentTimeMillis() - r.registeredAt < SETTLE_MS) {
+            } else if (!r.armed) {
                 // Already there when the reminder was set: wait until the
                 // phone has left once, then remind on the next arrival.
+                fire = false;
+            } else if (!r.settled && System.currentTimeMillis() - r.registeredAt < SETTLE_MS) {
+                // Where the phone was wasn't known when the reminder was set,
+                // and the OS reports "inside" right after registering: that
+                // is where it already was, not an arrival.
                 r.armed = false;
                 fire = false;
             } else {

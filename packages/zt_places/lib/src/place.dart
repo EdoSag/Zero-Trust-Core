@@ -41,7 +41,14 @@ class ZtLatLng {
   /// "?mlat=..&mlon=..", "#map=16/32.0853/34.7818"). Null when it holds no
   /// position (an address needs a geocoding server, which would see it).
   static ZtLatLng? tryParse(String input) {
-    final text = Uri.decodeFull(input.trim());
+    String text;
+    try {
+      text = Uri.decodeFull(input.trim());
+    } on Object {
+      // A broken %-escape, half-typed or cut off (Dart throws a
+      // FormatException or an ArgumentError): read it as typed.
+      text = input.trim();
+    }
     if (text.isEmpty) return null;
     const num = r'(-?\d{1,3}(?:\.\d+)?)';
     final patterns = [
