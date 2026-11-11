@@ -598,6 +598,10 @@ class ZtLocalizationsHe extends ZtLocalizations {
       'לא ניתן היה לפתוח את המידע במכשיר הזה. הוא יורד מחדש.';
 
   @override
+  String get errStoreInUse =>
+      'האפליקציה כבר פתוחה בכרטיסייה או בחלון אחרים. צריך לסגור אותה שם ולטעון מחדש את הדף הזה.';
+
+  @override
   String get errVaultLocked => 'קודם צריך לבטל את נעילת האפליקציה.';
 
   @override

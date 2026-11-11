@@ -15,8 +15,13 @@ Additive: Android and iOS apps change nothing.
 - **Biometric unlock only where hardware gates the key** (Android, iOS).
   Desktop and web report it unavailable instead of keeping the key in an
   ordinary keychain.
-- **Export on the web** downloads the zip; attachments are cached for the
-  session only.
+- **One browser tab at a time** per account store (Web Locks); another tab
+  gets `LocalStoreInUse`, shown as "already open in another tab" (English and
+  Hebrew).
+- **Attachments on the web** go into `DatabaseAttachmentCache` (IndexedDB), so
+  attachments added offline and their waiting uploads and deletes survive a
+  reload.
+- **Export on the web** downloads the zip.
 - `example/`: a smoke-check app; CI builds it for web and Linux.
 
 ## Unreleased (Z24: sharing between Zero-Trust users)

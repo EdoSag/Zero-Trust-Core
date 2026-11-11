@@ -587,6 +587,10 @@ class ZtLocalizationsEn extends ZtLocalizations {
       'Data on this device couldn\'t be opened. It will be downloaded again.';
 
   @override
+  String get errStoreInUse =>
+      'This app is already open in another tab or window. Close it there, then reload this page.';
+
+  @override
   String get errVaultLocked => 'Unlock the app first.';
 
   @override

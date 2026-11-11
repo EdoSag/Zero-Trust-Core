@@ -313,13 +313,17 @@ What is different off the phone:
   (pinned version and checksum; set `ztSqliteWasmUrl` if it lives elsewhere).
   A store the key can't open is deleted and re-synced, since browsers can't
   rename it aside.
+- **One tab at a time.** An account's store can be open in only one browser
+  tab (Web Locks); a second tab gets `LocalStoreInUse` ("already open in
+  another tab"), so two tabs can't overwrite each other's changes.
 - **Build web apps with `--no-web-resources-cdn`**, so the Flutter engine is
   served from the app's own site rather than fetched from Google's CDN.
 - **Biometric unlock is Android and iOS only.** Only there is the stored key
   gated by biometrics in hardware; on desktop and the web
   `SecureBiometricKeyStore.isAvailable()` is false and the password unlocks.
-- **Attachments on the web** are cached for the unlocked session only (still
-  sealed); they download again after a reload.
+- **Attachments on the web** (sealed files plus waiting uploads and deletes)
+  are kept in a `DatabaseAttachmentCache` in IndexedDB, so ones added offline
+  survive a reload.
 - **Export my data on the web** downloads the zip through the browser;
   `onDataExported` is only called on devices.
 

@@ -268,6 +268,7 @@
   "errAttachmentCorrupt": "This file was damaged or changed on the server, so it wasn't opened.",
   "errNewerVersion": "This was changed in a newer version of the app. Update the app to edit it.",
   "errLocalStoreUnreadable": "Data on this device couldn't be opened. It will be downloaded again.",
+  "errStoreInUse": "This app is already open in another tab or window. Close it there, then reload this page.",
   "errVaultLocked": "Unlock the app first.",
   "errTooMany": "Too many attempts. Wait a few minutes and try again.",
   "errServerDown": "Our server isn't responding right now. Your data is safe; try again soon.",

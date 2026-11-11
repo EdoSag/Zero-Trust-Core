@@ -13,3 +13,13 @@ class ZtDatabaseHandle {
 
   Future<void> close() => _close();
 }
+
+/// The store is already open in another browser tab or window. Only one
+/// tab at a time may use an account's store, so the two can't overwrite
+/// each other's changes; close the other tab and try again.
+class LocalStoreInUse implements Exception {
+  const LocalStoreInUse(this.path);
+  final String path;
+  @override
+  String toString() => 'LocalStoreInUse($path)';
+}

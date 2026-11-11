@@ -1,5 +1,4 @@
-import 'dart:typed_data';
-
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:zero_trust_core/zero_trust_core.dart';
 
@@ -44,8 +43,41 @@ Future<String> runSmokeCheck() async {
   }
   log.add(refused ? 'wrong key refused' : 'WRONG KEY OPENED');
 
+  // Only one holder at a time on the web (browser tabs share the store).
+  var exclusive = true;
+  if (kIsWeb) {
+    final first = await ZtLocalStore.open(appKey: key, path: path);
+    try {
+      final second = await ZtLocalStore.open(appKey: key, path: path);
+      await second.close();
+      exclusive = false;
+    } on LocalStoreInUse {
+      exclusive = true;
+    }
+    await first.close();
+    log.add(exclusive ? 'second opener refused' : 'OPENED TWICE');
+  }
   await ZtLocalStore.deleteFiles(path);
-  final ok = readBack && refused;
+
+  var cache = await DatabaseAttachmentCache.forAccount(
+    appId: 'smoke',
+    userId: 'check',
+  );
+  await cache.write('a' * 32, Uint8List.fromList([1, 2, 3]));
+  await cache.setPendingUploads({'a' * 32});
+  await cache.close();
+  cache = await DatabaseAttachmentCache.forAccount(
+    appId: 'smoke',
+    userId: 'check',
+  );
+  final attachmentKept =
+      (await cache.read('a' * 32))?.length == 3 &&
+      (await cache.pendingUploads()).contains('a' * 32);
+  await cache.close();
+  await DatabaseAttachmentCache.deleteFor(appId: 'smoke', userId: 'check');
+  log.add(attachmentKept ? 'attachment kept' : 'ATTACHMENT LOST');
+
+  final ok = readBack && refused && exclusive && attachmentKept;
   return '${ok ? 'PASS' : 'FAIL'}: ${log.join(', ')}';
 }
 

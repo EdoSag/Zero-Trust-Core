@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:js_interop';
 import 'dart:typed_data';
 
@@ -12,49 +13,119 @@ import 'zt_database.dart';
 /// core repository, which pins the version and checksum.
 String ztSqliteWasmUrl = 'sqlite3mc.wasm';
 
-const _vfsName = 'zt-indexeddb';
+const _idbName = 'zt_local_store';
 
-Future<(WasmSqlite3, IndexedDbFileSystem)>? _loaded;
+Future<WasmSqlite3>? _loaded;
 
-Future<(WasmSqlite3, IndexedDbFileSystem)> _load() => _loaded ??= () async {
+Future<WasmSqlite3> _load() => _loaded ??= () async {
       final sqlite = await WasmSqlite3.loadFromUrlString(ztSqliteWasmUrl);
       // Only for in-memory databases (tests, previews); nothing touches it.
       sqlite.registerVirtualFileSystem(InMemoryFileSystem(), makeDefault: true);
-      final fs = await IndexedDbFileSystem.open(
-          dbName: 'zt_local_store', vfsName: _vfsName);
-      sqlite.registerVirtualFileSystem(fs);
-      return (sqlite, fs);
+      return sqlite;
     }();
 
-/// Opens the store at [path] inside the browser's IndexedDB, or an
-/// in-memory database when null. The file is encrypted by SQLite3 Multiple
-/// Ciphers before it reaches IndexedDB, exactly like the file on a phone,
-/// so the browser only ever holds ciphertext.
+var _vfsCount = 0;
+
+/// Takes the browser-wide lock for [path] (Web Locks API, shared by every
+/// tab of this site), or throws [LocalStoreInUse] when another tab holds
+/// it. Returns the function that releases it, which completes once the
+/// browser has actually let go (so this tab can take it again at once).
+Future<Future<void> Function()> _lock(String path) async {
+  final granted = Completer<bool>();
+  final release = Completer<void>();
+  JSPromise<JSAny?> onGrant(web.Lock? lock) {
+    granted.complete(lock != null);
+    // The lock is held until this promise settles.
+    return (lock == null ? Future<JSAny?>.value() : release.future.then((_) {}))
+        .then((_) => null)
+        .toJS;
+  }
+
+  final done = web.window.navigator.locks
+      .request(
+        'zt-store:$path',
+        web.LockOptions(ifAvailable: true),
+        onGrant.toJS,
+      )
+      .toDart;
+  if (!await granted.future) throw LocalStoreInUse(path);
+  return () async {
+    if (!release.isCompleted) release.complete();
+    await done;
+  };
+}
+
+/// IndexedDB, read fresh: the file system keeps its own copy of the files
+/// from the moment it opens, so each holder of the lock opens a new one and
+/// sees what the previous holder (maybe another tab) wrote.
+Future<(WasmSqlite3, IndexedDbFileSystem, String)> _freshFs() async {
+  final sqlite = await _load();
+  final name = 'zt-idb-${_vfsCount++}';
+  final fs = await IndexedDbFileSystem.open(dbName: _idbName, vfsName: name);
+  sqlite.registerVirtualFileSystem(fs);
+  return (sqlite, fs, name);
+}
+
+Future<void> _closeFs(WasmSqlite3 sqlite, IndexedDbFileSystem fs) async {
+  // Writes reach IndexedDB in the background; wait for them before letting
+  // another tab in, or before the page goes away after a lock or sign-out.
+  await fs.flush();
+  sqlite.unregisterVirtualFileSystem(fs);
+  await fs.close();
+}
+
+/// Opens the database at [path] inside the browser's IndexedDB, or an
+/// in-memory one when null. With a key set (`pragma hexkey`), SQLite3
+/// Multiple Ciphers encrypts every page before it reaches IndexedDB,
+/// exactly like the file on a phone. Throws [LocalStoreInUse] while another
+/// tab has it open.
 Future<ZtDatabaseHandle> ztOpenDatabase(String? path) async {
-  final (sqlite, fs) = await _load();
-  final db = path == null
-      ? sqlite.openInMemory()
+  if (path == null) {
+    final db = (await _load()).openInMemory();
+    return ZtDatabaseHandle(db, () async => db.close(), supportsWal: false);
+  }
+  final unlock = await _lock(path);
+  try {
+    final (sqlite, fs, vfs) = await _freshFs();
+    try {
       // SQLite3 Multiple Ciphers wraps every registered file system;
-      // opening through the wrapper is what makes the key apply.
-      : sqlite.open(path, vfs: 'multipleciphers-$_vfsName');
-  return ZtDatabaseHandle(db, () async {
-    db.close();
-    // Writes reach IndexedDB in the background; wait for them on close
-    // (lock, sign out) so nothing is lost when the tab closes right after.
-    await fs.flush();
-  }, supportsWal: false);
+      // opening through the wrapper is what makes a key apply.
+      final db = sqlite.open(path, vfs: 'multipleciphers-$vfs');
+      return ZtDatabaseHandle(db, () async {
+        try {
+          db.close();
+          await _closeFs(sqlite, fs);
+        } finally {
+          await unlock();
+        }
+      }, supportsWal: false);
+    } catch (_) {
+      await _closeFs(sqlite, fs);
+      rethrow;
+    }
+  } catch (_) {
+    await unlock();
+    rethrow;
+  }
 }
 
 Future<String> ztDatabasePath(String fileName) async => '/$fileName';
 
 const _suffixes = ['', '-journal', '-wal', '-shm'];
 
+/// Deletes the closed database at [path]. Throws [LocalStoreInUse] while
+/// another tab has it open.
 Future<void> ztDeleteDatabase(String path) async {
-  final (_, fs) = await _load();
-  for (final suffix in _suffixes) {
-    if (fs.xAccess('$path$suffix', 0) != 0) fs.xDelete('$path$suffix', 0);
+  final unlock = await _lock(path);
+  try {
+    final (sqlite, fs, _) = await _freshFs();
+    for (final suffix in _suffixes) {
+      if (fs.xAccess('$path$suffix', 0) != 0) fs.xDelete('$path$suffix', 0);
+    }
+    await _closeFs(sqlite, fs);
+  } finally {
+    await unlock();
   }
-  await fs.flush();
 }
 
 /// The browser's file system can't rename, so an unreadable store is
