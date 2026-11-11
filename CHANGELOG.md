@@ -3,6 +3,14 @@
 Apps depend on the core by git tag (`ref: vX.Y.Z`). Upgrade notes list what
 an app must change.
 
+## Unreleased (space stores and locking)
+
+Fix: a vault lock while a shared space's local store was opening could use
+the already zeroed key, see the file as unreadable and move it aside (with
+any unsynced edits), and leave a store open that nothing closed. The opener
+now copies the key first, stops when locked, closes a store that finished
+opening too late, and opens each space only once. No app change.
+
 ## Unreleased (invite proof check)
 
 Database fix (migration `20261111200000_invite_null_proof`): answering a
