@@ -1171,6 +1171,30 @@ abstract class ZtLocalizations {
   /// In en, this message translates to:
   /// **'Phone\'s language'**
   String get languagePhone;
+
+  /// No description provided for @taglineNotes.
+  ///
+  /// In en, this message translates to:
+  /// **'Notes, lists and notebooks'**
+  String get taglineNotes;
+
+  /// No description provided for @taglineTasks.
+  ///
+  /// In en, this message translates to:
+  /// **'To-dos, reminders and lists'**
+  String get taglineTasks;
+
+  /// No description provided for @taglineFitness.
+  ///
+  /// In en, this message translates to:
+  /// **'Activity, workouts and health'**
+  String get taglineFitness;
+
+  /// No description provided for @taglineContacts.
+  ///
+  /// In en, this message translates to:
+  /// **'Your address book'**
+  String get taglineContacts;
 }
 
 class _ZtLocalizationsDelegate extends LocalizationsDelegate<ZtLocalizations> {

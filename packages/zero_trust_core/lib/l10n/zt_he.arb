@@ -178,5 +178,9 @@
   "storageUsed": "{used} מתוך {limit} בשימוש",
   "storageAttachments": "קבצים מצורפים: {used} מתוך {limit}",
   "language": "שפה",
-  "languagePhone": "שפת הטלפון"
+  "languagePhone": "שפת הטלפון",
+  "taglineNotes": "פתקים, רשימות ומחברות",
+  "taglineTasks": "משימות, תזכורות ורשימות",
+  "taglineFitness": "פעילות, אימונים ובריאות",
+  "taglineContacts": "פנקס הכתובות שלך"
 }

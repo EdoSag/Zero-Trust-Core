@@ -347,5 +347,9 @@
   "languagePhone": "Phone's language",
   "@languagePhone": {
     "description": "Language choice that follows the phone's own language."
-  }
+  },
+  "taglineNotes": "Notes, lists and notebooks",
+  "taglineTasks": "To-dos, reminders and lists",
+  "taglineFitness": "Activity, workouts and health",
+  "taglineContacts": "Your address book"
 }

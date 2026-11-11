@@ -681,4 +681,16 @@ class ZtLocalizationsHe extends ZtLocalizations {
 
   @override
   String get languagePhone => 'שפת הטלפון';
+
+  @override
+  String get taglineNotes => 'פתקים, רשימות ומחברות';
+
+  @override
+  String get taglineTasks => 'משימות, תזכורות ורשימות';
+
+  @override
+  String get taglineFitness => 'פעילות, אימונים ובריאות';
+
+  @override
+  String get taglineContacts => 'פנקס הכתובות שלך';
 }

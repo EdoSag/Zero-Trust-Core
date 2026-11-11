@@ -228,8 +228,8 @@ class ZtSettingsPage extends ConsumerWidget {
                 ListTile(
                   leading: ZtBrandMark(app: app, size: 40),
                   title: Text(app.fullName),
-                  subtitle:
-                      Text(ZtL10n.of(context).taglineSameAccount(app.tagline)),
+                  subtitle: Text(ZtL10n.of(context)
+                      .taglineSameAccount(_tagline(context, app))),
                   trailing: const Icon(Icons.open_in_new, size: 20),
                   onTap: () => onOpenUrl!(app.playStoreUrl),
                 ),
@@ -247,6 +247,18 @@ class ZtSettingsPage extends ConsumerWidget {
         ],
       ),
     );
+  }
+
+  /// The app's one-line description in the current language.
+  static String _tagline(BuildContext context, ZtSuiteApp app) {
+    final l = ZtL10n.of(context);
+    return switch (app.appId) {
+      'notes' => l.taglineNotes,
+      'tasks' => l.taglineTasks,
+      'fitness' => l.taglineFitness,
+      'contacts' => l.taglineContacts,
+      _ => app.tagline,
+    };
   }
 
   static String _autoLockLabel(Duration? d) {

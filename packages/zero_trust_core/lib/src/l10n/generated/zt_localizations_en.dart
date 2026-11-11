@@ -672,4 +672,16 @@ class ZtLocalizationsEn extends ZtLocalizations {
 
   @override
   String get languagePhone => 'Phone\'s language';
+
+  @override
+  String get taglineNotes => 'Notes, lists and notebooks';
+
+  @override
+  String get taglineTasks => 'To-dos, reminders and lists';
+
+  @override
+  String get taglineFitness => 'Activity, workouts and health';
+
+  @override
+  String get taglineContacts => 'Your address book';
 }
