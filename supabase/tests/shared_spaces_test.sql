@@ -97,6 +97,12 @@ select pg_temp.as_user('00000000-0000-0000-0000-00000000aa09');
 select pg_temp.expect_error(
   $$select public.zt_answer_space_invite('00000000-0000-0000-0000-0000000001b1', '\xdead', '\x01')$$,
   'wrong token', 'zt_invite_invalid');
+select pg_temp.expect_error(
+  $$select public.zt_answer_space_invite('00000000-0000-0000-0000-0000000001b1', null, '\x01')$$,
+  'no token', 'zt_invite_invalid');
+select pg_temp.expect_error(
+  $$select public.zt_answer_space_invite('00000000-0000-0000-0000-0000000001b1', '\xb0b0', null)$$,
+  'no answer', 'zt_invite_invalid');
 select pg_temp.as_user('00000000-0000-0000-0000-00000000aa02');
 do $$ declare r json; begin
   r := public.zt_answer_space_invite('00000000-0000-0000-0000-0000000001b1', '\xb0b0', '\xabcd');

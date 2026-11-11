@@ -3,6 +3,12 @@
 Apps depend on the core by git tag (`ref: vX.Y.Z`). Upgrade notes list what
 an app must change.
 
+## Unreleased (invite proof check)
+
+Database fix (migration `20261111200000_invite_null_proof`): answering a
+shared-space invite with no proof is now refused. Before, it used up the
+invite without the link's token. No app change; run the SQL once live.
+
 ## Unreleased (sharing screens)
 
 New package `packages/zt_sharing_ui` with the sharing screens, lifted from
