@@ -11,26 +11,27 @@ end $$;
 insert into auth.users values ('00000000-0000-0000-0000-0000000000f1', 'paid@x.com'),
                               ('00000000-0000-0000-0000-0000000000f2', 'free@x.com');
 insert into public.zt_plans (id, rank, names, max_item_bytes, max_items, max_attachment_bytes, features)
-values ('plus', 10, '{"en": "Plus", "he": "פלוס"}', 120, 5, 1000, '{drive}'),
-       ('max', 20, '{"en": "Max"}', 500, 50, 5000, '{drive,vpn}');
+values ('tplus', 50, '{"en": "Plus", "he": "פלוס"}', 120, 5, 1000, '{drive}'),
+       ('tmax', 60, '{"en": "Max"}', 500, 50, 5000, '{drive,vpn}');
 
 -- f1 has an expired Max and a current Plus: Plus counts.
 insert into public.zt_subscriptions (user_id, plan_id, source, status, provider_ref, current_period_end)
-values ('00000000-0000-0000-0000-0000000000f1', 'max', 'google_play', 'expired', 'tok1', now() - interval '10 days'),
-       ('00000000-0000-0000-0000-0000000000f1', 'plus', 'web', 'active', 'sub_1', now() + interval '20 days');
+values ('00000000-0000-0000-0000-0000000000f1', 'tmax', 'google_play', 'expired', 'tok1', now() - interval '10 days'),
+       ('00000000-0000-0000-0000-0000000000f1', 'tplus', 'web', 'active', 'sub_1', now() + interval '20 days');
 
 set role authenticated;
 set request.jwt.claim.sub = '00000000-0000-0000-0000-0000000000f1';
 do $$ begin
-  assert public.zt_plan_for(auth.uid()) = 'plus', 'current plan wins over expired';
+  assert public.zt_plan_for(auth.uid()) = 'tplus', 'current plan wins over expired';
   assert (select max_item_bytes from public.zt_storage_limits_for(auth.uid())) = 120, 'plan limit';
   assert (select max_blob_bytes from public.zt_storage_limits_for(auth.uid())) = 1048576, 'blob cap unchanged';
   assert public.zt_has_feature('drive'), 'plus has drive';
   assert not public.zt_has_feature('vpn'), 'plus has no vpn';
-  assert (public.zt_my_plan() ->> 'plan') = 'plus', 'my plan';
+  assert (public.zt_my_plan() ->> 'plan') = 'tplus', 'my plan';
   assert (public.zt_my_plan() ->> 'source') = 'web', 'my plan source';
   assert (public.zt_my_plan() -> 'names' ->> 'he') = 'פלוס', 'hebrew name';
-  assert (select count(*) from public.zt_plans) = 3, 'catalogue readable';
+  assert (select count(*) from public.zt_plans) = 4, 'catalogue readable';
+  assert (select not offered and max_attachment_bytes = 21474836480 from public.zt_plans where id = 'plus'), 'plus seeded, hidden';
   -- Someone else's plan can't be read: it looks free.
   assert public.zt_plan_for('00000000-0000-0000-0000-0000000000f2') = 'free', 'other user looks free';
 end $$;
@@ -44,10 +45,10 @@ select pg_temp.plans_expect_error(
   'over plan limit');
 
 -- Clients can't change plans, subscriptions or grant themselves one.
-select pg_temp.plans_expect_error($$insert into public.zt_subscriptions (user_id, plan_id, source) values (auth.uid(), 'max', 'manual')$$, 'client subscribes');
+select pg_temp.plans_expect_error($$insert into public.zt_subscriptions (user_id, plan_id, source) values (auth.uid(), 'tmax', 'manual')$$, 'client subscribes');
 select pg_temp.plans_expect_error($$update public.zt_subscriptions set current_period_end = null$$, 'client extends');
 select pg_temp.plans_expect_error($$update public.zt_plans set max_items = 1e9$$, 'client edits plan');
-select pg_temp.plans_expect_error($$select public.zt_grant_plan(auth.uid(), 'max')$$, 'client grants plan');
+select pg_temp.plans_expect_error($$select public.zt_grant_plan(auth.uid(), 'tmax')$$, 'client grants plan');
 
 -- A per-account override still beats the plan.
 reset role;
@@ -63,7 +64,7 @@ end $$;
 reset role;
 update public.zt_subscriptions set current_period_end = now() - interval '2 days' where provider_ref = 'sub_1';
 set role authenticated;
-do $$ begin assert public.zt_plan_for(auth.uid()) = 'plus', 'slack after period end'; end $$;
+do $$ begin assert public.zt_plan_for(auth.uid()) = 'tplus', 'slack after period end'; end $$;
 reset role;
 update public.zt_subscriptions set current_period_end = now() - interval '4 days' where provider_ref = 'sub_1';
 set role authenticated;
@@ -81,13 +82,13 @@ do $$ begin assert public.zt_plan_for(auth.uid()) = 'free', 'on hold is free'; e
 
 -- Owner grants: replace earlier manual grants; free removes them.
 reset role;
-select public.zt_grant_plan('00000000-0000-0000-0000-0000000000f2', 'plus', null, 'beta');
-select public.zt_grant_plan('00000000-0000-0000-0000-0000000000f2', 'max', now() + interval '1 year', 'upgrade');
+select public.zt_grant_plan('00000000-0000-0000-0000-0000000000f2', 'tplus', null, 'beta');
+select public.zt_grant_plan('00000000-0000-0000-0000-0000000000f2', 'tmax', now() + interval '1 year', 'upgrade');
 set role authenticated;
 set request.jwt.claim.sub = '00000000-0000-0000-0000-0000000000f2';
 do $$ begin
   assert (select count(*) from public.zt_subscriptions) = 1, 'one manual grant, own rows only';
-  assert (public.zt_my_plan() ->> 'plan') = 'max', 'granted plan';
+  assert (public.zt_my_plan() ->> 'plan') = 'tmax', 'granted plan';
   assert public.zt_has_feature('vpn'), 'max has vpn';
 end $$;
 reset role;
@@ -98,11 +99,22 @@ do $$ begin
   assert (public.zt_my_plan() ->> 'source') is null, 'no subscription';
 end $$;
 
+-- The seeded Plus plan can be granted and its limits apply.
+reset role;
+select public.zt_grant_plan('00000000-0000-0000-0000-0000000000f2', 'plus', null, 'beta');
+set role authenticated;
+do $$ begin
+  assert (public.zt_my_plan() ->> 'plan') = 'plus', 'plus granted';
+  assert (select max_items from public.zt_storage_limits_for(auth.uid())) = 1000000, 'plus limits';
+end $$;
+reset role;
+select public.zt_grant_plan('00000000-0000-0000-0000-0000000000f2', 'free');
+
 -- Signed out: nothing.
 reset role;
 set role anon;
 select pg_temp.plans_expect_error($$select public.zt_my_plan()$$, 'anon reads plan');
-do $$ begin assert (select count(*) from public.zt_plans) = 3, 'anon reads catalogue'; end $$;
+do $$ begin assert (select count(*) from public.zt_plans) = 4, 'anon reads catalogue'; end $$;
 reset role;
 
 -- Deleting an account removes its subscriptions.
