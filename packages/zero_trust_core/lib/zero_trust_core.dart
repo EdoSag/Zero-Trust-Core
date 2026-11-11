@@ -14,6 +14,7 @@ export 'src/account/biometric_key_store.dart';
 export 'src/account/key_cache.dart';
 export 'src/account/supabase_account_backend.dart';
 export 'src/config/zt_app_config.dart';
+export 'src/config/zt_language.dart';
 export 'src/config/zt_preferences.dart';
 export 'src/config/zt_suite.dart';
 export 'src/core_providers.dart';

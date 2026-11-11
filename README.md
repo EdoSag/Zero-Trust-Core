@@ -28,7 +28,7 @@ dependencies:
     git:
       url: https://github.com/EdoSag/Zero-Trust-Core.git
       path: packages/zero_trust_core
-      ref: v0.9.0   # always pin a release tag; see CHANGELOG.md
+      ref: v0.10.0  # always pin a release tag; see CHANGELOG.md
 ```
 
 ```dart
@@ -60,10 +60,28 @@ attachment (`ZtDataExporter`), handed to the app to share.
 
 ### Languages
 
-Every string the core shows is in `packages/zero_trust_core/lib/l10n/zt_en.arb`.
-Add `ZtL10n.delegate` to `MaterialApp.localizationsDelegates`. A language the
-core doesn't have yet shows English. To add one, copy `zt_en.arb` to
-`zt_<code>.arb`, translate it, and run `flutter gen-l10n` in that package.
+Every app is in English (the default) and Hebrew, chosen under
+Settings → Appearance → Language (English, עברית, or the phone's language).
+The core's own strings are in `packages/zero_trust_core/lib/l10n/zt_en.arb`
+and `zt_he.arb`. An app wires the choice into `MaterialApp` once:
+
+```dart
+// main(), before runApp, so the first frame is already in the right language:
+await ZtLanguageController.preload();
+
+MaterialApp(
+  locale: ref.watch(ztLanguageProvider),
+  supportedLocales: ZtLanguages.supported,
+  localizationsDelegates: [AppL10n.delegate, ...ZtLanguages.delegates],
+)
+```
+
+The app's own strings go in its own `lib/l10n/app_en.arb` and `app_he.arb`
+(same `flutter gen-l10n` setup). Hebrew turns the app right-to-left: use
+`EdgeInsetsDirectional`, `AlignmentDirectional` and `start`/`end` rather than
+`left`/`right`, and keep emails, URLs, phone numbers and codes in
+`TextDirection.ltr` fields. Loading a language also sets
+`Intl.defaultLocale`, so `DateFormat` and `NumberFormat` follow it.
 
 ### Unlock: offline and biometrics
 

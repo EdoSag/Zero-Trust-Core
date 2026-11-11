@@ -42,6 +42,26 @@ don't use sharing change nothing.
   joins, confirm, remove, roles, rename, leave and delete. Each space has its
   own encrypted local store. `InMemorySpaceServer` stands in for Supabase in
   app tests.
+## 0.10.0
+
+Hebrew and English in every app.
+
+- **Hebrew** for every core screen (sign-in, unlock, recovery, onboarding,
+  "How your data is protected", settings, errors), right-to-left.
+- **Language setting** under Settings → Appearance → Language: English (the
+  default), עברית, or the phone's language. Kept per install, like the theme
+  (`ztLanguageProvider`, `ZtLanguageController.preload()`).
+- `ZtLanguages.supported` and `ZtLanguages.delegates` for `MaterialApp`.
+- Loading a language sets `Intl.defaultLocale`, so dates and numbers follow
+  the app's language.
+- Email and recovery key fields stay left-to-right in Hebrew.
+
+Upgrade: in `main()` call `await ZtLanguageController.preload();` before
+`runApp`, and give `MaterialApp`
+`locale: ref.watch(ztLanguageProvider)`,
+`supportedLocales: ZtLanguages.supported` and
+`localizationsDelegates: [AppL10n.delegate, ...ZtLanguages.delegates]`.
+An app that skips this keeps working in English.
 
 ## Unreleased (Android widget kit)
 

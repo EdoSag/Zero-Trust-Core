@@ -6,6 +6,7 @@ import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:intl/intl.dart' as intl;
 
 import 'zt_localizations_en.dart';
+import 'zt_localizations_he.dart';
 
 // ignore_for_file: type=lint
 
@@ -92,7 +93,10 @@ abstract class ZtLocalizations {
   ];
 
   /// A list of this localizations delegate's supported locales.
-  static const List<Locale> supportedLocales = <Locale>[Locale('en')];
+  static const List<Locale> supportedLocales = <Locale>[
+    Locale('en'),
+    Locale('he')
+  ];
 
   /// No description provided for @unlockWithBiometricsQuestion.
   ///
@@ -1155,6 +1159,42 @@ abstract class ZtLocalizations {
   /// In en, this message translates to:
   /// **'Attachments: {used} of {limit}'**
   String storageAttachments(String used, String limit);
+
+  /// Settings row and dialog title for the app's language.
+  ///
+  /// In en, this message translates to:
+  /// **'Language'**
+  String get language;
+
+  /// Language choice that follows the phone's own language.
+  ///
+  /// In en, this message translates to:
+  /// **'Phone\'s language'**
+  String get languagePhone;
+
+  /// No description provided for @taglineNotes.
+  ///
+  /// In en, this message translates to:
+  /// **'Notes, lists and notebooks'**
+  String get taglineNotes;
+
+  /// No description provided for @taglineTasks.
+  ///
+  /// In en, this message translates to:
+  /// **'To-dos, reminders and lists'**
+  String get taglineTasks;
+
+  /// No description provided for @taglineFitness.
+  ///
+  /// In en, this message translates to:
+  /// **'Activity, workouts and health'**
+  String get taglineFitness;
+
+  /// No description provided for @taglineContacts.
+  ///
+  /// In en, this message translates to:
+  /// **'Your address book'**
+  String get taglineContacts;
 }
 
 class _ZtLocalizationsDelegate extends LocalizationsDelegate<ZtLocalizations> {
@@ -1167,7 +1207,7 @@ class _ZtLocalizationsDelegate extends LocalizationsDelegate<ZtLocalizations> {
 
   @override
   bool isSupported(Locale locale) =>
-      <String>['en'].contains(locale.languageCode);
+      <String>['en', 'he'].contains(locale.languageCode);
 
   @override
   bool shouldReload(_ZtLocalizationsDelegate old) => false;
@@ -1178,6 +1218,8 @@ ZtLocalizations lookupZtLocalizations(Locale locale) {
   switch (locale.languageCode) {
     case 'en':
       return ZtLocalizationsEn();
+    case 'he':
+      return ZtLocalizationsHe();
   }
 
   throw FlutterError(
