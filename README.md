@@ -6,6 +6,7 @@ Shared foundation for every Zero-Trust app (Fitness, Contacts, Tasks, Notes, …
 |---|---|
 | `packages/zt_crypto` | Pure Dart: canonical base64, AES-256-GCM sealed boxes, Ed25519, PBKDF2/HKDF, key hierarchy, recovery key |
 | `packages/zero_trust_core` | Flutter: account service (sign-up, sign-in with legacy upgrade, change password, recovery, delete account), vault lock with auto-lock, shared theme |
+| `packages/zt_sharing_ui` | Flutter: the sharing screens every app uses (space members, invite with QR, join, compare codes), English and Hebrew |
 | `supabase/migrations` | The only schema source of truth for the shared Supabase project |
 | `supabase/functions/delete-account` | Edge Function behind in-app account deletion |
 
@@ -248,6 +249,34 @@ ref.watch(ztSpacesProvider)             // spaces, their stores and status
 - Invite links look like `https://zerotrust.bz/join#zt1.<app>.…`; register
   that link (or let users paste it) in the app.
 
+#### Sharing screens (`packages/zt_sharing_ui`)
+
+The screens on top of `ztSpacesProvider`, the same in every app. A separate
+package, so apps that don't share don't get the camera permission the QR
+scanner needs. Pin it to the same commit as `zero_trust_core`:
+
+```yaml
+zt_sharing_ui:
+  git: { url: https://github.com/EdoSag/Zero-Trust-Core.git, path: packages/zt_sharing_ui, ref: <sha> }
+```
+
+```dart
+final name = await ztAskSharingName(context, ref, title: 'Share “Trip”');
+final space = await ref.read(ztSpacesProvider.notifier).create(myName: name!);
+ZtSpacePage.open(context, spaceId: space.id, title: 'Trip', inviteNow: true);
+ZtJoinSpacePage.open(context, initialLink: link);   // from a pasted/opened link
+ZtJoinRequestCards(titleOf: (spaceId) => ...);      // on the home screen
+```
+
+`ZtSpacePage` lists members (owners can make owner, make member, remove),
+people waiting to join, Invite, Leave and Delete for everyone; a person who
+answered but isn't let in yet sees the code to compare. `ZtInvitePage` makes a
+one-person invite (optionally as owner) with a QR code, Copy and Send.
+`ZtJoinSpacePage` refuses links for another app. The name others see is
+remembered in the account's own store (`ztSharingNameProvider`). Text comes
+from `ZtSharingStrings` (English and Hebrew, by the app's locale); the app's
+name comes from `ZtAppConfig.displayName`.
+
 ### Attachments
 
 ```dart
@@ -304,6 +333,7 @@ Android widgets in every app use the shared look in
 ```bash
 (cd packages/zt_crypto && dart pub get && dart test)
 (cd packages/zero_trust_core && flutter pub get && flutter test)
+(cd packages/zt_sharing_ui && flutter pub get && flutter test)
 # Database: every migration plus the guard tests, on a plain Postgres 16
 (cd supabase && psql -v ON_ERROR_STOP=1 -f tests/00_supabase_stub.sql \
   $(for f in migrations/*.sql; do echo -f "$f"; done) -f tests/key_guard_test.sql \

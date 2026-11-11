@@ -3,6 +3,17 @@
 Apps depend on the core by git tag (`ref: vX.Y.Z`). Upgrade notes list what
 an app must change.
 
+## Unreleased (sharing screens)
+
+New package `packages/zt_sharing_ui` with the sharing screens, lifted from
+Tasks and made app-neutral so Notes, Tasks, Calendar and later apps look the
+same: `ZtSpacePage` (members, roles, remove, leave, delete for everyone,
+waiting-to-join code), `ZtInvitePage` (QR, copy, send, invite as owner),
+`ZtJoinSpacePage` (paste or scan, refuses other apps' links, shows the code),
+`ztConfirmJoin`, `ZtJoinRequestCards`, `ztAskSharingName` and
+`ztSharingNameProvider` (the shared name, kept in the account's own store as
+kind `zt.sharing_name`). English and Hebrew. No change to `zero_trust_core`.
+
 ## Unreleased (Z24: sharing between Zero-Trust users)
 
 Shared spaces: encrypted items several accounts share (a child in Meds; later
