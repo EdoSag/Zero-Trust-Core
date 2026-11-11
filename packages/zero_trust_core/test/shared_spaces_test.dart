@@ -357,7 +357,7 @@ void main() {
         identity: (await ZtIdentity.fromDek(dek(9))).public,
         role: SpaceRole.admin,
       );
-      await bs.save(SpaceMember.itemIdFor(mallory), fake.toJson());
+      await bs.save(SpaceMember.itemIdFor(mallory, by: bob), fake.toJson());
       await b.spaces.sync(bs);
       final as = await a.spaces.open(spaceId);
       await a.spaces.sync(as);
@@ -522,6 +522,100 @@ void main() {
     await b2.spaces.sync(s2);
     expect(s2.roster[alice]!.name, 'Alice');
     expect(s2.codec.keyring.writeEpoch, 1);
+  });
+
+  test('fresh devices still trust the space after a second admin confirms',
+      () async {
+    final spaceId = await share(a, b, role: SpaceRole.admin);
+    final as = await a.spaces.open(spaceId);
+    await as.save('med', {'kind': 'medication', 'name': 'Amoxicillin'});
+    await a.spaces.sync(as);
+    final bs = await b.spaces.open(spaceId);
+    await b.spaces.sync(bs);
+    final link = await b.spaces.invite(spaceId);
+    await c.spaces.answer(SpaceInviteLink.parse('$link'), myName: 'Carol');
+    await b.spaces.confirm((await b.spaces.pendingJoins(spaceId)).single);
+    // Another admin changing the creator's entry must not break it either.
+    await b.spaces.rename(spaceId, alice, 'Mom');
+
+    final a2 = await Device(server, alice, 1, device: 'tablet')
+        .start(sharedPrivate: a.private);
+    final s2 = await a2.spaces.open(spaceId);
+    await a2.spaces.sync(s2);
+    expect(s2.roster[alice], isNotNull, reason: 'alice fresh device');
+    expect(s2.roster[alice]!.name, 'Mom');
+    expect(s2.roster[carol], isNotNull);
+    expect(await a2.read(spaceId, 'med'), containsPair('name', 'Amoxicillin'));
+    final b2 = await Device(server, bob, 2, device: 'tablet')
+        .start(sharedPrivate: b.private);
+    final t2 = await b2.spaces.open(spaceId);
+    await b2.spaces.sync(t2);
+    expect(t2.roster[bob], isNotNull, reason: 'bob fresh device');
+    expect(await b2.read(spaceId, 'med'), containsPair('name', 'Amoxicillin'));
+    final c2 = await Device(server, carol, 3, device: 'tablet')
+        .start(sharedPrivate: c.private);
+    final u2 = await c2.spaces.open(spaceId);
+    await c2.spaces.sync(u2);
+    expect(u2.roster[alice]?.name, 'Mom', reason: 'carol fresh device');
+    expect(await c2.read(spaceId, 'med'), containsPair('name', 'Amoxicillin'));
+  });
+
+  test('an admin cannot write the member list rows of another admin', () async {
+    final spaceId = await share(a, b, role: SpaceRole.admin);
+    final bs = await b.spaces.open(spaceId);
+    await b.spaces.sync(bs);
+    final fake = bs.roster[alice]!.copyWith(name: 'Not Alice');
+    await bs.save(SpaceMember.itemIdFor(alice, by: alice), fake.toJson());
+    await b.spaces.sync(bs);
+    final as = await a.spaces.open(spaceId);
+    final result = await a.spaces.sync(as);
+    expect(result.rejected, contains(SpaceMember.itemIdFor(alice, by: alice)));
+    expect(as.roster[alice]!.name, 'Alice');
+  });
+
+  test('spaces from before per-admin rows are repaired by an admin device',
+      () async {
+    final spaceId = await share(a, b, role: SpaceRole.admin);
+    final as = await a.spaces.open(spaceId);
+    await as.save('med', {'kind': 'medication', 'name': 'Amoxicillin'});
+    await a.spaces.sync(as);
+    final bs = await b.spaces.open(spaceId);
+    await b.spaces.sync(bs);
+    // The old layout after Bob confirmed someone: one shared row per
+    // member, every one rewritten under Bob's signature.
+    for (final m in bs.roster.all.toList()) {
+      await bs.engine.save(SpaceMember.legacyItemIdFor(m.userId), m.toJson());
+    }
+    await bs.engine.sync();
+    for (final who in [alice, bob]) {
+      await as.engine.delete(SpaceMember.itemIdFor(who, by: alice));
+      await bs.engine.delete(SpaceMember.itemIdFor(who, by: bob));
+    }
+    await as.engine.sync();
+    await bs.engine.sync();
+
+    // Bob's new phone trusts the space through his own (legacy) entry.
+    final b2 = await Device(server, bob, 2, device: 'tablet')
+        .start(sharedPrivate: b.private);
+    final t2 = await b2.spaces.open(spaceId);
+    await b2.spaces.sync(t2);
+    expect(t2.roster[alice], isNotNull);
+    expect(await b2.read(spaceId, 'med'), containsPair('name', 'Amoxicillin'));
+
+    // Alice's new phone has nothing she signed to start from...
+    final a3 = await Device(server, alice, 1, device: 'old-tablet')
+        .start(sharedPrivate: a.private);
+    final s3 = await a3.spaces.open(spaceId);
+    await a3.spaces.sync(s3);
+    expect(s3.roster[alice], isNull);
+    // ...until her old phone syncs once and vouches again in her own rows.
+    await a.spaces.sync(as);
+    final a2 = await Device(server, alice, 1, device: 'tablet')
+        .start(sharedPrivate: a.private);
+    final s2 = await a2.spaces.open(spaceId);
+    await a2.spaces.sync(s2);
+    expect(s2.roster[bob], isNotNull);
+    expect(await a2.read(spaceId, 'med'), containsPair('name', 'Amoxicillin'));
   });
 
   test('without the private note a device refuses to trust the space',
