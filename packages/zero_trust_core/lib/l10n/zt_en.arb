@@ -351,5 +351,33 @@
   "taglineNotes": "Notes, lists and notebooks",
   "taglineTasks": "To-dos, reminders and lists",
   "taglineFitness": "Activity, workouts and health",
-  "taglineContacts": "Your address book"
+  "taglineContacts": "Your address book",
+  "planName": "Plan: {name}",
+  "@planName": {
+    "description": "Settings row: the account's plan, e.g. 'Plan: Free'",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "planFree": "Free",
+  "planRenews": "Renews {date}",
+  "@planRenews": {
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "planEnds": "Ends {date}",
+  "@planEnds": {
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "planPaymentProblem": "Payment problem. Update your payment method to keep your plan",
+  "planSeePlans": "See plans"
 }

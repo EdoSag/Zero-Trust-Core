@@ -3,6 +3,28 @@
 Apps depend on the core by git tag (`ref: vX.Y.Z`). Upgrade notes list what
 an app must change.
 
+## Unreleased (Z25: plan groundwork)
+
+Plans and what each allows, with no payment provider yet. Needs migration
+`20261111130000_core_v11_plans` on the database. Every account stays on the
+free plan, whose limits are exactly the Z17 defaults, so nothing changes for
+users. Additive: apps change nothing unless they show the plan.
+
+- **Plans.** `zt_plans` (public catalogue: limits, translated names,
+  feature switches such as `drive` or `vpn`) and `zt_subscriptions` (who is
+  on which plan, from where: manual, Google Play, App Store or web; status
+  and period end). Clients only read; the owner or a later billing webhook
+  writes. No payment details are stored, only the store's reference.
+- **Limits follow the plan.** `zt_storage_limits_for` now takes a
+  per-account override first, then the account's plan, then free. A lapsed
+  period keeps the plan for 3 more days so late store renewals don't drop
+  anyone to free.
+- **Server checks.** `zt_has_feature('drive')` for later features' policies
+  and edge functions; `zt_grant_plan(user, plan, until, note)` for the owner
+  to give a plan by hand (SQL editor only).
+- **In the apps.** `ztPlanProvider` / `ZtPlan` (`has('drive')`, `nameFor`),
+  and `ZtPlanTile` ("Plan: Free", renewal date, payment problem), shown by
+  `ZtSettingsPage(showPlan: true, onOpenPlans: ...)`. English and Hebrew.
 ## Unreleased (zt_places: on-device place reminders)
 
 New package `packages/zt_places` (Flutter plugin, Android): "remind me when
