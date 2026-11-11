@@ -1,6 +1,8 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
+import '../vault/vault_controller.dart';
+
 /// Where a subscription was bought (`zt_subscriptions.source`, core 0.11).
 enum ZtPlanSource {
   /// Given by the project owner (beta testers, family, support).
@@ -120,8 +122,16 @@ class SupabasePlanSource implements PlanSource {
 final ztPlanSourceProvider =
     Provider<PlanSource>((ref) => SupabasePlanSource());
 
-/// The account's plan, fetched each time it is first watched. Apps gate
-/// paid features with `ref.watch(ztPlanProvider).value?.has('drive')`; the
-/// server checks again (`zt_has_feature`), so this is only for the UI.
-final ztPlanProvider = FutureProvider.autoDispose<ZtPlan?>(
-    (ref) => ref.watch(ztPlanSourceProvider).fetch());
+/// The account's plan while unlocked; null while locked or signed out.
+/// Apps gate paid features with `ref.watch(ztPlanProvider).value?.has('drive')`;
+/// the server checks again (`zt_has_feature`), so this is only for the UI.
+///
+/// Fetched again on every unlock: signing out locks the vault and signing
+/// in (to any account) unlocks it, so the plan shown never belongs to the
+/// account before.
+final ztPlanProvider = FutureProvider.autoDispose<ZtPlan?>((ref) async {
+  final unlocked =
+      ref.watch(vaultControllerProvider.select((s) => s is VaultUnlocked));
+  if (!unlocked) return null;
+  return ref.watch(ztPlanSourceProvider).fetch();
+});

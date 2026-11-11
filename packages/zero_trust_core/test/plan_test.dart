@@ -1,3 +1,5 @@
+import 'dart:typed_data';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -5,9 +7,20 @@ import 'package:zero_trust_core/zero_trust_core.dart';
 
 class _FakePlan implements PlanSource {
   _FakePlan(this.plan);
-  final ZtPlan? plan;
+  ZtPlan? plan;
+  var fetches = 0;
   @override
-  Future<ZtPlan?> fetch() async => plan;
+  Future<ZtPlan?> fetch() async {
+    fetches++;
+    return plan;
+  }
+}
+
+/// Starts unlocked; [lock] / [signIn] stand in for sign-out and sign-in.
+class _Vault extends VaultController {
+  @override
+  VaultState build() => VaultUnlocked(appKey: Uint8List(32));
+  void signIn() => state = VaultUnlocked(appKey: Uint8List(32));
 }
 
 void main() {
@@ -58,7 +71,10 @@ void main() {
 
   Widget app(ZtPlan? plan, {VoidCallback? onTap, Locale? locale}) =>
       ProviderScope(
-        overrides: [ztPlanSourceProvider.overrideWithValue(_FakePlan(plan))],
+        overrides: [
+          ztPlanSourceProvider.overrideWithValue(_FakePlan(plan)),
+          vaultControllerProvider.overrideWith(_Vault.new),
+        ],
         child: MaterialApp(
           locale: locale,
           supportedLocales: ZtLanguages.supported,
@@ -119,5 +135,26 @@ void main() {
     await tester.pumpWidget(app(null));
     await tester.pumpAndSettle();
     expect(find.byType(ListTile), findsNothing);
+  });
+
+  test('the plan is fetched again after sign-out and sign-in', () async {
+    final source = _FakePlan(const ZtPlan(id: 'plus'));
+    final container = ProviderContainer(overrides: [
+      ztPlanSourceProvider.overrideWithValue(source),
+      vaultControllerProvider.overrideWith(_Vault.new),
+    ]);
+    addTearDown(container.dispose);
+    final sub = container.listen(ztPlanProvider, (_, __) {});
+    addTearDown(sub.close);
+
+    expect((await container.read(ztPlanProvider.future))?.id, 'plus');
+
+    // Sign out (locks), then sign in to a free account (unlocks).
+    container.read(vaultControllerProvider.notifier).lock();
+    expect(await container.read(ztPlanProvider.future), isNull);
+    source.plan = ZtPlan.free;
+    (container.read(vaultControllerProvider.notifier) as _Vault).signIn();
+    expect((await container.read(ztPlanProvider.future))?.id, 'free');
+    expect(source.fetches, 2);
   });
 }
