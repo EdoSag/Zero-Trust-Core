@@ -22,7 +22,7 @@ Additive: Android and iOS apps change nothing.
   attachments added offline and their waiting uploads and deletes survive a
   reload.
 - **Export on the web** downloads the zip.
-- `example/`: a smoke-check app; CI builds it for web and Linux.
+- `example/`: a smoke-check app; CI builds it for the web.
 
 ## Unreleased (Z25: plan groundwork)
 

@@ -352,7 +352,7 @@ What is different off the phone:
   `onDataExported` is only called on devices.
 
 `packages/zero_trust_core/example` is a small app that checks the encrypted
-store on each platform; CI builds it for the web and for Linux (where it also runs it).
+store on each platform; CI builds it for the web. Run it on Linux, Windows or macOS by hand (see its README); the Actions runners here cannot reach the Ubuntu package servers to install GTK.
 
 ## Home screen widgets
 
