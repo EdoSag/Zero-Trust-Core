@@ -666,4 +666,10 @@ class ZtLocalizationsEn extends ZtLocalizations {
   String storageAttachments(String used, String limit) {
     return 'Attachments: $used of $limit';
   }
+
+  @override
+  String get language => 'Language';
+
+  @override
+  String get languagePhone => 'Phone\'s language';
 }

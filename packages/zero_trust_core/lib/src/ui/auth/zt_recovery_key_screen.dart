@@ -64,6 +64,8 @@ class _ZtRecoveryKeyScreenState extends State<ZtRecoveryKeyScreen> {
                             .recoveryKeySpelled(_spelled(_text!)),
                         key: const Key('zt-recovery-key'),
                         textAlign: TextAlign.center,
+                        // Groups stay in reading order in Hebrew too.
+                        textDirection: TextDirection.ltr,
                         style: theme.textTheme.titleMedium?.copyWith(
                           fontFamily: 'monospace',
                           letterSpacing: 1.2,

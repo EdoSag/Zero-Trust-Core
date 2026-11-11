@@ -86,6 +86,7 @@ class _ZtResetPasswordScreenState extends ConsumerState<ZtResetPasswordScreen> {
                     labelText: ZtL10n.of(context).recoveryKey,
                     hintText: 'ZT-XXXX-XXXX-…'),
                 textCapitalization: TextCapitalization.characters,
+                textDirection: TextDirection.ltr,
                 autocorrect: false,
                 validator: (v) => (v ?? '').trim().isEmpty
                     ? ZtL10n.of(context).enterYourRecoveryKey

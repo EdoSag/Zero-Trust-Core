@@ -10,6 +10,7 @@ import '../../config/zt_app_config.dart';
 import '../../export/zt_data_export.dart';
 import '../../export/zt_export_data_tile.dart';
 import '../../attachments/attachment_cache.dart';
+import '../../config/zt_language.dart';
 import '../../config/zt_preferences.dart';
 import '../../config/zt_suite.dart';
 import '../brand/zt_brand_mark.dart';
@@ -87,6 +88,7 @@ class ZtSettingsPage extends ConsumerWidget {
     final config = ref.watch(ztAppConfigProvider);
     final account = ref.watch(accountServiceProvider);
     final themeMode = ref.watch(themeModeProvider);
+    final language = ref.watch(ztLanguageProvider);
     final autoLock = ref.watch(ztAutoLockProvider);
     final theme = Theme.of(context);
 
@@ -143,6 +145,14 @@ class ZtSettingsPage extends ConsumerWidget {
                 builder: (_) => const ZtDataProtectionScreen())),
           ),
           _Header(ZtL10n.of(context).appearance),
+          ListTile(
+            leading: const Icon(Icons.language),
+            title: Text(ZtL10n.of(context).language),
+            subtitle: Text(language == null
+                ? ZtL10n.of(context).languagePhone
+                : ZtLanguages.nativeName(language)),
+            onTap: () => _pickLanguage(context, ref, language),
+          ),
           RadioGroup<ThemeMode>(
             groupValue: themeMode,
             onChanged: (m) => ref.read(themeModeProvider.notifier).set(m!),
@@ -281,6 +291,42 @@ class ZtSettingsPage extends ConsumerWidget {
     if (picked != null) {
       await ref.read(ztAutoLockProvider.notifier).set(picked.$1);
     }
+  }
+
+  Future<void> _pickLanguage(
+      BuildContext context, WidgetRef ref, Locale? current) async {
+    const phone = 'phone';
+    final picked = await showDialog<String>(
+      context: context,
+      builder: (context) => SimpleDialog(
+        title: Text(ZtL10n.of(context).language),
+        children: [
+          RadioGroup<String>(
+            groupValue: current?.languageCode ?? phone,
+            onChanged: (code) => Navigator.pop(context, code),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                for (final locale in ZtLanguages.supported)
+                  RadioListTile<String>(
+                    value: locale.languageCode,
+                    // Each name in its own language, so it can be found
+                    // whatever the app is showing now.
+                    title: Text(ZtLanguages.nativeName(locale)),
+                  ),
+                RadioListTile<String>(
+                    value: phone,
+                    title: Text(ZtL10n.of(context).languagePhone)),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+    if (picked == null) return;
+    await ref
+        .read(ztLanguageProvider.notifier)
+        .set(picked == phone ? null : Locale(picked));
   }
 
   Future<void> _changePassword(BuildContext context, WidgetRef ref) async {
