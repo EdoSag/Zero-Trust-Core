@@ -5,6 +5,7 @@ Shared foundation for every Zero-Trust app (Fitness, Contacts, Tasks, Notes, …
 | Path | What |
 |---|---|
 | `packages/zt_crypto` | Pure Dart: canonical base64, AES-256-GCM sealed boxes, Ed25519, PBKDF2/HKDF, key hierarchy, recovery key |
+| `packages/zt_places` | Flutter plugin: on-device place reminders (arrive / leave) and the shared place picker |
 | `packages/zero_trust_core` | Flutter: account service (sign-up, sign-in with legacy upgrade, change password, recovery, delete account), vault lock with auto-lock, shared theme |
 | `supabase/migrations` | The only schema source of truth for the shared Supabase project |
 | `supabase/functions/delete-account` | Edge Function behind in-app account deletion |
@@ -247,6 +248,29 @@ ref.watch(ztSpacesProvider)             // spaces, their stores and status
   readable; a removed member gets nothing written after their removal.
 - Invite links look like `https://zerotrust.bz/join#zt1.<app>.…`; register
   that link (or let users paste it) in the app.
+
+### Place reminders (`packages/zt_places`)
+
+"Remind me when I arrive at / leave a place", watched by the phone itself
+(Android's `LocationManager` proximity alerts; no Google Play services, no
+map tiles, no address search), so the location never leaves the phone. A
+separate package, so only apps that use it ask for location.
+
+```dart
+final places = ZtPlaceRemindersAndroid();       // ZtPlaceRemindersFake in tests
+final choice = await ZtPlacePickerPage.show(context,
+    reminders: places, savedPlaces: myPlaces, newId: newUuid);
+await places.sync([
+  ZtPlaceReminder(id: '$noteId@$setAt', place: choice!.place,
+      trigger: choice.trigger, title: note.title, payload: noteId),
+], style: const ZtPlaceNotificationStyle(
+    channelId: 'place_reminders', channelName: 'Place reminders'));
+places.events.listen((e) { /* fired, done, tap: e.payload */ });
+await places.collect();                         // on unlock and resume
+```
+
+Keep reminders and "My places" in the app's own encrypted store and pass
+the full list to `sync` whenever it changes. iOS is not built yet.
 
 ### Attachments
 
