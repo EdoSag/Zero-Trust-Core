@@ -1,3 +1,5 @@
+import 'dart:io' show exit;
+
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:zero_trust_core/zero_trust_core.dart';
@@ -97,6 +99,10 @@ class _SmokeCheckState extends State<SmokeCheck> {
     runSmokeCheck().catchError((Object e) => 'FAIL: $e').then((r) {
       debugPrint(r);
       if (mounted) setState(() => _result = r);
+      // On desktop CI runs the app headless: exit with the result.
+      if (!kIsWeb && const bool.fromEnvironment('ZT_SMOKE_EXIT')) {
+        exit(r.startsWith('PASS') ? 0 : 1);
+      }
     });
   }
 

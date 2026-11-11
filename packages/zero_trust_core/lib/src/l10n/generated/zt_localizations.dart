@@ -1201,6 +1201,42 @@ abstract class ZtLocalizations {
   /// In en, this message translates to:
   /// **'Your address book'**
   String get taglineContacts;
+
+  /// Settings row: the account's plan, e.g. 'Plan: Free'
+  ///
+  /// In en, this message translates to:
+  /// **'Plan: {name}'**
+  String planName(String name);
+
+  /// No description provided for @planFree.
+  ///
+  /// In en, this message translates to:
+  /// **'Free'**
+  String get planFree;
+
+  /// No description provided for @planRenews.
+  ///
+  /// In en, this message translates to:
+  /// **'Renews {date}'**
+  String planRenews(String date);
+
+  /// No description provided for @planEnds.
+  ///
+  /// In en, this message translates to:
+  /// **'Ends {date}'**
+  String planEnds(String date);
+
+  /// No description provided for @planPaymentProblem.
+  ///
+  /// In en, this message translates to:
+  /// **'Payment problem. Update your payment method to keep your plan'**
+  String get planPaymentProblem;
+
+  /// No description provided for @planSeePlans.
+  ///
+  /// In en, this message translates to:
+  /// **'See plans'**
+  String get planSeePlans;
 }
 
 class _ZtLocalizationsDelegate extends LocalizationsDelegate<ZtLocalizations> {

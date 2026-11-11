@@ -31,8 +31,32 @@ jobs:
       - run: flutter analyze --fatal-infos
       - run: flutter test
 
+  zt_places:
+    runs-on: ubuntu-latest
+    defaults: { run: { working-directory: packages/zt_places } }
+    steps:
+      - uses: actions/checkout@v4
+      - uses: subosito/flutter-action@v2
+        with: { channel: stable, flutter-version: 3.47.9 }
+      - run: flutter pub get
+      - run: dart format --output=none --set-exit-if-changed .
+      - run: flutter analyze --fatal-infos
+      - run: flutter test
+      - uses: actions/setup-java@v4
+        with: { distribution: temurin, java-version: '17' }
+      - name: Android code compiles (the plugin is plain Java, no Gradle needed)
+        run: |
+          mkdir -p /tmp/stub/androidx/annotation /tmp/out
+          echo 'package androidx.annotation; public @interface NonNull {}' > /tmp/stub/androidx/annotation/NonNull.java
+          EMB=$(cat "$FLUTTER_ROOT/bin/internal/engine.version")
+          curl -sSfo /tmp/emb.jar "https://storage.googleapis.com/download.flutter.io/io/flutter/flutter_embedding_debug/1.0.0-$EMB/flutter_embedding_debug-1.0.0-$EMB.jar"
+          PLATFORM=$(ls -d "$ANDROID_HOME"/platforms/android-* | sort -V | tail -1)
+          javac -Xlint:-deprecation -d /tmp/out -cp "$PLATFORM/android.jar:/tmp/emb.jar" \
+            /tmp/stub/androidx/annotation/NonNull.java android/src/main/java/dev/sagron/zt_places/*.java
+
   web_and_desktop:
     runs-on: ubuntu-latest
+    timeout-minutes: 30
     defaults: { run: { working-directory: packages/zero_trust_core/example } }
     steps:
       - uses: actions/checkout@v4
@@ -43,10 +67,14 @@ jobs:
       - run: flutter analyze --fatal-infos
       - run: ../../../tool/fetch_sqlite3mc_wasm.sh web/
       - run: flutter build web --no-web-resources-cdn
-      - run: flutter build linux --debug
+      - run: flutter build linux --debug --dart-define=ZT_SMOKE_EXIT=true
       - name: Encrypted store works on Linux
+        timeout-minutes: 5
         run: |
-          timeout 120 xvfb-run -a build/linux/x64/debug/bundle/zt_platform_smoke | tee run.log || true
+          # The app exits by itself with the result; its output goes to a
+          # file (not a pipe) so nothing waits on a stray child process.
+          xvfb-run -a build/linux/x64/debug/bundle/zt_platform_smoke > run.log 2>&1 || true
+          cat run.log
           grep -q '^PASS' run.log
 
   database:
@@ -70,7 +98,8 @@ jobs:
             -f tests/attachments_test.sql \
             -f tests/storage_quota_test.sql \
             -f tests/drop_unused_tables_test.sql \
-            -f tests/shared_spaces_test.sql
+            -f tests/shared_spaces_test.sql \
+            -f tests/plans_test.sql
 
   edge_functions:
     runs-on: ubuntu-latest

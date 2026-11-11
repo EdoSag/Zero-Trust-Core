@@ -697,4 +697,29 @@ class ZtLocalizationsHe extends ZtLocalizations {
 
   @override
   String get taglineContacts => 'פנקס הכתובות שלך';
+
+  @override
+  String planName(String name) {
+    return 'תוכנית: $name';
+  }
+
+  @override
+  String get planFree => 'חינם';
+
+  @override
+  String planRenews(String date) {
+    return 'מתחדשת ב-$date';
+  }
+
+  @override
+  String planEnds(String date) {
+    return 'מסתיימת ב-$date';
+  }
+
+  @override
+  String get planPaymentProblem =>
+      'בעיה בתשלום. יש לעדכן את אמצעי התשלום כדי לשמור על התוכנית';
+
+  @override
+  String get planSeePlans => 'לתוכניות';
 }

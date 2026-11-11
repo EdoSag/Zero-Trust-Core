@@ -183,5 +183,11 @@
   "taglineNotes": "פתקים, רשימות ומחברות",
   "taglineTasks": "משימות, תזכורות ורשימות",
   "taglineFitness": "פעילות, אימונים ובריאות",
-  "taglineContacts": "פנקס הכתובות שלך"
+  "taglineContacts": "פנקס הכתובות שלך",
+  "planName": "תוכנית: {name}",
+  "planFree": "חינם",
+  "planRenews": "מתחדשת ב-{date}",
+  "planEnds": "מסתיימת ב-{date}",
+  "planPaymentProblem": "בעיה בתשלום. יש לעדכן את אמצעי התשלום כדי לשמור על התוכנית",
+  "planSeePlans": "לתוכניות"
 }

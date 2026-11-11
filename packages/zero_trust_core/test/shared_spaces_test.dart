@@ -14,9 +14,14 @@ Uint8List dek(int seed) =>
 
 /// One account on one device.
 class Device {
-  Device(this.server, this.userId, int seed, {String device = 'd'})
+  Device(this.server, this.userId, int seed,
+      {String device = 'd', this.policy = defaultPolicy})
       : _seed = seed,
         _device = '$device-$userId';
+
+  static const defaultPolicy =
+      SpacePolicy(adminOnlyKinds: {'medication'}, ownedPrefixes: {'progress/'});
+  final SpacePolicy policy;
 
   final InMemorySpaceServer server;
   final String userId;
@@ -36,7 +41,7 @@ class Device {
       openStore: (id) async => stores.putIfAbsent(id, InMemoryItemStore.new),
       deleteStore: (id) async => stores.remove(id),
       deviceId: _device,
-      policy: const SpacePolicy(adminOnlyKinds: {'medication'}),
+      policy: policy,
     );
     return this;
   }
@@ -311,6 +316,34 @@ void main() {
       final result = await a.spaces.sync(as);
       expect(result.rejected, contains('med'));
       expect(await a.read(spaceId, 'med'), isNull);
+    });
+
+    test("items owned by one member can't be written in their name", () async {
+      final spaceId = await share(a, b);
+      final bs = await b.spaces.open(spaceId);
+      await bs.save('progress/$bob', {'kind': 'progress', 'total': 10});
+      await b.spaces.sync(bs);
+      expect(() => bs.save('progress/$alice', {'kind': 'progress'}),
+          throwsArgumentError);
+      // Not even an admin may write or delete another member's item.
+      final as = await a.spaces.open(spaceId);
+      expect(() => as.delete('progress/$bob'), throwsArgumentError);
+      await a.spaces.sync(as);
+      expect((await a.read(spaceId, 'progress/$bob'))?['total'], 10);
+
+      // A changed app that skips the check: the others refuse its rows.
+      final evil = await Device(server, bob, 2,
+              device: 'evil', policy: const SpacePolicy())
+          .start(sharedPrivate: b.private);
+      final es = await evil.spaces.open(spaceId);
+      await evil.spaces.sync(es);
+      await es.save('progress/$alice', {'kind': 'progress', 'total': 1});
+      await es.save('progress/$bob/2026-11-11', {'kind': 'progress'});
+      await evil.spaces.sync(es);
+      final result = await a.spaces.sync(as);
+      expect(result.rejected, contains('progress/$alice'));
+      expect(await a.read(spaceId, 'progress/$alice'), isNull);
+      expect(await a.read(spaceId, 'progress/$bob/2026-11-11'), isNotNull);
     });
 
     test('a member list entry not written by an admin is ignored', () async {
