@@ -9,7 +9,12 @@ import 'package:zt_crypto/zt_crypto.dart';
 /// fragment to a server, so the token and fingerprint don't reach
 /// zerotrust.bz either.
 ///
-/// `https://zerotrust.bz/join#zt1.<app>.<invite>.<token>.<inviter>.<fp>`
+/// `https://zerotrust.bz/join/<app>#zt1.<app>.<invite>.<token>.<inviter>.<fp>`
+///
+/// The app is in the path as well, so that each app can claim its own
+/// links (`pathPrefix="/join/<app>"` in its manifest). With one shared
+/// `/join` path, Android would open every invite in whichever Zero-Trust
+/// app was installed last.
 class SpaceInviteLink {
   SpaceInviteLink({
     required this.app,
@@ -32,7 +37,7 @@ class SpaceInviteLink {
   final Uint8List inviterFingerprint;
 
   @override
-  String toString() => '$base#$_version.$app.$inviteId.'
+  String toString() => '$base/$app#$_version.$app.$inviteId.'
       '${ZtBase64.encode(secret.token)}.$inviterUserId.'
       '${ZtBase64.encode(inviterFingerprint)}';
 

@@ -3,6 +3,17 @@
 Apps depend on the core by git tag (`ref: vX.Y.Z`). Upgrade notes list what
 an app must change.
 
+## Unreleased (invite links per app)
+
+Invite links are now `https://zerotrust.bz/join/<app>#zt1.…` (the app id
+was only after the `#` before). All sharing apps claimed the same `/join`
+path, so on a phone with two of them Android opened every invite in the one
+installed last. Links in the old form are still read when pasted or scanned.
+
+Upgrade notes: in `AndroidManifest.xml`, change the invite intent filter to
+`android:pathPrefix="/join/<appId>"` (for example `/join/meds`). The website
+serves `/join/<app>/` from Zero-Trust-Website.
+
 ## Unreleased (invite proof check)
 
 Database fix (migration `20261111200000_invite_null_proof`): answering a
