@@ -13,6 +13,13 @@ installed last. Links in the old form are still read when pasted or scanned.
 Upgrade notes: in `AndroidManifest.xml`, change the invite intent filter to
 `android:pathPrefix="/join/<appId>"` (for example `/join/meds`). The website
 serves `/join/<app>/` from Zero-Trust-Website.
+## Unreleased (space stores and locking)
+
+Fix: a vault lock while a shared space's local store was opening could use
+the already zeroed key, see the file as unreadable and move it aside (with
+any unsynced edits), and leave a store open that nothing closed. The opener
+now copies the key first, stops when locked, closes a store that finished
+opening too late, and opens each space only once. No app change.
 
 ## Unreleased (invite proof check)
 
