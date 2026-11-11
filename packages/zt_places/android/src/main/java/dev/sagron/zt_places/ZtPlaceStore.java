@@ -36,6 +36,12 @@ final class ZtPlaceStore {
         String payload;
         /** For "arrive": false until the phone has been seen outside the place. */
         boolean armed;
+        /**
+         * For "arrive": the phone's state at the place is known (it was seen
+         * outside when the reminder was set, or has left since), so an
+         * arrival is real rather than the OS reporting where it already was.
+         */
+        boolean settled;
         long registeredAt;
 
         boolean samePlace(Reminder other) {
@@ -57,6 +63,7 @@ final class ZtPlaceStore {
             o.put("body", body == null ? "" : body);
             o.put("payload", payload == null ? "" : payload);
             o.put("armed", armed);
+            o.put("settled", settled);
             o.put("registeredAt", registeredAt);
             return o;
         }
@@ -72,6 +79,7 @@ final class ZtPlaceStore {
             r.body = o.optString("body");
             r.payload = o.optString("payload");
             r.armed = o.optBoolean("armed", true);
+            r.settled = o.optBoolean("settled", true);
             r.registeredAt = o.optLong("registeredAt", 0);
             return r;
         }

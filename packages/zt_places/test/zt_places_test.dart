@@ -25,6 +25,13 @@ void main() {
       }
     });
 
+    test('a broken %-escape is read as typed, not an error', () {
+      expect(ZtLatLng.tryParse('32.0853, 34.7818 %'), isNull);
+      expect(ZtLatLng.tryParse('geo:32.0853,34.7818?q=%2'),
+          const ZtLatLng(32.0853, 34.7818));
+      expect(ZtLatLng.tryParse('https://maps.example/?q=%'), isNull);
+    });
+
     test('refuses text without a position, and impossible numbers', () {
       for (final s in [
         '',
@@ -136,6 +143,45 @@ void main() {
         ZtPlaceEvent(ZtPlaceEventType.fired, 'r1', 'note-1'),
         ZtPlaceEvent(ZtPlaceEventType.done, 'r1', 'note-1'),
         ZtPlaceEvent(ZtPlaceEventType.tap, 'r1', 'note-1'),
+      ]);
+      await sub.cancel();
+    });
+
+    test('clearing (sign-out) drops events held for a listener', () async {
+      final r = ZtPlaceRemindersAndroid();
+      await TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+          .handlePlatformMessage(
+              channel.name,
+              channel.codec.encodeMethodCall(const MethodCall('event')),
+              (_) {});
+      await pumpEventQueue();
+      await r.clear();
+      final events = <ZtPlaceEvent>[];
+      final sub = r.events.listen(events.add);
+      await pumpEventQueue();
+      expect(events, isEmpty);
+      await sub.cancel();
+    });
+
+    test('events taken while nothing listens wait for the first listener',
+        () async {
+      final r = ZtPlaceRemindersAndroid();
+      // The native side nudges while the app is still locked: nobody
+      // listens yet, and the native queue is emptied by this read.
+      await TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+          .handlePlatformMessage(
+              channel.name,
+              channel.codec.encodeMethodCall(const MethodCall('event')),
+              (_) {});
+      await pumpEventQueue();
+      expect(calls.map((c) => c.method), contains('takeEvents'));
+
+      final events = <ZtPlaceEvent>[];
+      final sub = r.events.listen(events.add);
+      await pumpEventQueue();
+      expect(events, const [
+        ZtPlaceEvent(ZtPlaceEventType.fired, 'r1', 'note-1'),
+        ZtPlaceEvent(ZtPlaceEventType.done, 'r1', 'note-1'),
       ]);
       await sub.cancel();
     });

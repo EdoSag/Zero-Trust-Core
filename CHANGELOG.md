@@ -78,6 +78,12 @@ Separate from `zero_trust_core`, so only apps that use it ask for location.
 - **Permissions.** `permissions()`, `requestLocation()`,
   `requestBackground()` ("Allow all the time"), `requestNotifications()`,
   `openSettings()`. Tests use `ZtPlaceRemindersFake`.
+- **Fixes after review.** An "arrive" reminder set while known to be
+  outside, or that has seen the phone leave, now fires on the next arrival
+  even within the first two minutes. Events read from the phone's queue
+  while no app code listens (before unlock) wait for the first listener
+  instead of being dropped. `ZtLatLng.tryParse` returns null instead of
+  throwing on a broken %-escape.
 
 Using it from an app:
 
