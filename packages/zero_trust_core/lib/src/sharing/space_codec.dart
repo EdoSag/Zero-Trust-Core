@@ -11,11 +11,33 @@ import 'space_backend.dart';
 /// Which items only a space's admins may write. Items whose id starts with
 /// `zt.` belong to the core (the member list) and are always admin-only.
 class SpacePolicy {
-  const SpacePolicy({this.adminOnlyKinds = const {}});
+  const SpacePolicy({
+    this.adminOnlyKinds = const {},
+    this.ownedPrefixes = const {},
+  });
 
   /// Item `kind`s only admins may create, change or delete (in Meds:
   /// children, medications and treatments; caregivers only log doses).
   final Set<String> adminOnlyKinds;
+
+  /// Item id prefixes whose items belong to one member: an item
+  /// `<prefix><userId>` (or `<prefix><userId>/...`) may be written or
+  /// deleted only by that member, not even by an admin. For what each
+  /// person shares about themselves (in Fitness: their challenge progress),
+  /// so nobody can put numbers in someone else's name.
+  final Set<String> ownedPrefixes;
+
+  /// The member an item belongs to under [ownedPrefixes], or null.
+  String? ownerOf(String itemId) {
+    for (final prefix in ownedPrefixes) {
+      if (!itemId.startsWith(prefix)) continue;
+      final rest = itemId.substring(prefix.length);
+      final slash = rest.indexOf('/');
+      final owner = slash < 0 ? rest : rest.substring(0, slash);
+      return owner.isEmpty ? null : owner;
+    }
+    return null;
+  }
 
   bool isAdminOnly(String itemId, Map<String, Object?>? json) =>
       itemId.startsWith('zt.') ||
@@ -236,6 +258,10 @@ class SpaceItemCodec implements ItemCodec {
     final epoch = keyring.writeEpoch;
     final key = epoch == null ? null : keyring[epoch];
     if (epoch == null || key == null) throw const SpaceKeyUnavailable();
+    final owner = policy.ownerOf(item.itemId);
+    if (owner != null && owner != myUserId) {
+      throw StateError('${item.itemId} belongs to another member');
+    }
     final adminOnly = policy.isAdminOnly(item.itemId, item.json);
     final blob = item.deleted
         ? null
@@ -290,6 +316,10 @@ class SpaceItemCodec implements ItemCodec {
         (json == null && remote.itemId.startsWith('zt.'));
     if (adminOnly && !roster.mayAdminister(member)) {
       throw const FormatException('Admin-only item from a non-admin');
+    }
+    final owner = policy.ownerOf(remote.itemId);
+    if (owner != null && owner != member.userId) {
+      throw const FormatException("Written in another member's name");
     }
   }
 

@@ -42,6 +42,18 @@ don't use sharing change nothing.
   joins, confirm, remove, roles, rename, leave and delete. Each space has its
   own encrypted local store. `InMemorySpaceServer` stands in for Supabase in
   app tests.
+## Unreleased (owned items in shared spaces)
+
+Additive, client side only (no database change).
+
+- **Items owned by one member.** `SpacePolicy(ownedPrefixes: {...})`: an item
+  `<prefix><userId>` (or `<prefix><userId>/...`) can be written or deleted
+  only by that member, not even by an admin. `SharedSpace.save`/`delete`
+  refuse it locally, and other members' devices reject such rows from anyone
+  else (the author is signed into every row), so a changed app can't post
+  numbers in someone else's name. Fitness challenges use it for each
+  person's progress.
+
 ## 0.10.0
 
 Hebrew and English in every app.
