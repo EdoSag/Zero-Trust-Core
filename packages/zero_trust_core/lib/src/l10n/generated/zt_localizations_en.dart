@@ -684,4 +684,80 @@ class ZtLocalizationsEn extends ZtLocalizations {
 
   @override
   String get taglineContacts => 'Your address book';
+
+  @override
+  String get crashReports => 'Crash reports';
+
+  @override
+  String get crashReportsOff => 'Off';
+
+  @override
+  String get crashReportsAsk => 'Ask me before sending';
+
+  @override
+  String get crashReportsKeep => 'Keep on this phone so I can copy them';
+
+  @override
+  String get crashReportsAutomatic => 'Send automatically';
+
+  @override
+  String get crashReportsIntro =>
+      'When the app hits a bug, it can write a short technical report to help fix it. This is off unless you turn it on.';
+
+  @override
+  String get crashReportsIncluded =>
+      'Included: the app and its version, Android or iPhone, the date, the kind of error and where in the code it happened.';
+
+  @override
+  String get crashReportsNeverIncluded =>
+      'Never included: anything you wrote or saved, your email or account, your phone\'s name or id, or your location.';
+
+  @override
+  String get crashReportsSaved => 'Saved reports';
+
+  @override
+  String get crashReportsNone => 'No saved reports';
+
+  @override
+  String crashReportHappened(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Happened $count times',
+      one: 'Happened once',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get crashReportSend => 'Send';
+
+  @override
+  String get crashReportSent => 'Report sent. Thank you!';
+
+  @override
+  String get crashReportNotSent => 'Couldn\'t send it. It\'s kept for later.';
+
+  @override
+  String get crashReportCopied => 'Report copied';
+
+  @override
+  String get crashReportsDeleteAll => 'Delete all';
+
+  @override
+  String get crashReportWholeReport =>
+      'This is the whole report, exactly as it would leave your phone.';
+
+  @override
+  String get crashReportPromptTitle => 'The app hit a problem';
+
+  @override
+  String get crashReportPromptBody =>
+      'Send a crash report to help fix it? It holds no personal data.';
+
+  @override
+  String get crashReportView => 'View report';
+
+  @override
+  String get crashReportDontSend => 'Don\'t send';
 }

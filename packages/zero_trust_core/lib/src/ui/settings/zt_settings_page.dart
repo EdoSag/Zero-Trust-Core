@@ -14,6 +14,7 @@ import '../../config/zt_language.dart';
 import '../../config/zt_preferences.dart';
 import '../../config/zt_suite.dart';
 import '../brand/zt_brand_mark.dart';
+import 'zt_crash_reports_screen.dart';
 import 'zt_data_protection_screen.dart';
 import '../../core_providers.dart';
 import '../../vault/vault_controller.dart';
@@ -144,6 +145,7 @@ class ZtSettingsPage extends ConsumerWidget {
             onTap: () => Navigator.of(context).push(MaterialPageRoute<void>(
                 builder: (_) => const ZtDataProtectionScreen())),
           ),
+          const ZtCrashReportsTile(),
           _Header(ZtL10n.of(context).appearance),
           ListTile(
             leading: const Icon(Icons.language),
