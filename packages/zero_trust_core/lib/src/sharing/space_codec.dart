@@ -44,9 +44,17 @@ class SpacePolicy {
       (json != null && adminOnlyKinds.contains(json['kind']));
 }
 
-/// One person in a space's member list. Kept inside the space as an
-/// encrypted item (`zt.member/<userId>`), written and signed by an admin, so
-/// names and keys never reach the server.
+/// One person in a space's member list. Kept inside the space as encrypted
+/// items, so names and keys never reach the server.
+///
+/// Each admin vouches for a member in a row of its own,
+/// `zt.member/<userId>/by/<adminId>`, which only that admin may write. So
+/// one admin's entries never replace another's, and every device can
+/// still build the list from the account its trust starts from (see
+/// [SpaceAnchor]). When rows disagree, the newest one wins.
+///
+/// Spaces made before this layout also hold `zt.member/<userId>` rows
+/// that any admin could rewrite; they are still read.
 class SpaceMember {
   const SpaceMember({
     required this.userId,
@@ -68,7 +76,31 @@ class SpaceMember {
       );
 
   static const kind = 'zt.member';
-  static String itemIdFor(String userId) => 'zt.member/$userId';
+  static const prefix = 'zt.member/';
+
+  /// The row in which [voucher] (an admin) vouches for [userId].
+  static String itemIdFor(String userId, {required String by}) =>
+      '$prefix$userId/by/$by';
+
+  /// The older, shared row for [userId] (spaces made before per-admin rows).
+  static String legacyItemIdFor(String userId) => '$prefix$userId';
+
+  /// Whom a member-list row is about and, for a per-admin row, who alone
+  /// may write it. Null for anything else.
+  static ({String subject, String? voucher})? parseItemId(String itemId) {
+    if (!itemId.startsWith(prefix)) return null;
+    final parts = itemId.substring(prefix.length).split('/');
+    if (parts.length == 1 && parts[0].isNotEmpty) {
+      return (subject: parts[0], voucher: null);
+    }
+    if (parts.length == 3 &&
+        parts[0].isNotEmpty &&
+        parts[1] == 'by' &&
+        parts[2].isNotEmpty) {
+      return (subject: parts[0], voucher: parts[2]);
+    }
+    return null;
+  }
 
   final String userId;
   final String name;
@@ -133,7 +165,8 @@ class SpaceAnchor {
 }
 
 /// The member list this device trusts, built from the anchor outward: the
-/// anchor's own entry (its keys must match the fingerprint), then every
+/// anchor's own entry (its keys must match the fingerprint) or this
+/// account's own entry (written with this device's own key), then every
 /// entry written by a trusted admin.
 class SpaceRoster {
   SpaceRoster(this.anchor);
@@ -149,6 +182,9 @@ class SpaceRoster {
   final Map<String, DateTime> _versions = {};
 
   SpaceMember? operator [](String userId) => _members[userId];
+
+  /// The time of the entry known for [userId], or null.
+  DateTime? versionOf(String userId) => _versions[userId];
   Iterable<SpaceMember> get all => _members.values;
   Iterable<SpaceMember> get current => all.where((m) => !m.removed);
 
@@ -321,6 +357,16 @@ class SpaceItemCodec implements ItemCodec {
     if (owner != null && owner != member.userId) {
       throw const FormatException("Written in another member's name");
     }
+    if (remote.itemId.startsWith(SpaceMember.prefix)) {
+      final row = SpaceMember.parseItemId(remote.itemId);
+      if (row == null) throw const FormatException('Bad member list row');
+      if (row.voucher != null && row.voucher != member.userId) {
+        throw const FormatException("Another admin's member list row");
+      }
+      if (json != null && json['userId'] != row.subject) {
+        throw const FormatException('Member list row about someone else');
+      }
+    }
   }
 
   Future<Map<String, Object?>?> _verifyAndOpen(
@@ -361,7 +407,7 @@ class SpaceItemCodec implements ItemCodec {
   Future<void> prepare(List<RemoteItem> batch) async {
     final pending = [
       for (final r in batch)
-        if (r.itemId.startsWith('zt.member/') && !r.deleted) r,
+        if (r.itemId.startsWith(SpaceMember.prefix) && !r.deleted) r,
     ];
     var progress = true;
     while (progress && pending.isNotEmpty) {
@@ -381,7 +427,11 @@ class SpaceItemCodec implements ItemCodec {
   Future<bool?> _learn(RemoteItem row) async {
     final author = row.authorId;
     if (author == null) return false;
-    final subject = row.itemId.substring('zt.member/'.length);
+    final parsed = SpaceMember.parseItemId(row.itemId);
+    if (parsed == null) return false;
+    // A per-admin row counts only when that admin wrote it.
+    if (parsed.voucher != null && parsed.voucher != author) return false;
+    final subject = parsed.subject;
     try {
       if (roster.canVouch(author, row.keyEpoch ?? 0)) {
         final voucher = roster[author]!;
@@ -392,11 +442,13 @@ class SpaceItemCodec implements ItemCodec {
         if (member.userId != subject) return false;
         return roster.accept(member, row.updatedAt);
       }
-      // The anchor's own entry, about itself, by itself: its keys must match
-      // the fingerprint this device got from the invite link.
-      if (author == roster.anchor.userId &&
-          subject == author &&
-          roster[author] == null) {
+      // Where trust starts: the anchor's own entry, about itself, by itself,
+      // whose keys must match the fingerprint this device got from the
+      // invite link; or this account's own entry, signed with this device's
+      // own key (what this account vouched for, it already trusted).
+      final isAnchor = author == roster.anchor.userId;
+      final isMe = author == myUserId;
+      if ((isAnchor || isMe) && subject == author && roster[author] == null) {
         final key = keyring[row.keyEpoch ?? 0];
         final blob = row.dataBlob;
         if (key == null || blob == null) return null;
@@ -405,8 +457,10 @@ class SpaceItemCodec implements ItemCodec {
         final member = SpaceMember.fromJson(
             (jsonDecode(utf8.decode(clear)) as Map).cast<String, Object?>());
         final fp = await member.identity.fingerprint();
-        if (member.userId != author ||
-            !_sameBytes(fp, roster.anchor.fingerprint)) {
+        final expected = isAnchor
+            ? roster.anchor.fingerprint
+            : await _identity.public.fingerprint();
+        if (member.userId != author || !_sameBytes(fp, expected)) {
           return false;
         }
         await _verifyAndOpen(row, member.identity);
