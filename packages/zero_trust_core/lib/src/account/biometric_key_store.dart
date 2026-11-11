@@ -1,5 +1,6 @@
 import 'dart:convert';
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:local_auth/local_auth.dart';
@@ -113,8 +114,18 @@ class SecureBiometricKeyStore implements BiometricKeyStore {
   static String _key(String userId) => 'zt_bio_dek_$userId';
   static String _marker(String userId) => 'zt_bio_on_$userId';
 
+  /// Only Android and iOS gate the stored key behind a biometric check in
+  /// hardware. On desktop the same options would leave the key in the
+  /// ordinary keychain, and browsers have no such store, so biometric unlock
+  /// stays off there and the password unlocks.
+  static bool get platformSupported =>
+      !kIsWeb &&
+      (defaultTargetPlatform == TargetPlatform.android ||
+          defaultTargetPlatform == TargetPlatform.iOS);
+
   @override
   Future<bool> isAvailable() async {
+    if (!platformSupported) return false;
     try {
       return await _localAuth.isDeviceSupported() &&
           (await _localAuth.getAvailableBiometrics()).isNotEmpty;

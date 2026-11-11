@@ -293,6 +293,39 @@ It syncs first and never replaces an item that already exists (another
 device may have imported and edited it), so use the old record's own id.
 A failure leaves the import to run again on the next call.
 
+## Web and desktop
+
+The same core builds for the web (any modern browser) and for Windows, macOS
+and Linux, with the same zero-trust model: keys are derived and used only in
+the browser or on the computer, and the server only ever sees ciphertext.
+
+What is different off the phone:
+
+- **Local store on the web.** `ZtLocalStore` uses SQLite3 Multiple Ciphers
+  compiled to WebAssembly and keeps the same encrypted file in the browser's
+  IndexedDB, so the browser only holds ciphertext and the vault unlocks
+  offline after the first sync. The app must ship the WebAssembly file:
+
+  ```sh
+  path/to/Zero-Trust-Core/tool/fetch_sqlite3mc_wasm.sh web/
+  ```
+
+  (pinned version and checksum; set `ztSqliteWasmUrl` if it lives elsewhere).
+  A store the key can't open is deleted and re-synced, since browsers can't
+  rename it aside.
+- **Build web apps with `--no-web-resources-cdn`**, so the Flutter engine is
+  served from the app's own site rather than fetched from Google's CDN.
+- **Biometric unlock is Android and iOS only.** Only there is the stored key
+  gated by biometrics in hardware; on desktop and the web
+  `SecureBiometricKeyStore.isAvailable()` is false and the password unlocks.
+- **Attachments on the web** are cached for the unlocked session only (still
+  sealed); they download again after a reload.
+- **Export my data on the web** downloads the zip through the browser;
+  `onDataExported` is only called on devices.
+
+`packages/zero_trust_core/example` is a small app that checks the encrypted
+store on each platform; CI builds it for web and Linux.
+
 ## Home screen widgets
 
 Android widgets in every app use the shared look in

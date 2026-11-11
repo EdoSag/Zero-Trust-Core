@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../config/zt_app_config.dart';
@@ -28,6 +29,9 @@ final ztAttachmentCacheProvider = FutureProvider<AttachmentCache>((ref) {
   final appId = ref.watch(ztAppConfigProvider.select((c) => c.appId));
   final userId = ref.watch(accountServiceProvider).currentUserId;
   if (userId == null) throw StateError('Not signed in');
+  // The web has no folders. Files are still sealed before they are cached
+  // or uploaded; this cache just doesn't outlive the unlocked session.
+  if (kIsWeb) return InMemoryAttachmentCache();
   return FileAttachmentCache.forAccount(appId: appId, userId: userId);
 });
 

@@ -1,6 +1,7 @@
 import 'dart:io';
 
 import 'package:dynamic_color/dynamic_color.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
 import '../../l10n/zt_l10n.dart';
@@ -389,7 +390,9 @@ class ZtSettingsPage extends ConsumerWidget {
       final appId = ref.read(ztAppConfigProvider).appId;
       await ZtLocalStore.deleteFiles(
           await ZtLocalStore.pathFor(appId: appId, userId: userId));
-      await FileAttachmentCache.deleteFor(appId: appId, userId: userId);
+      if (!kIsWeb) {
+        await FileAttachmentCache.deleteFor(appId: appId, userId: userId);
+      }
     } on Object {
       // No platform storage (tests), or already gone.
     }
