@@ -122,6 +122,14 @@ void main() {
       expect(ZtCrashScrubber.message('a שלום'), 'a');
     });
 
+    test('fingerprint is plain 64-bit FNV-1a, 16 hex digits, no sign', () {
+      // A known FNV-1a 64 value with the top bit set.
+      expect(
+          ZtCrashScrubber.fingerprintOf(
+              'zt_notes', 'StateError', const ['a.dart:1', 'b.dart:2']),
+          'dbab10180e6ffe86');
+    });
+
     test('same bug, same fingerprint; different place, different one', () {
       final a = build(StateError('a'));
       final b = build(StateError('b'));

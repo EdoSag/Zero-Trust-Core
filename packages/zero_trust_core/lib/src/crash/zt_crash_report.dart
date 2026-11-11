@@ -285,16 +285,20 @@ abstract final class ZtCrashScrubber {
     return one.length <= max ? one : '${one.substring(0, max)}...';
   }
 
-  /// FNV-1a over the error type and the first frames: the same bug in the
-  /// same version gets the same value on every phone.
+  static final BigInt _fnvOffset = BigInt.parse('cbf29ce484222325', radix: 16);
+  static final BigInt _fnvPrime = BigInt.parse('100000001b3', radix: 16);
+  static final BigInt _fnvMask = (BigInt.one << 64) - BigInt.one;
+
+  /// FNV-1a (64 bit) over the error type and the first frames: the same bug
+  /// in the same version gets the same value on every device. BigInt, not
+  /// int: a 64-bit literal does not compile for the web, and int maths there
+  /// would give a different value than on a phone.
   static String fingerprintOf(String appId, String type, List<String> frames) {
-    var h = 0xcbf29ce484222325;
-    const prime = 0x100000001b3;
+    var h = _fnvOffset;
     final input = [appId, type, ...frames.take(6)].join('|');
     for (final unit in utf8.encode(input)) {
-      h ^= unit;
-      h *= prime; // Wraps at 64 bits on the Dart VM.
+      h = ((h ^ BigInt.from(unit)) * _fnvPrime) & _fnvMask;
     }
-    return h.toUnsigned(64).toRadixString(16).padLeft(16, '0');
+    return h.toRadixString(16).padLeft(16, '0');
   }
 }

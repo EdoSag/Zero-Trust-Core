@@ -9,6 +9,13 @@ Database fix (migration `20261111200000_invite_null_proof`): answering a
 shared-space invite with no proof is now refused. Before, it used up the
 invite without the link's token. No app change; run the SQL once live.
 
+## Unreleased (crash fingerprint on the web)
+
+Fix: `ZtCrashReport.fingerprintOf` used a 64-bit integer literal, which does
+not compile for the web, so the web build of anything using the core failed.
+It now computes the same FNV-1a hash with BigInt and always returns 16 hex
+digits (it could return a leading minus sign before). No app change.
+
 ## Unreleased (sharing screens)
 
 New package `packages/zt_sharing_ui` with the sharing screens, lifted from
