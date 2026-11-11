@@ -54,6 +54,19 @@ jobs:
           javac -Xlint:-deprecation -d /tmp/out -cp "$PLATFORM/android.jar:/tmp/emb.jar" \
             /tmp/stub/androidx/annotation/NonNull.java android/src/main/java/dev/sagron/zt_places/*.java
 
+  web:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    defaults: { run: { working-directory: packages/zero_trust_core/example } }
+    steps:
+      - uses: actions/checkout@v4
+      - uses: subosito/flutter-action@v2
+        with: { channel: stable, flutter-version: 3.47.9 }
+      - run: flutter pub get
+      - run: flutter analyze --fatal-infos
+      - run: ../../../tool/fetch_sqlite3mc_wasm.sh web/
+      - run: flutter build web --no-web-resources-cdn
+
   database:
     runs-on: ubuntu-latest
     services:

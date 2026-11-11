@@ -26,6 +26,7 @@ dependencies:
   zt_crypto:
     path: ../zt_crypto
   archive: ^4.6.0
+  web: ^1.1.0
 
 dev_dependencies:
   flutter_test:

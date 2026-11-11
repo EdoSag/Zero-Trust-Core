@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../config/zt_app_config.dart';
@@ -6,6 +7,7 @@ import '../sync/sync_providers.dart';
 import '../vault/vault_controller.dart';
 import 'attachment_backend.dart';
 import 'attachment_cache.dart';
+import 'database_attachment_cache.dart';
 import 'zt_attachments.dart';
 
 final ztAttachmentBackendProvider =
@@ -23,11 +25,19 @@ final _unlockedProvider = Provider<Object?>((ref) => ref.watch(
 /// Where the signed-in account's encrypted attachment files are kept on
 /// this device, while the vault is unlocked. Tests override it with
 /// [InMemoryAttachmentCache].
-final ztAttachmentCacheProvider = FutureProvider<AttachmentCache>((ref) {
+final ztAttachmentCacheProvider = FutureProvider<AttachmentCache>((ref) async {
   if (ref.watch(_unlockedProvider) == null) throw const VaultIsLocked();
   final appId = ref.watch(ztAppConfigProvider.select((c) => c.appId));
   final userId = ref.watch(accountServiceProvider).currentUserId;
   if (userId == null) throw StateError('Not signed in');
+  // The web has no folders: the sealed files and the waiting uploads and
+  // deletes go into a database in the browser's IndexedDB instead.
+  if (kIsWeb) {
+    final cache =
+        await DatabaseAttachmentCache.forAccount(appId: appId, userId: userId);
+    ref.onDispose(cache.close);
+    return cache;
+  }
   return FileAttachmentCache.forAccount(appId: appId, userId: userId);
 });
 
