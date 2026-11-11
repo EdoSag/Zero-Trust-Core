@@ -101,7 +101,8 @@ jobs:
             -f tests/storage_quota_test.sql \
             -f tests/drop_unused_tables_test.sql \
             -f tests/shared_spaces_test.sql \
-            -f tests/plans_test.sql
+            -f tests/plans_test.sql \
+            -f tests/booking_pages_test.sql
 
   edge_functions:
     runs-on: ubuntu-latest
