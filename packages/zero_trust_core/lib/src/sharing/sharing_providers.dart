@@ -37,46 +37,93 @@ abstract interface class SpaceStoreOpener {
 /// key (so it is unreadable while locked, like the app's own store).
 class ZtSpaceStoreOpener implements SpaceStoreOpener {
   ZtSpaceStoreOpener(
-      {required Uint8List appKey, required this.appId, required this.userId})
-      : _appKey = Uint8List.fromList(appKey);
+      {required Uint8List appKey,
+      required this.appId,
+      required this.userId,
+      @visibleForTesting Future<String> Function(String spaceId)? pathFor})
+      : _appKey = Uint8List.fromList(appKey),
+        _pathFor = pathFor;
 
   final Uint8List _appKey;
   final String appId;
   final String userId;
-  final Map<String, ZtLocalStore> _open = {};
+  final Future<String> Function(String spaceId)? _pathFor;
 
-  Future<String> _path(String spaceId) => ZtLocalStore.pathFor(
-      appId: '${appId}_space_${spaceId.replaceAll('-', '')}', userId: userId);
+  /// Open and opening stores. An open that fails takes itself out again.
+  final Map<String, Future<ZtLocalStore>> _stores = {};
+
+  /// The ones that finished opening, for [closeAll].
+  final Map<String, ZtLocalStore> _open = {};
+  bool _closed = false;
+
+  Future<String> _path(String spaceId) =>
+      _pathFor?.call(spaceId) ??
+      ZtLocalStore.pathFor(
+          appId: '${appId}_space_${spaceId.replaceAll('-', '')}',
+          userId: userId);
 
   @override
-  Future<LocalItemStore> open(String spaceId) async {
-    final existing = _open[spaceId];
-    if (existing != null) return existing;
-    final path = await _path(spaceId);
-    ZtLocalStore store;
+  Future<LocalItemStore> open(String spaceId) {
+    if (_closed) throw const VaultIsLocked();
+    return _stores[spaceId] ??= _openStore(spaceId);
+  }
+
+  Future<ZtLocalStore> _openStore(String spaceId) async {
+    // Copy first: [closeAll] zeroes the key, maybe while this waits. With
+    // a zeroed key the file would look unreadable and be moved aside.
+    final key = Uint8List.fromList(_appKey);
     try {
-      store = await ZtLocalStore.open(appKey: _appKey, path: path);
-    } on LocalStoreUnreadable {
-      await ZtLocalStore.moveAside(path);
-      store = await ZtLocalStore.open(appKey: _appKey, path: path);
+      final path = await _path(spaceId);
+      if (_closed) throw const VaultIsLocked();
+      ZtLocalStore store;
+      try {
+        store = await ZtLocalStore.open(appKey: key, path: path);
+      } on LocalStoreUnreadable {
+        if (_closed) throw const VaultIsLocked();
+        await ZtLocalStore.moveAside(path);
+        store = await ZtLocalStore.open(appKey: key, path: path);
+      }
+      // Locked while opening: nobody would close this store later.
+      if (_closed) {
+        await store.close();
+        throw const VaultIsLocked();
+      }
+      _open[spaceId] = store;
+      return store;
+    } catch (_) {
+      _stores.remove(spaceId)?.ignore();
+      rethrow;
+    } finally {
+      key.fillRange(0, key.length, 0);
     }
-    return _open[spaceId] = store;
   }
 
   @override
   Future<void> delete(String spaceId) async {
-    await _open.remove(spaceId)?.close();
+    final opening = _stores.remove(spaceId);
+    _open.remove(spaceId);
+    if (opening != null) {
+      try {
+        await (await opening).close();
+      } on Object {
+        // It never opened.
+      }
+    }
     await ZtLocalStore.deleteFiles(await _path(spaceId));
   }
 
   @override
   Future<void> closeAll() async {
-    final all = [..._open.values];
+    _closed = true;
+    final open = [..._open.values];
     _open.clear();
-    for (final s in all) {
-      await s.close();
-    }
+    _stores.clear();
     _appKey.fillRange(0, _appKey.length, 0);
+    // The open ones together, so a slow one holds up no other. One still
+    // opening is not waited for: it sees [_closed] and closes itself.
+    await Future.wait([
+      for (final store in open) store.close().catchError((Object _) {}),
+    ]);
   }
 }
 
