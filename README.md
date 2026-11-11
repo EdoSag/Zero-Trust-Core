@@ -213,6 +213,41 @@ await notes.save(sync, store, note);    // synced to every device
 await notes.newerItems(store);          // "Update the app to see N items"
 ```
 
+### Sharing between Zero-Trust users (shared spaces)
+
+A *space* is a set of items several accounts share: a child in Meds, later a
+shared notebook, list or calendar. The server sees only who belongs to which
+space and sealed, signed rows; names, keys and content stay encrypted.
+
+```dart
+final spaces = ref.read(ztSpacesProvider.notifier);
+final space = await spaces.create(myName: 'Dana');           // you are admin
+await spaces.save(space.id, 'child', {'kind': 'child', ...}); // synced to all
+
+// Invite: share the link, or show link.qrData as a QR code.
+final link = await spaces.invite(space.id, role: SpaceRole.member);
+
+// On the other phone (link pasted or scanned):
+final join = await spaces.answer(SpaceInviteLink.parse(text), myName: 'Grandpa');
+// join.verificationCode, e.g. "4821 0937"
+
+// Back on the admin's phone, after both read out the same code:
+final pending = await spaces.pendingJoins(space.id);
+await spaces.confirm(pending.single);   // or revokeInvite(...) if it differs
+
+await spaces.remove(space.id, userId);  // new key for everyone else
+ref.watch(ztSpacesProvider)             // spaces, their stores and status
+```
+
+- Read a space's items from `entry.space!.store` (a `ZtLocalStore`; use a
+  `ZtCollection` on it like on the app's own store).
+- Mark what only admins may write with `ztSpacePolicyProvider`
+  (`SpacePolicy(adminOnlyKinds: {...})`).
+- Every member holds every key epoch they were given, so history stays
+  readable; a removed member gets nothing written after their removal.
+- Invite links look like `https://zerotrust.bz/join#zt1.<app>.…`; register
+  that link (or let users paste it) in the app.
+
 ### Attachments
 
 ```dart

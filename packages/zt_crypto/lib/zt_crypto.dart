@@ -7,5 +7,6 @@ export 'src/kdf.dart';
 export 'src/key_hierarchy.dart';
 export 'src/recovery_key.dart';
 export 'src/sealed_box.dart';
+export 'src/sharing.dart';
 export 'src/signing.dart';
 export 'src/zt_base64.dart';
