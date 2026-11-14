@@ -190,50 +190,64 @@ void main() {
   });
 
   group('sync: data written before still opens', () {
-    Future<AppItemCodec> codecFor(String app) async {
+    // Through the app's real sync engine, against an in-memory server.
+    Future<ItemSyncEngine> device(String app, _MemoryServer server,
+        {String id = 'this-phone'}) async {
       final key = await KeyHierarchy.appKey(_dek, app);
-      return AppItemCodec(
-          appId: app,
-          appKey: key,
-          signingKeys: await KeyHierarchy.signingKeys(key));
-    }
-
-    RemoteItem golden(String app) {
-      final (blob, signature) = _syncedItems[app]!;
-      return RemoteItem(
-        itemId: 'release-check',
-        updatedAt: DateTime.utc(2026, 11, 14, 9),
-        deviceId: 'golden',
-        dataBlob: base64.decode(blob),
-        signature: base64.decode(signature),
+      return ItemSyncEngine(
+        appId: app,
+        appKey: key,
+        deviceId: id,
+        store: InMemoryItemStore(),
+        backend: server,
+        signingKeys: await KeyHierarchy.signingKeys(key),
       );
     }
 
+    _MemoryServer serverWithGolden(String app) {
+      final (blob, signature) = _syncedItems[app]!;
+      return _MemoryServer()
+        ..rows['release-check'] = RemoteItem(
+          itemId: 'release-check',
+          updatedAt: DateTime.utc(2026, 11, 14, 9),
+          syncedAt: DateTime.utc(2026, 11, 14, 9),
+          deviceId: 'golden',
+          dataBlob: base64.decode(blob),
+          signature: base64.decode(signature),
+        );
+    }
+
     test('an item synced by core 0.11 opens in this app', () async {
-      expect(await (await codecFor(appId)).open(golden(appId)),
+      final phone = await device(appId, serverWithGolden(appId));
+      await phone.sync();
+      expect((await phone.store.get('release-check'))?.json,
           {'title': 'Written by core 0.11', 'n': 1});
     });
 
-    test('a new item round-trips and stays sealed', () async {
-      final codec = await codecFor(appId);
-      final sealed = await codec.seal(
-          LocalItem(
-            itemId: 'check-2',
-            json: const {'text': 'Shalom, release'},
-            updatedAt: DateTime.utc(2026, 11, 14),
-            dirty: true,
-          ),
-          'device-a');
-      expect(utf8.decode(sealed.dataBlob!, allowMalformed: true),
+    test('a new item reaches another device and stays sealed', () async {
+      final server = _MemoryServer();
+      final phone = await device(appId, server);
+      await phone.save('check-2', {'text': 'Shalom, release'});
+      await phone.sync();
+      final row = server.rows['check-2']!;
+      expect(utf8.decode(row.dataBlob!, allowMalformed: true),
           isNot(contains('Shalom')));
-      expect(await (await codecFor(appId)).open(sealed),
+
+      final laptop = await device(appId, server, id: 'laptop');
+      await laptop.sync();
+      expect((await laptop.store.get('check-2'))?.json,
           {'text': 'Shalom, release'});
     });
 
     test("another app's key can't open or forge this app's data", () async {
       for (final other in _suite.where((a) => a != appId)) {
-        await expectLater(
-            (await codecFor(other)).open(golden(appId)), throwsA(anything),
+        final intruder = await device(other, serverWithGolden(appId));
+        try {
+          await intruder.sync();
+        } catch (_) {
+          // Refusing the whole pull is fine too.
+        }
+        expect((await intruder.store.get('release-check'))?.json, isNull,
             reason: other);
       }
     });
@@ -382,4 +396,42 @@ class _MemoryBackend implements AccountBackend {
     profiles.remove(_user);
     _user = null;
   }
+}
+
+/// The `vault_items` table, in memory.
+class _MemoryServer implements SyncBackend {
+  final Map<String, RemoteItem> rows = {};
+
+  @override
+  Future<List<RemoteItem>> pull(String app, {DateTime? since}) async => [
+        for (final r in rows.values)
+          if (since == null || (r.syncedAt ?? r.updatedAt).isAfter(since)) r,
+      ];
+
+  @override
+  Future<List<RemoteItem>> fetch(String app, Set<String> itemIds) async => [
+        for (final id in itemIds)
+          if (rows[id] != null) rows[id]!
+      ];
+
+  @override
+  Future<Set<String>> pushAll(String app, List<RemoteItem> items) async {
+    for (final r in items) {
+      rows[r.itemId] = RemoteItem(
+        itemId: r.itemId,
+        updatedAt: r.updatedAt,
+        syncedAt: DateTime.now().toUtc(),
+        deviceId: r.deviceId,
+        dataBlob: r.dataBlob,
+        signature: r.signature,
+        deleted: r.deleted,
+      );
+    }
+    return {for (final r in items) r.itemId};
+  }
+
+  @override
+  Future<void> Function() subscribe(
+          String app, void Function(RemoteItem) onChange) =>
+      () async {};
 }
