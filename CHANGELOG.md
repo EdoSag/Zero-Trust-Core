@@ -18,6 +18,14 @@ app's pinned core. No change to `zero_trust_core` or the database.
 **Upgrade note:** add `zt_release_checks` as a dev dependency (any commit
 from this one on) and the CI steps from the package README.
 
+### Widget kit
+
+- **Widget kit: more icons and lists** (roadmap W4, W6, W7, W9). New kit
+  icons checklist, image, message, pin, dropdown and chevron start/end
+  (mirrored in Hebrew), an accent ring for "today", and a README section on
+  scrolling list widgets (`RemoteViewsCompat`). Resources only: apps copy
+  them with `apply.sh`, no Dart change.
+
 ## 0.11.0
 
 Sharing between Zero-Trust users, plans groundwork, web and desktop
