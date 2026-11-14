@@ -18,6 +18,13 @@ app's pinned core. No change to `zero_trust_core` or the database.
 **Upgrade note:** add `zt_release_checks` as a dev dependency (any commit
 from this one on) and the CI steps from the package README.
 
+### Place reminder disclosure
+
+- zt_places: the place-reminder permission banner now reads as Google
+  Play's background location "prominent disclosure" (what the location is
+  for, that it is used while the app is closed or not in use, and that it
+  stays on the phone). Notes and Tasks need it before their Play review.
+
 ### Widget kit
 
 - **Widget kit: more icons and lists** (roadmap W4, W6, W7, W9). New kit
