@@ -8,6 +8,7 @@ Shared foundation for every Zero-Trust app (Fitness, Contacts, Tasks, Notes, …
 | `packages/zt_places` | Flutter plugin: on-device place reminders (arrive / leave) and the shared place picker |
 | `packages/zero_trust_core` | Flutter: account service (sign-up, sign-in with legacy upgrade, change password, recovery, delete account), vault lock with auto-lock, shared theme |
 | `packages/zt_sharing_ui` | Flutter: the sharing screens every app uses (space members, invite with QR, join, compare codes), English and Hebrew |
+| `packages/zt_release_checks` | Release checks every app runs in CI: key, sync and sign-in vectors, app setup, database rules (see its README) |
 | `supabase/migrations` | The only schema source of truth for the shared Supabase project |
 | `supabase/functions/delete-account` | Edge Function behind in-app account deletion |
 
