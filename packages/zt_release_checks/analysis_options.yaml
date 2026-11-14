@@ -1,0 +1,6 @@
+include: package:lints/recommended.yaml
+
+analyzer:
+  exclude:
+    # Compiled inside each app, against the app's zero_trust_core.
+    - templates/**
