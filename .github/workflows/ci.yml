@@ -17,6 +17,18 @@ jobs:
       - run: dart analyze --fatal-infos
       - run: dart test
 
+  zt_release_checks:
+    runs-on: ubuntu-latest
+    defaults: { run: { working-directory: packages/zt_release_checks } }
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dart-lang/setup-dart@v1
+        with: { sdk: 3.13.7 }
+      - run: dart pub get
+      - run: dart format --output=none --set-exit-if-changed .
+      - run: dart analyze --fatal-infos
+      - run: dart test
+
   zero_trust_core:
     runs-on: ubuntu-latest
     defaults: { run: { working-directory: packages/zero_trust_core } }
@@ -30,6 +42,13 @@ jobs:
       - run: dart format --output=none --set-exit-if-changed .
       - run: flutter analyze --fatal-infos
       - run: flutter test
+      - name: The apps' release checks pass against this core, for every app
+        run: |
+          for app in notes tasks fitness contacts calendar phone browser time meds; do
+            sed "s/{{APP_ID}}/$app/" ../zt_release_checks/templates/release_checks_test.dart \
+              > "test/release_checks_${app}_test.dart"
+          done
+          flutter test test/release_checks_*_test.dart
 
   zt_sharing_ui:
     runs-on: ubuntu-latest
@@ -101,7 +120,9 @@ jobs:
             -f tests/storage_quota_test.sql \
             -f tests/drop_unused_tables_test.sql \
             -f tests/shared_spaces_test.sql \
-            -f tests/plans_test.sql
+            -f tests/plans_test.sql \
+            -f tests/booking_pages_test.sql \
+            -f tests/booking_slots_fixes_test.sql
 
   edge_functions:
     runs-on: ubuntu-latest

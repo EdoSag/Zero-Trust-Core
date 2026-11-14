@@ -1,0 +1,19 @@
+name: zt_release_checks
+description: Release checks every Zero-Trust app runs in CI before a release (keys, sync, sign-in, config, database).
+version: 0.1.0
+publish_to: none
+
+environment:
+  sdk: ^3.5.0
+
+# Pure Dart and independent of zero_trust_core, so an app can take a newer
+# copy of the checks without moving its core pin. The Flutter tests in
+# templates/ run inside the app, against the app's own core.
+dependencies:
+  args: ^2.5.0
+  path: ^1.9.0
+  yaml: ^3.1.2
+
+dev_dependencies:
+  test: ^1.25.0
+  lints: ^5.0.0

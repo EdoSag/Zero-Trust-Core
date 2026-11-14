@@ -3,6 +3,48 @@
 Apps depend on the core by git tag (`ref: vX.Y.Z`). Upgrade notes list what
 an app must change.
 
+## 0.12.0
+
+Release checks every app runs in CI, Google Play's location disclosure for
+place reminders, more widget kit icons, and the database side of ZT
+Calendar booking pages. `zero_trust_core` itself has no code change, so
+apps do not need to move their core pin for this release.
+
+### Release checks for every app (`packages/zt_release_checks`)
+
+A new pure-Dart package that each app runs in CI with
+`dart run zt_release_checks --app <id> --database`: fixed key and sync
+vectors for all nine apps run inside the app's own dependencies, cross-app
+and pre-core sign-in, app setup checks (no cryptography_flutter, pinned
+core, encrypted SQLite, INTERNET permission, no committed secrets) and the
+database rules plus every table and function the app calls, built from the
+app's pinned core. No change to `zero_trust_core` or the database.
+
+**Upgrade note:** add `zt_release_checks` as a dev dependency (any commit
+from this one on) and the CI steps from the package README.
+
+### Place reminder disclosure
+
+- zt_places: the place-reminder permission banner now reads as Google
+  Play's background location "prominent disclosure" (what the location is
+  for, that it is used while the app is closed or not in use, and that it
+  stays on the phone). Notes and Tasks need it before their Play review.
+
+### Widget kit
+
+- **Widget kit: more icons and lists** (roadmap W4, W6, W7, W9). New kit
+  icons checklist, image, message, pin, dropdown and chevron start/end
+  (mirrored in Hebrew), an accent ring for "today", and a README section on
+  scrolling list widgets (`RemoteViewsCompat`). Resources only: apps copy
+  them with `apply.sh`, no Dart change.
+
+### Calendar booking pages (database only)
+
+- New tables and public functions for ZT Calendar booking pages (roadmap
+  K15): `supabase/migrations/20261112090000_calendar_booking_pages.sql`.
+- Free slot fixes: buffers after meetings that already ended, and days when
+  the clocks change (`20261112100000_booking_slots_buffer_and_dst.sql`).
+
 ## 0.11.0
 
 Sharing between Zero-Trust users, plans groundwork, web and desktop

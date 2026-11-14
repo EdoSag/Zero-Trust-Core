@@ -45,10 +45,18 @@ class ZtPlacesStrings {
       ? 'המיקום שלך נשאר בטלפון. הטלפון עצמו מזהה את המקום, ושום דבר לא נשלח אלינו או לגוגל.'
       : 'Your location stays on this phone. The phone itself watches for the '
           'place; nothing is sent to us or to Google.';
+
+  /// Google Play's "prominent disclosure" for background location: it must
+  /// say what the location is used for, and that it is used while the app is
+  /// closed or not in use, before Android's own permission prompt.
   String get needsPermission => _he
-      ? 'כדי להזכיר גם כשהאפליקציה סגורה, אפשר גישה למיקום מדויק "כל הזמן" ולהתראות.'
-      : 'To remind you while the app is closed, allow precise location '
-          '"All the time" and notifications.';
+      ? 'האפליקציה משתמשת במיקום שלך כדי להזכיר לך כשאתה מגיע למקום או יוצא ממנו, '
+          'גם כשהאפליקציה סגורה או לא בשימוש. המיקום נשאר בטלפון ולא נשלח לשום מקום. '
+          'כדי לאפשר זאת, בחר מיקום מדויק "כל הזמן" והתראות.'
+      : 'This app uses your location to remind you when you arrive at or leave '
+          'a place, even when the app is closed or not in use. Your location '
+          'stays on this phone and is never sent anywhere. To allow this, choose '
+          'precise location "All the time" and notifications.';
   String get allow => _he ? 'אפשר' : 'Allow';
   String get openSettings => _he ? 'פתח הגדרות' : 'Open settings';
   String get locationOff => _he
