@@ -3,6 +3,21 @@
 Apps depend on the core by git tag (`ref: vX.Y.Z`). Upgrade notes list what
 an app must change.
 
+## Unreleased
+
+### Release checks for every app (`packages/zt_release_checks`)
+
+A new pure-Dart package that each app runs in CI with
+`dart run zt_release_checks --app <id> --database`: fixed key and sync
+vectors for all nine apps run inside the app's own dependencies, cross-app
+and pre-core sign-in, app setup checks (no cryptography_flutter, pinned
+core, encrypted SQLite, INTERNET permission, no committed secrets) and the
+database rules plus every table and function the app calls, built from the
+app's pinned core. No change to `zero_trust_core` or the database.
+
+**Upgrade note:** add `zt_release_checks` as a dev dependency (any commit
+from this one on) and the CI steps from the package README.
+
 ## 0.11.0
 
 Sharing between Zero-Trust users, plans groundwork, web and desktop
