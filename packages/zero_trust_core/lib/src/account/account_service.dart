@@ -319,19 +319,26 @@ class AccountService {
   /// Keeps a copy of [dek] so the app opens without asking after it's
   /// closed (see [SessionKeyStore]). [dek] is left untouched. Best effort:
   /// if the store refuses, the app simply asks to unlock next time.
-  Future<void> rememberSession(Uint8List dek, {bool legacyDek = false}) async {
+  ///
+  /// Saves and removals run one at a time in the order they were asked
+  /// for, and a save asked for before a [forgetSession] is dropped, so a
+  /// slow save can never bring back a key that "Lock now" removed.
+  Future<void> rememberSession(Uint8List dek, {bool legacyDek = false}) {
     final store = _sessionKeys;
     final userId = _backend.currentUserId;
-    if (store == null || userId == null) return;
+    if (store == null || userId == null) return Future.value();
     final copy = Uint8List.fromList(dek);
-    try {
-      if (!await store.isAvailable()) return;
-      await store.save(userId, (dek: copy, legacyDek: legacyDek));
-    } on Object {
-      // See above.
-    } finally {
-      copy.fillRange(0, copy.length, 0);
-    }
+    final asked = _forgets;
+    return _inOrder(() async {
+      try {
+        if (asked != _forgets) return; // Forgotten since: don't keep it.
+        if (!await store.isAvailable()) return;
+        if (asked != _forgets) return;
+        await store.save(userId, (dek: copy, legacyDek: legacyDek));
+      } finally {
+        copy.fillRange(0, copy.length, 0);
+      }
+    });
   }
 
   /// The key kept by [rememberSession], to open the vault without asking.
@@ -343,12 +350,12 @@ class AccountService {
     if (store == null || userId == null) return null;
     try {
       // A "Lock now" a moment ago must win over the copy it is removing.
-      await _forgetting;
+      await _sessionOps;
       final secret = await store.read(userId);
       if (secret == null) return null;
       if (!await store.isAvailable()) {
         secret.dek.fillRange(0, secret.dek.length, 0);
-        await store.clear(userId);
+        await forgetSession();
         return null;
       }
       return UnlockResult(dek: secret.dek, legacyDek: secret.legacyDek);
@@ -358,22 +365,28 @@ class AccountService {
   }
 
   /// Removes the copy kept by [rememberSession]; the next open asks again.
+  /// Takes effect at once for any save or [resumeSession] that follows or
+  /// is still pending.
   Future<void> forgetSession() {
     final userId = _backend.currentUserId;
     final store = _sessionKeys;
     if (userId == null || store == null) return Future.value();
-    // Set before the first await, so a [resumeSession] started right after
-    // waits for the removal instead of reading the old copy.
-    return _forgetting = () async {
-      try {
-        await store.clear(userId);
-      } on Object {
-        // Nothing kept, or already gone.
-      }
-    }();
+    _forgets++;
+    return _inOrder(() => store.clear(userId));
   }
 
-  Future<void>? _forgetting;
+  /// Counts [forgetSession] calls, so a save asked for earlier can tell it
+  /// was overtaken.
+  int _forgets = 0;
+  Future<void>? _sessionOps;
+
+  Future<void> _inOrder(Future<void> Function() op) {
+    final previous = _sessionOps;
+    final run = previous == null ? op() : previous.then((_) => op());
+    return _sessionOps = run.then<void>((_) {}, onError: (Object _) {
+      // Best effort, see above.
+    });
+  }
 
   Future<void> changePassword({
     required String currentPassword,
@@ -473,7 +486,8 @@ class AccountService {
     if (userId != null) {
       await _cache.clear(userId);
       await _biometrics?.clear(userId);
-      await _sessionKeys?.clear(userId);
+      _forgets++;
+      await _inOrder(() async => _sessionKeys?.clear(userId));
     }
   }
 
@@ -645,7 +659,8 @@ class AccountService {
     if (userId == null) return;
     await _cache.clear(userId);
     await _biometrics?.clear(userId);
-    await _sessionKeys?.clear(userId);
+    _forgets++;
+    await _inOrder(() async => _sessionKeys?.clear(userId));
   }
 
   String _requireUserId() {

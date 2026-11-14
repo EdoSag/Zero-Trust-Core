@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:typed_data';
 
 import 'package:flutter/material.dart';
@@ -76,6 +77,37 @@ void main() {
       await account.forgetSession();
       expect(kept.has(userId), isFalse);
       expect(await account.resumeSession(), isNull);
+    });
+
+    test('a save still in flight cannot bring back a forgotten key', () async {
+      final slow = _SlowSessionKeyStore();
+      account = AccountService(backend,
+          params: fast, legacyParams: fast, sessionKeys: slow);
+      final userId = await signedIn();
+
+      // Lock now while the save is waiting on the key store.
+      final saving = account.rememberSession(Uint8List(32));
+      await pumpEventQueue();
+      expect(slow.waiting, isTrue);
+      final forgetting = account.forgetSession();
+      slow.release();
+      await Future.wait([saving, forgetting]);
+      expect(slow.has(userId), isFalse);
+      expect(await account.resumeSession(), isNull);
+
+      // Lock now before the save has even started.
+      final early = account.rememberSession(Uint8List(32));
+      await account.forgetSession();
+      slow.release();
+      await early;
+      expect(slow.has(userId), isFalse);
+
+      // A save asked for after the lock is kept as usual.
+      final later = account.rememberSession(Uint8List(32));
+      await pumpEventQueue();
+      slow.release();
+      await later;
+      expect(slow.has(userId), isTrue);
     });
 
     test('a phone without a screen lock neither keeps nor resumes', () async {
@@ -263,4 +295,23 @@ void main() {
       expect(tile.enabled, isFalse);
     });
   });
+}
+
+/// Holds each availability check until [release], to put a save in flight.
+class _SlowSessionKeyStore extends InMemorySessionKeyStore {
+  Completer<void>? _gate;
+
+  bool get waiting => _gate != null;
+
+  void release() {
+    _gate?.complete();
+    _gate = null;
+  }
+
+  @override
+  Future<bool> isAvailable() async {
+    final gate = _gate = Completer<void>();
+    await gate.future;
+    return available;
+  }
 }
