@@ -45,6 +45,7 @@ class ZtPlacesStrings {
       ? 'המיקום שלך נשאר בטלפון. הטלפון עצמו מזהה את המקום, ושום דבר לא נשלח אלינו או לגוגל.'
       : 'Your location stays on this phone. The phone itself watches for the '
           'place; nothing is sent to us or to Google.';
+
   /// Google Play's "prominent disclosure" for background location: it must
   /// say what the location is used for, and that it is used while the app is
   /// closed or not in use, before Android's own permission prompt.
