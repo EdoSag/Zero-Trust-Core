@@ -13,6 +13,7 @@ import '../config/zt_app_config.dart';
 import '../platform/zt_platform.dart';
 import '../sync/sync_providers.dart';
 import '../ui/auth/zt_auth_messages.dart';
+import '../ui/auth/zt_confirm_identity.dart';
 import 'zt_data_export.dart';
 
 /// Saves an export where [ZtExportDataTile] hands it to the app: the app's
@@ -60,6 +61,17 @@ class _ZtExportDataTileState extends ConsumerState<ZtExportDataTile> {
       ),
     );
     if (go != true || !mounted) return;
+    // The export is readable by anyone, so it asks for the fingerprint or
+    // password whatever the app's auto-lock setting is.
+    final proof = await ztConfirmIdentity(
+      context,
+      ref,
+      title: ZtL10n.of(context).exportMyDataQuestion,
+      message: ZtL10n.of(context).enterYourPasswordToExport,
+      action: ZtL10n.of(context).export,
+    );
+    if (proof == null || !mounted) return;
+    proof.dek.fillRange(0, proof.dek.length, 0);
     setState(() => _busy = true);
     final messenger = ScaffoldMessenger.of(context);
     try {

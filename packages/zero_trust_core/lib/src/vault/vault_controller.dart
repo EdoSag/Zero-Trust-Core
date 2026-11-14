@@ -8,6 +8,7 @@ import 'package:zt_crypto/zt_crypto.dart';
 
 import '../config/zt_app_config.dart';
 import '../config/zt_preferences.dart';
+import '../core_providers.dart';
 
 sealed class VaultState {
   const VaultState();
@@ -40,6 +41,11 @@ class VaultUnlocked extends VaultState {
 /// - after that long without interaction (apps call [touch] on input);
 /// - when the app comes back after being in the background that long, or
 ///   as soon as it leaves the screen when the delay is zero.
+///
+/// With "Never, even after closing the app" ([ztStayUnlockedProvider]) each
+/// unlock also keeps a copy of the key in the phone's key store, so the
+/// unlock screen can open the vault without asking after a restart, and
+/// [lock] removes that copy. Every other choice works exactly as above.
 class VaultController extends Notifier<VaultState> {
   Timer? _timer;
   DateTime? _hiddenAt;
@@ -91,6 +97,7 @@ class VaultController extends Notifier<VaultState> {
     final appKey = await KeyHierarchy.appKey(dek, _config.appId);
     final identity = await ZtIdentity.fromDek(dek);
     final legacyKey = legacyDek ? Uint8List.fromList(dek) : null;
+    unawaited(_rememberIfStaying(Uint8List.fromList(dek), legacyDek));
     dek.fillRange(0, dek.length, 0);
     _zero();
     state =
@@ -143,10 +150,31 @@ class VaultController extends Notifier<VaultState> {
     }
   }
 
+  /// Locks now. With "Never, even after closing the app" this also removes
+  /// the kept key, so the next open asks again ("Lock now" means locked).
   void lock() {
     _timer?.cancel();
     _zero();
     state = const VaultLocked();
+    if (ref.read(ztStayUnlockedProvider)) {
+      unawaited(ref.read(accountServiceProvider).forgetSession());
+    }
+  }
+
+  /// Takes ownership of [dek] and zeroes it.
+  Future<void> _rememberIfStaying(Uint8List dek, bool legacyDek) async {
+    try {
+      if (await ref.read(ztStayUnlockedProvider.notifier).current() &&
+          state is VaultUnlocked) {
+        await ref
+            .read(accountServiceProvider)
+            .rememberSession(dek, legacyDek: legacyDek);
+      }
+    } on Object {
+      // Not kept: the app asks to unlock next time, as with any other choice.
+    } finally {
+      dek.fillRange(0, dek.length, 0);
+    }
   }
 
   void _zero() {

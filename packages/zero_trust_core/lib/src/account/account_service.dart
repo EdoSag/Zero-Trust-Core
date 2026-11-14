@@ -6,6 +6,7 @@ import 'package:zt_crypto/zt_crypto.dart';
 import 'account_backend.dart';
 import 'biometric_key_store.dart';
 import 'key_cache.dart';
+import 'session_key_store.dart';
 
 /// Result of any flow that leaves the vault unlocked.
 class UnlockResult {
@@ -59,13 +60,16 @@ class AccountService {
     this.legacyParams = KdfParams.current,
     KeyCache? keyCache,
     BiometricKeyStore? biometrics,
+    SessionKeyStore? sessionKeys,
     this.onlineTimeout = const Duration(seconds: 8),
   })  : _cache = keyCache ?? InMemoryKeyCache(),
-        _biometrics = biometrics;
+        _biometrics = biometrics,
+        _sessionKeys = sessionKeys;
 
   final AccountBackend _backend;
   final KeyCache _cache;
   final BiometricKeyStore? _biometrics;
+  final SessionKeyStore? _sessionKeys;
 
   /// How long [unlock] waits for the server before using the device's copy
   /// of the keys.
@@ -307,6 +311,70 @@ class AccountService {
     return UnlockResult(dek: secret.dek, legacyDek: secret.legacyDek);
   }
 
+  /// "Never, even after closing the app" can be offered: the phone has a
+  /// screen lock and a hardware key store.
+  Future<bool> stayUnlockedAvailable() async =>
+      await _sessionKeys?.isAvailable() ?? false;
+
+  /// Keeps a copy of [dek] so the app opens without asking after it's
+  /// closed (see [SessionKeyStore]). [dek] is left untouched. Best effort:
+  /// if the store refuses, the app simply asks to unlock next time.
+  Future<void> rememberSession(Uint8List dek, {bool legacyDek = false}) async {
+    final store = _sessionKeys;
+    final userId = _backend.currentUserId;
+    if (store == null || userId == null) return;
+    final copy = Uint8List.fromList(dek);
+    try {
+      if (!await store.isAvailable()) return;
+      await store.save(userId, (dek: copy, legacyDek: legacyDek));
+    } on Object {
+      // See above.
+    } finally {
+      copy.fillRange(0, copy.length, 0);
+    }
+  }
+
+  /// The key kept by [rememberSession], to open the vault without asking.
+  /// Null when there is none, or when the phone no longer has a screen lock
+  /// (the copy is then removed and the user unlocks as usual).
+  Future<UnlockResult?> resumeSession() async {
+    final store = _sessionKeys;
+    final userId = _backend.currentUserId;
+    if (store == null || userId == null) return null;
+    try {
+      // A "Lock now" a moment ago must win over the copy it is removing.
+      await _forgetting;
+      final secret = await store.read(userId);
+      if (secret == null) return null;
+      if (!await store.isAvailable()) {
+        secret.dek.fillRange(0, secret.dek.length, 0);
+        await store.clear(userId);
+        return null;
+      }
+      return UnlockResult(dek: secret.dek, legacyDek: secret.legacyDek);
+    } on Object {
+      return null;
+    }
+  }
+
+  /// Removes the copy kept by [rememberSession]; the next open asks again.
+  Future<void> forgetSession() {
+    final userId = _backend.currentUserId;
+    final store = _sessionKeys;
+    if (userId == null || store == null) return Future.value();
+    // Set before the first await, so a [resumeSession] started right after
+    // waits for the removal instead of reading the old copy.
+    return _forgetting = () async {
+      try {
+        await store.clear(userId);
+      } on Object {
+        // Nothing kept, or already gone.
+      }
+    }();
+  }
+
+  Future<void>? _forgetting;
+
   Future<void> changePassword({
     required String currentPassword,
     required String newPassword,
@@ -379,7 +447,7 @@ class AccountService {
   }
 
   /// Signs out and forgets this device's copy of the keys, including the
-  /// biometric one.
+  /// biometric one and the one kept to stay unlocked.
   Future<void> signOut() async {
     await _forgetDevice();
     await _backend.signOut();
@@ -405,6 +473,7 @@ class AccountService {
     if (userId != null) {
       await _cache.clear(userId);
       await _biometrics?.clear(userId);
+      await _sessionKeys?.clear(userId);
     }
   }
 
@@ -576,6 +645,7 @@ class AccountService {
     if (userId == null) return;
     await _cache.clear(userId);
     await _biometrics?.clear(userId);
+    await _sessionKeys?.clear(userId);
   }
 
   String _requireUserId() {

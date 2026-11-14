@@ -113,6 +113,18 @@ timers). "Immediately" locks as soon as the app leaves the screen. The
 choice is kept in secure storage, per install. Pass `onForgotPassword` to
 `ZtUnlockScreen` to offer the reset flow there too.
 
+**Never, even after closing the app** is an extra, opt-in choice for people
+who find unlocking on every open a hassle (Phone, for example). Picking it
+explains what it means, asks for the fingerprint or password, and then keeps
+the DEK in the Android Keystore / iOS Keychain (`SessionKeyStore`;
+`unlocked_this_device` on iOS). `ZtUnlockScreen` uses that copy to open the
+vault without asking after the app is closed or the phone restarts (once the
+phone itself is unlocked). Data stays encrypted at rest. It is only offered
+on phones with a screen lock, and is dropped if the screen lock is removed.
+"Lock now", sign-out, account deletion and picking any other choice remove
+the kept key. The default and every other choice behave as before; apps need
+no code change beyond moving their core pin.
+
 ### Account safety
 
 - **Email confirmation.** With "Confirm email" on in Supabase Auth,
@@ -121,7 +133,9 @@ choice is kept in secure storage, per install. Pass `onForgotPassword` to
   `EmailNotConfirmed`, and `ZtSignInScreen` offers to resend the link. Pass
   the app's deep link as `ZtSignInScreen(emailRedirectTo: ...)`.
 - **Sensitive actions re-check the password with the server**: changing
-  the password, a new recovery key, and deleting the account. The
+  the password, a new recovery key, and deleting the account. Exporting
+  data asks for the fingerprint or password on the device
+  (`ztConfirmIdentity`), whatever the auto-lock setting. The
   `delete-account` function also refuses a session whose last password
   sign-in is older than 10 minutes.
 - **After a password change or a recovery**, every other device is signed

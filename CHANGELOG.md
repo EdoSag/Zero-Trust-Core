@@ -3,6 +3,29 @@
 Apps depend on the core by git tag (`ref: vX.Y.Z`). Upgrade notes list what
 an app must change.
 
+## Unreleased
+
+### Optional "stay unlocked" (`zero_trust_core`)
+
+- Settings → Auto-lock has a new last choice, **Never, even after closing
+  the app**. It keeps the key in the phone's key store
+  (`SecureSessionKeyStore`) so `ZtUnlockScreen` opens the vault on its own
+  after the app is closed. Opt-in: the default and the existing choices
+  (Immediately, 1, 5, 15 min, Never) are unchanged.
+- Turning it on explains the trade-off and asks for the fingerprint or
+  password. Only offered on phones with a screen lock; dropped if the
+  screen lock is removed. "Lock now", sign-out, account deletion and any
+  other choice remove the kept key.
+- "Export my data" now asks for the fingerprint or password
+  (`ztConfirmIdentity`). Changing the password, a new recovery key and
+  deleting the account already asked.
+- New: `SessionKeyStore`, `AccountService(sessionKeys:)`,
+  `rememberSession`, `resumeSession`, `forgetSession`,
+  `stayUnlockedAvailable`, `ztStayUnlockedProvider`.
+
+**Upgrade note:** move the core pin. Apps that build `ZtUnlockScreen` and
+`ZtSettingsPage` need no other change.
+
 ## 0.12.0
 
 Release checks every app runs in CI, Google Play's location disclosure for
