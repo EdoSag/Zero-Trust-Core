@@ -3,7 +3,12 @@
 Apps depend on the core by git tag (`ref: vX.Y.Z`). Upgrade notes list what
 an app must change.
 
-## Unreleased
+## 0.12.0
+
+Release checks every app runs in CI, Google Play's location disclosure for
+place reminders, more widget kit icons, and the database side of ZT
+Calendar booking pages. `zero_trust_core` itself has no code change, so
+apps do not need to move their core pin for this release.
 
 ### Release checks for every app (`packages/zt_release_checks`)
 
@@ -32,6 +37,13 @@ from this one on) and the CI steps from the package README.
   (mirrored in Hebrew), an accent ring for "today", and a README section on
   scrolling list widgets (`RemoteViewsCompat`). Resources only: apps copy
   them with `apply.sh`, no Dart change.
+
+### Calendar booking pages (database only)
+
+- New tables and public functions for ZT Calendar booking pages (roadmap
+  K15): `supabase/migrations/20261112090000_calendar_booking_pages.sql`.
+- Free slot fixes: buffers after meetings that already ended, and days when
+  the clocks change (`20261112100000_booking_slots_buffer_and_dst.sql`).
 
 ## 0.11.0
 
