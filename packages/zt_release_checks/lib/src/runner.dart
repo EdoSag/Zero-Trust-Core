@@ -51,6 +51,7 @@ bool _report(List<CheckResult> results) {
 Future<bool> runFlutterChecks(Directory app, {required String appId}) async {
   final template = await _templateFile();
   final target = File(p.join(app.path, flutterTestFile));
+  target.parent.createSync(recursive: true);
   target.writeAsStringSync(
       template.readAsStringSync().replaceAll('{{APP_ID}}', appId));
   try {

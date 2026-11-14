@@ -67,25 +67,36 @@ Directory? pinnedCoreRepo(Directory app) {
 
 /// The SQL that builds the shared database: the Supabase stand-in and every
 /// migration in order, then core's own database tests (row level security,
-/// key guards, quotas, sharing), each meant for a fresh copy. Returns null
-/// when the checkout has none.
+/// key guards, quotas, sharing). Some tests build on helpers an earlier one
+/// made, so they run in one session in the order core's own CI uses, read
+/// from that commit's `.github/workflows/ci.yml`. Returns null when the
+/// checkout has no database.
 ({List<File> setup, List<File> tests})? databaseScripts(Directory coreRepo) {
-  final migrations = Directory(p.join(coreRepo.path, 'supabase', 'migrations'));
-  final tests = Directory(p.join(coreRepo.path, 'supabase', 'tests'));
-  final stub = File(p.join(tests.path, '00_supabase_stub.sql'));
+  final supabase = p.join(coreRepo.path, 'supabase');
+  final migrations = Directory(p.join(supabase, 'migrations'));
+  final stub = File(p.join(supabase, 'tests', '00_supabase_stub.sql'));
   if (!migrations.existsSync() || !stub.existsSync()) return null;
-  List<File> sql(Directory d) => d
+  final setup = migrations
       .listSync()
       .whereType<File>()
       .where((f) => f.path.endsWith('.sql'))
       .toList()
     ..sort((a, b) => a.path.compareTo(b.path));
-  return (
-    setup: [stub, ...sql(migrations)],
-    tests: [
-      ...sql(tests).where((f) => p.basename(f.path) != '00_supabase_stub.sql'),
-    ],
-  );
+  return (setup: [stub, ...setup], tests: coreCiTestOrder(coreRepo));
+}
+
+/// The database test files core's CI runs, in its order.
+List<File> coreCiTestOrder(Directory coreRepo) {
+  final ci = File(p.join(coreRepo.path, '.github', 'workflows', 'ci.yml'));
+  if (!ci.existsSync()) return const [];
+  final seen = <String>{};
+  return [
+    for (final m in RegExp(r'-f\s+(tests/[A-Za-z0-9_]+\.sql)')
+        .allMatches(ci.readAsStringSync()))
+      if (!m.group(1)!.endsWith('00_supabase_stub.sql') &&
+          seen.add(m.group(1)!))
+        File(p.join(coreRepo.path, 'supabase', m.group(1)!)),
+  ];
 }
 
 /// Tables the migrations drop: the pre-core data the old apps wrote.
@@ -124,8 +135,8 @@ Future<List<CheckResult>> runDatabaseChecks(Directory app) async {
     ];
   }
 
-  // A base database with every migration, then one fresh copy per test
-  // file, since core's test files each expect a clean start.
+  // A base database with every migration (the app's tables are checked
+  // there), and a copy of it for core's tests, which leave rows behind.
   const base = 'zt_release_base', scratch = 'zt_release_test';
   final problems0 = <String>[];
   Future<bool> step(String what, List<String> args, {String? db}) async {
@@ -135,27 +146,26 @@ Future<List<CheckResult>> runDatabaseChecks(Directory app) async {
   }
 
   if (await step('Creating a scratch database', [
-        '-c',
-        'drop database if exists $base',
-        '-c',
-        'create database $base'
+        '-c', 'drop database if exists $base', //
+        '-c', 'create database $base',
       ]) &&
       await step(
           'Applying the core migrations',
           [
             for (final f in scripts.setup) ...['-f', f.path]
           ],
-          db: base)) {
-    for (final test in scripts.tests) {
-      await step('Database test ${p.basename(test.path)}', [
-        '-c',
-        'drop database if exists $scratch',
-        '-c',
-        'create database $scratch template $base',
-      ]);
-      await step('Database test ${p.basename(test.path)}', ['-f', test.path],
-          db: scratch);
-    }
+          db: base) &&
+      scripts.tests.isNotEmpty &&
+      await step('Copying the database', [
+        '-c', 'drop database if exists $scratch', //
+        '-c', 'create database $scratch template $base',
+      ])) {
+    await step(
+        'Core database tests',
+        [
+          for (final f in scripts.tests) ...['-f', f.path]
+        ],
+        db: scratch);
   }
   final results = <CheckResult>[
     CheckResult(

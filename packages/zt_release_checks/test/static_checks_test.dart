@@ -168,6 +168,23 @@ final f = List.from(items);
     });
   });
 
+  test("core's database tests run in core CI's order", () {
+    final core = Directory.systemTemp.createTempSync('zt_core_');
+    addTearDown(() => core.deleteSync(recursive: true));
+    File(p.join(core.path, '.github', 'workflows', 'ci.yml'))
+      ..createSync(recursive: true)
+      ..writeAsStringSync('''
+          psql -q -v ON_ERROR_STOP=1 -f tests/00_supabase_stub.sql \\
+            -f tests/key_guard_test.sql -f tests/booking_pages_test.sql \\
+            -f tests/booking_slots_fixes_test.sql
+''');
+    expect(coreCiTestOrder(core).map((f) => p.basename(f.path)), [
+      'key_guard_test.sql',
+      'booking_pages_test.sql',
+      'booking_slots_fixes_test.sql',
+    ]);
+  });
+
   test('the Flutter template covers every suite app', () {
     final template =
         File('templates/release_checks_test.dart').readAsStringSync();
