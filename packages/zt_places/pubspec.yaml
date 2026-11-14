@@ -1,6 +1,6 @@
 name: zt_places
 description: On-device place reminders (arrive / leave) and the shared place picker for Zero-Trust apps. No Google Play services; the location never leaves the phone.
-version: 0.1.0
+version: 0.1.1
 publish_to: none
 
 environment:
