@@ -3,6 +3,13 @@
 Apps depend on the core by git tag (`ref: vX.Y.Z`). Upgrade notes list what
 an app must change.
 
+## Unreleased
+
+- zt_places: the place-reminder permission banner now reads as Google
+  Play's background location "prominent disclosure" (what the location is
+  for, that it is used while the app is closed or not in use, and that it
+  stays on the phone). Notes and Tasks need it before their Play review.
+
 ## 0.11.0
 
 Sharing between Zero-Trust users, plans groundwork, web and desktop
