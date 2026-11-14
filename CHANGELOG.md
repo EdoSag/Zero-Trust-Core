@@ -3,6 +3,14 @@
 Apps depend on the core by git tag (`ref: vX.Y.Z`). Upgrade notes list what
 an app must change.
 
+## Unreleased
+
+- **Widget kit: more icons and lists** (roadmap W4, W6, W7, W9). New kit
+  icons checklist, image, message, pin, dropdown and chevron start/end
+  (mirrored in Hebrew), an accent ring for "today", and a README section on
+  scrolling list widgets (`RemoteViewsCompat`). Resources only: apps copy
+  them with `apply.sh`, no Dart change.
+
 ## 0.11.0
 
 Sharing between Zero-Trust users, plans groundwork, web and desktop
