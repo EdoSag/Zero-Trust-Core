@@ -25,6 +25,14 @@ from this one on) and the CI steps from the package README.
   for, that it is used while the app is closed or not in use, and that it
   stays on the phone). Notes and Tasks need it before their Play review.
 
+### Widget kit
+
+- **Widget kit: more icons and lists** (roadmap W4, W6, W7, W9). New kit
+  icons checklist, image, message, pin, dropdown and chevron start/end
+  (mirrored in Hebrew), an accent ring for "today", and a README section on
+  scrolling list widgets (`RemoteViewsCompat`). Resources only: apps copy
+  them with `apply.sh`, no Dart change.
+
 ## 0.11.0
 
 Sharing between Zero-Trust users, plans groundwork, web and desktop

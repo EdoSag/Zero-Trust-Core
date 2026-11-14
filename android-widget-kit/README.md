@@ -46,6 +46,16 @@ except a pure 1x1 button) and picks a layout from its current size in
 `onAppWidgetOptionsChanged`, showing more as it grows. Set
 `targetCellWidth/Height`, `minResizeWidth/Height` and `maxResizeWidth/Height`.
 
+**Scrolling lists.** A widget whose rows can be more than fit (a notes
+list, an agenda, a favourites grid) uses a `ListView` or `GridView` filled
+with `androidx.core.widget.RemoteViewsCompat.setRemoteAdapter` and
+`RemoteCollectionItems` (add `androidx.core:core-remoteviews` to the app).
+On Android 12+ that is the system's own collection API; before 12 the
+library supplies the service, so no `RemoteViewsService` of our own. Row
+taps use one mutable `setPendingIntentTemplate` per list (explicit
+component, so it is safe) and `setOnClickFillInIntent` per row; give the
+list an `android:emptyView`.
+
 **Widget picker.** Every `appwidget-provider` has `android:description`
 and an `android:previewLayout` (Android 12+) with sample content, so the
 Widgets menu shows what the widget looks like instead of a blank box.
@@ -57,6 +67,6 @@ Widgets menu shows what the widget looks like instead of a blank box.
 | `values*/zt_widget_colors.xml` | surface, tile, on-surface, outline (light/dark, before and after Android 12) |
 | `values*/zt_widget_dimens.xml` | corner radii, padding, header icon and action sizes |
 | `values/zt_widget_styles.xml` | `ZtWidget.Root`, `.AppName`, `.Title`, `.Display`, `.Body`, `.Caption`, `.Action` |
-| `drawable/zt_widget_*.xml` | background, tile, accent circle and pill, tile circle, check ring |
-| `drawable/ic_zt_widget_*.xml` | lock, add, search, mic, play, stop, check, call, person, private, qr |
+| `drawable/zt_widget_*.xml` | background, tile, accent circle and pill, tile circle, check ring, accent ring (today) |
+| `drawable/ic_zt_widget_*.xml` | lock, add, search, mic, play, stop, check, call, person, private, qr, checklist, image, message, pin, dropdown, chevron start/end (mirrored in right-to-left languages) |
 | `values/zt_widget_accent.xml` | written by `apply.sh`: the app's accent |
