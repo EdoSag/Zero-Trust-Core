@@ -798,4 +798,35 @@ class ZtLocalizationsHe extends ZtLocalizations {
 
   @override
   String get crashReportDontSend => 'לא לשלוח';
+
+  @override
+  String get neverEvenAfterClosing => 'אף פעם, גם אחרי סגירת האפליקציה';
+
+  @override
+  String get neverStaysOpenAfterClosing => 'אף פעם, נשארת פתוחה גם אחרי סגירה';
+
+  @override
+  String get needsAScreenLock => 'צריך נעילת מסך בטלפון';
+
+  @override
+  String keepAppOpenQuestion(String appName) {
+    return 'להשאיר את $appName פתוחה?';
+  }
+
+  @override
+  String keepAppOpenExplanation(String appName) {
+    return '$appName תיפתח בלי סיסמה או טביעת אצבע, גם אחרי סגירה או הפעלה מחדש של הטלפון. כל מי שיכול לפתוח את נעילת הטלפון יוכל לפתוח אותה, לכן כדאי לבחור באפשרות הזו רק אם נעילת המסך ידועה רק לך.\n\nהמידע נשאר מוצפן בטלפון ובשרתים שלנו. שינוי סיסמה, מפתח שחזור חדש, ייצוא המידע ומחיקת החשבון עדיין יבקשו את הסיסמה.';
+  }
+
+  @override
+  String get keepOpen => 'להשאיר פתוחה';
+
+  @override
+  String enterYourPasswordToKeepOpen(String appName) {
+    return 'צריך להזין את הסיסמה כדי להשאיר את $appName פתוחה.';
+  }
+
+  @override
+  String get enterYourPasswordToExport =>
+      'צריך להזין את הסיסמה כדי לייצא את המידע.';
 }

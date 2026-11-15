@@ -1363,6 +1363,54 @@ abstract class ZtLocalizations {
   /// In en, this message translates to:
   /// **'Don\'t send'**
   String get crashReportDontSend;
+
+  /// No description provided for @neverEvenAfterClosing.
+  ///
+  /// In en, this message translates to:
+  /// **'Never, even after closing the app'**
+  String get neverEvenAfterClosing;
+
+  /// No description provided for @neverStaysOpenAfterClosing.
+  ///
+  /// In en, this message translates to:
+  /// **'Never, stays open even after closing'**
+  String get neverStaysOpenAfterClosing;
+
+  /// No description provided for @needsAScreenLock.
+  ///
+  /// In en, this message translates to:
+  /// **'Needs a screen lock on your phone'**
+  String get needsAScreenLock;
+
+  /// No description provided for @keepAppOpenQuestion.
+  ///
+  /// In en, this message translates to:
+  /// **'Keep {appName} open?'**
+  String keepAppOpenQuestion(String appName);
+
+  /// No description provided for @keepAppOpenExplanation.
+  ///
+  /// In en, this message translates to:
+  /// **'{appName} will open without your password or fingerprint, even after you close it or restart the phone. Anyone who can unlock your phone can open it, so choose this only if your phone\'s screen lock is yours alone.\n\nYour data stays encrypted on the phone and on our servers. Changing your password, a new recovery key, exporting your data and deleting your account still ask for your password.'**
+  String keepAppOpenExplanation(String appName);
+
+  /// No description provided for @keepOpen.
+  ///
+  /// In en, this message translates to:
+  /// **'Keep open'**
+  String get keepOpen;
+
+  /// No description provided for @enterYourPasswordToKeepOpen.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter your password to keep {appName} open.'**
+  String enterYourPasswordToKeepOpen(String appName);
+
+  /// No description provided for @enterYourPasswordToExport.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter your password to export your data.'**
+  String get enterYourPasswordToExport;
 }
 
 class _ZtLocalizationsDelegate extends LocalizationsDelegate<ZtLocalizations> {

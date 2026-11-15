@@ -414,5 +414,34 @@
   "crashReportPromptTitle": "The app hit a problem",
   "crashReportPromptBody": "Send a crash report to help fix it? It holds no personal data.",
   "crashReportView": "View report",
-  "crashReportDontSend": "Don't send"
+  "crashReportDontSend": "Don't send",
+  "neverEvenAfterClosing": "Never, even after closing the app",
+  "neverStaysOpenAfterClosing": "Never, stays open even after closing",
+  "needsAScreenLock": "Needs a screen lock on your phone",
+  "keepAppOpenQuestion": "Keep {appName} open?",
+  "@keepAppOpenQuestion": {
+    "placeholders": {
+      "appName": {
+        "type": "String"
+      }
+    }
+  },
+  "keepAppOpenExplanation": "{appName} will open without your password or fingerprint, even after you close it or restart the phone. Anyone who can unlock your phone can open it, so choose this only if your phone's screen lock is yours alone.\n\nYour data stays encrypted on the phone and on our servers. Changing your password, a new recovery key, exporting your data and deleting your account still ask for your password.",
+  "@keepAppOpenExplanation": {
+    "placeholders": {
+      "appName": {
+        "type": "String"
+      }
+    }
+  },
+  "keepOpen": "Keep open",
+  "enterYourPasswordToKeepOpen": "Enter your password to keep {appName} open.",
+  "@enterYourPasswordToKeepOpen": {
+    "placeholders": {
+      "appName": {
+        "type": "String"
+      }
+    }
+  },
+  "enterYourPasswordToExport": "Enter your password to export your data."
 }

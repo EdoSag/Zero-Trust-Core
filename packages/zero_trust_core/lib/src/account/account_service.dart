@@ -6,6 +6,7 @@ import 'package:zt_crypto/zt_crypto.dart';
 import 'account_backend.dart';
 import 'biometric_key_store.dart';
 import 'key_cache.dart';
+import 'session_key_store.dart';
 
 /// Result of any flow that leaves the vault unlocked.
 class UnlockResult {
@@ -59,13 +60,16 @@ class AccountService {
     this.legacyParams = KdfParams.current,
     KeyCache? keyCache,
     BiometricKeyStore? biometrics,
+    SessionKeyStore? sessionKeys,
     this.onlineTimeout = const Duration(seconds: 8),
   })  : _cache = keyCache ?? InMemoryKeyCache(),
-        _biometrics = biometrics;
+        _biometrics = biometrics,
+        _sessionKeys = sessionKeys;
 
   final AccountBackend _backend;
   final KeyCache _cache;
   final BiometricKeyStore? _biometrics;
+  final SessionKeyStore? _sessionKeys;
 
   /// How long [unlock] waits for the server before using the device's copy
   /// of the keys.
@@ -307,6 +311,83 @@ class AccountService {
     return UnlockResult(dek: secret.dek, legacyDek: secret.legacyDek);
   }
 
+  /// "Never, even after closing the app" can be offered: the phone has a
+  /// screen lock and a hardware key store.
+  Future<bool> stayUnlockedAvailable() async =>
+      await _sessionKeys?.isAvailable() ?? false;
+
+  /// Keeps a copy of [dek] so the app opens without asking after it's
+  /// closed (see [SessionKeyStore]). [dek] is left untouched. Best effort:
+  /// if the store refuses, the app simply asks to unlock next time.
+  ///
+  /// Saves and removals run one at a time in the order they were asked
+  /// for, and a save asked for before a [forgetSession] is dropped, so a
+  /// slow save can never bring back a key that "Lock now" removed.
+  Future<void> rememberSession(Uint8List dek, {bool legacyDek = false}) {
+    final store = _sessionKeys;
+    final userId = _backend.currentUserId;
+    if (store == null || userId == null) return Future.value();
+    final copy = Uint8List.fromList(dek);
+    final asked = _forgets;
+    return _inOrder(() async {
+      try {
+        if (asked != _forgets) return; // Forgotten since: don't keep it.
+        if (!await store.isAvailable()) return;
+        if (asked != _forgets) return;
+        await store.save(userId, (dek: copy, legacyDek: legacyDek));
+      } finally {
+        copy.fillRange(0, copy.length, 0);
+      }
+    });
+  }
+
+  /// The key kept by [rememberSession], to open the vault without asking.
+  /// Null when there is none, or when the phone no longer has a screen lock
+  /// (the copy is then removed and the user unlocks as usual).
+  Future<UnlockResult?> resumeSession() async {
+    final store = _sessionKeys;
+    final userId = _backend.currentUserId;
+    if (store == null || userId == null) return null;
+    try {
+      // A "Lock now" a moment ago must win over the copy it is removing.
+      await _sessionOps;
+      final secret = await store.read(userId);
+      if (secret == null) return null;
+      if (!await store.isAvailable()) {
+        secret.dek.fillRange(0, secret.dek.length, 0);
+        await forgetSession();
+        return null;
+      }
+      return UnlockResult(dek: secret.dek, legacyDek: secret.legacyDek);
+    } on Object {
+      return null;
+    }
+  }
+
+  /// Removes the copy kept by [rememberSession]; the next open asks again.
+  /// Takes effect at once for any save or [resumeSession] that follows or
+  /// is still pending.
+  Future<void> forgetSession() {
+    final userId = _backend.currentUserId;
+    final store = _sessionKeys;
+    if (userId == null || store == null) return Future.value();
+    _forgets++;
+    return _inOrder(() => store.clear(userId));
+  }
+
+  /// Counts [forgetSession] calls, so a save asked for earlier can tell it
+  /// was overtaken.
+  int _forgets = 0;
+  Future<void>? _sessionOps;
+
+  Future<void> _inOrder(Future<void> Function() op) {
+    final previous = _sessionOps;
+    final run = previous == null ? op() : previous.then((_) => op());
+    return _sessionOps = run.then<void>((_) {}, onError: (Object _) {
+      // Best effort, see above.
+    });
+  }
+
   Future<void> changePassword({
     required String currentPassword,
     required String newPassword,
@@ -379,7 +460,7 @@ class AccountService {
   }
 
   /// Signs out and forgets this device's copy of the keys, including the
-  /// biometric one.
+  /// biometric one and the one kept to stay unlocked.
   Future<void> signOut() async {
     await _forgetDevice();
     await _backend.signOut();
@@ -405,6 +486,8 @@ class AccountService {
     if (userId != null) {
       await _cache.clear(userId);
       await _biometrics?.clear(userId);
+      _forgets++;
+      await _inOrder(() async => _sessionKeys?.clear(userId));
     }
   }
 
@@ -576,6 +659,8 @@ class AccountService {
     if (userId == null) return;
     await _cache.clear(userId);
     await _biometrics?.clear(userId);
+    _forgets++;
+    await _inOrder(() async => _sessionKeys?.clear(userId));
   }
 
   String _requireUserId() {

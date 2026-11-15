@@ -210,5 +210,13 @@
   "crashReportPromptTitle": "האפליקציה נתקלה בבעיה",
   "crashReportPromptBody": "לשלוח דוח קריסה שיעזור לתקן את זה? אין בו מידע אישי.",
   "crashReportView": "הצגת הדוח",
-  "crashReportDontSend": "לא לשלוח"
+  "crashReportDontSend": "לא לשלוח",
+  "neverEvenAfterClosing": "אף פעם, גם אחרי סגירת האפליקציה",
+  "neverStaysOpenAfterClosing": "אף פעם, נשארת פתוחה גם אחרי סגירה",
+  "needsAScreenLock": "צריך נעילת מסך בטלפון",
+  "keepAppOpenQuestion": "להשאיר את {appName} פתוחה?",
+  "keepAppOpenExplanation": "{appName} תיפתח בלי סיסמה או טביעת אצבע, גם אחרי סגירה או הפעלה מחדש של הטלפון. כל מי שיכול לפתוח את נעילת הטלפון יוכל לפתוח אותה, לכן כדאי לבחור באפשרות הזו רק אם נעילת המסך ידועה רק לך.\n\nהמידע נשאר מוצפן בטלפון ובשרתים שלנו. שינוי סיסמה, מפתח שחזור חדש, ייצוא המידע ומחיקת החשבון עדיין יבקשו את הסיסמה.",
+  "keepOpen": "להשאיר פתוחה",
+  "enterYourPasswordToKeepOpen": "צריך להזין את הסיסמה כדי להשאיר את {appName} פתוחה.",
+  "enterYourPasswordToExport": "צריך להזין את הסיסמה כדי לייצא את המידע."
 }

@@ -789,4 +789,36 @@ class ZtLocalizationsEn extends ZtLocalizations {
 
   @override
   String get crashReportDontSend => 'Don\'t send';
+
+  @override
+  String get neverEvenAfterClosing => 'Never, even after closing the app';
+
+  @override
+  String get neverStaysOpenAfterClosing =>
+      'Never, stays open even after closing';
+
+  @override
+  String get needsAScreenLock => 'Needs a screen lock on your phone';
+
+  @override
+  String keepAppOpenQuestion(String appName) {
+    return 'Keep $appName open?';
+  }
+
+  @override
+  String keepAppOpenExplanation(String appName) {
+    return '$appName will open without your password or fingerprint, even after you close it or restart the phone. Anyone who can unlock your phone can open it, so choose this only if your phone\'s screen lock is yours alone.\n\nYour data stays encrypted on the phone and on our servers. Changing your password, a new recovery key, exporting your data and deleting your account still ask for your password.';
+  }
+
+  @override
+  String get keepOpen => 'Keep open';
+
+  @override
+  String enterYourPasswordToKeepOpen(String appName) {
+    return 'Enter your password to keep $appName open.';
+  }
+
+  @override
+  String get enterYourPasswordToExport =>
+      'Enter your password to export your data.';
 }

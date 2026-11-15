@@ -229,7 +229,13 @@ void main() {
     await tester.pumpAndSettle();
     expect(find.textContaining('isn\'t encrypted'), findsOneWidget);
     await tester.tap(find.widgetWithText(FilledButton, 'Export'));
-    for (var i = 0; i < 50 && exported == null; i++) {
+    await tester.pumpAndSettle();
+    // It asks for the password whatever the auto-lock setting is.
+    expect(
+        find.text('Enter your password to export your data.'), findsOneWidget);
+    await tester.enterText(find.byType(TextField).last, password);
+    await tester.tap(find.widgetWithText(FilledButton, 'Export'));
+    for (var i = 0; i < 100 && exported == null; i++) {
       await tester.runAsync(
           () => Future<void>.delayed(const Duration(milliseconds: 20)));
       await tester.pump();

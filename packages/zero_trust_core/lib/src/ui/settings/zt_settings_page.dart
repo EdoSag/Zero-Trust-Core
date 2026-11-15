@@ -20,7 +20,9 @@ import 'zt_crash_reports_screen.dart';
 import 'zt_data_protection_screen.dart';
 import '../../core_providers.dart';
 import '../../vault/vault_controller.dart';
+import '../../account/biometric_key_store.dart';
 import '../../account/password_check.dart';
+import '../auth/zt_confirm_identity.dart';
 import '../auth/zt_auth_messages.dart';
 import '../auth/zt_password_strength.dart';
 import '../../sync/zt_local_store.dart';
@@ -104,6 +106,7 @@ class ZtSettingsPage extends ConsumerWidget {
     final themeMode = ref.watch(themeModeProvider);
     final language = ref.watch(ztLanguageProvider);
     final autoLock = ref.watch(ztAutoLockProvider);
+    final stayUnlocked = ref.watch(ztStayUnlockedProvider);
     final theme = Theme.of(context);
 
     return Scaffold(
@@ -137,8 +140,10 @@ class ZtSettingsPage extends ConsumerWidget {
           ListTile(
             leading: const Icon(Icons.lock_clock_outlined),
             title: Text(ZtL10n.of(context).autoLock),
-            subtitle: Text(_autoLockLabel(autoLock)),
-            onTap: () => _pickAutoLock(context, ref, autoLock),
+            subtitle: Text(stayUnlocked
+                ? ZtL10n.of(context).neverStaysOpenAfterClosing
+                : _autoLockLabel(autoLock)),
+            onTap: () => _pickAutoLock(context, ref, autoLock, stayUnlocked),
           ),
           const _BiometricTile(),
           ListTile(
@@ -293,31 +298,96 @@ class ZtSettingsPage extends ConsumerWidget {
         _ => ZtL10n.current.afterSeconds(d.inSeconds),
       };
 
-  Future<void> _pickAutoLock(
-      BuildContext context, WidgetRef ref, Duration? current) async {
+  /// The Auto-lock picker. The timed choices and "Never" work as they
+  /// always have; "Never, even after closing the app" is an extra choice
+  /// that only phones with a screen lock offer (see `SessionKeyStore`).
+  Future<void> _pickAutoLock(BuildContext context, WidgetRef ref,
+      Duration? current, bool stayUnlocked) async {
+    final account = ref.read(accountServiceProvider);
+    final offerStay = SecureBiometricKeyStore.platformSupported || stayUnlocked;
+    final canStay = stayUnlocked || await account.stayUnlockedAvailable();
+    if (!context.mounted) return;
     final choices = {...AutoLockController.choices, current}.toList();
-    final picked = await showDialog<(Duration?,)>(
+    // The stay-open choice is `(null, true)`; every other is `(d, false)`.
+    final picked = await showDialog<(Duration?, bool)>(
       context: context,
       builder: (context) => SimpleDialog(
         title: Text(ZtL10n.of(context).autoLock),
         children: [
-          RadioGroup<Duration?>(
-            groupValue: current,
-            onChanged: (d) => Navigator.pop(context, (d,)),
+          RadioGroup<(Duration?, bool)>(
+            groupValue: stayUnlocked ? (null, true) : (current, false),
+            onChanged: (c) => Navigator.pop(context, c),
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
                 for (final d in choices)
-                  RadioListTile<Duration?>(
-                      value: d, title: Text(_autoLockChoice(d))),
+                  RadioListTile<(Duration?, bool)>(
+                      value: (d, false), title: Text(_autoLockChoice(d))),
+                if (offerStay)
+                  RadioListTile<(Duration?, bool)>(
+                    value: (null, true),
+                    enabled: canStay,
+                    title: Text(ZtL10n.of(context).neverEvenAfterClosing),
+                    subtitle: canStay
+                        ? null
+                        : Text(ZtL10n.of(context).needsAScreenLock),
+                  ),
               ],
             ),
           ),
         ],
       ),
     );
-    if (picked != null) {
-      await ref.read(ztAutoLockProvider.notifier).set(picked.$1);
+    if (picked == null || !context.mounted) return;
+    final (after, stay) = picked;
+    if (stay) {
+      if (!stayUnlocked) await _turnOnStayUnlocked(context, ref);
+      return;
+    }
+    if (stayUnlocked) {
+      await ref.read(ztStayUnlockedProvider.notifier).set(false);
+      await account.forgetSession();
+    }
+    await ref.read(ztAutoLockProvider.notifier).set(after);
+  }
+
+  /// Explains what "Never, even after closing the app" means, then asks
+  /// for the fingerprint or password: loosening the lock is itself a
+  /// sensitive action, and it yields the key to keep.
+  Future<void> _turnOnStayUnlocked(BuildContext context, WidgetRef ref) async {
+    final name = ref.read(ztAppConfigProvider).displayName;
+    final go = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text(ZtL10n.of(context).keepAppOpenQuestion(name)),
+        content: Text(ZtL10n.of(context).keepAppOpenExplanation(name)),
+        actions: [
+          TextButton(
+              onPressed: () => Navigator.pop(context, false),
+              child: Text(ZtL10n.of(context).cancel)),
+          FilledButton(
+              onPressed: () => Navigator.pop(context, true),
+              child: Text(ZtL10n.of(context).keepOpen)),
+        ],
+      ),
+    );
+    if (go != true || !context.mounted) return;
+    final result = await ztConfirmIdentity(
+      context,
+      ref,
+      title: ZtL10n.of(context).keepAppOpenQuestion(name),
+      message: ZtL10n.of(context).enterYourPasswordToKeepOpen(name),
+      action: ZtL10n.of(context).keepOpen,
+    );
+    if (result == null) return;
+    try {
+      await ref.read(ztStayUnlockedProvider.notifier).set(true);
+      await ref.read(ztAutoLockProvider.notifier).set(null);
+      await ref
+          .read(accountServiceProvider)
+          .rememberSession(result.dek, legacyDek: result.legacyDek);
+    } finally {
+      result.dek.fillRange(0, result.dek.length, 0);
     }
   }
 
