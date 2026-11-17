@@ -17,6 +17,7 @@ export 'src/account/key_cache.dart';
 export 'src/account/session_key_store.dart';
 export 'src/account/supabase_account_backend.dart';
 export 'src/config/zt_app_config.dart';
+export 'src/config/zt_install_channel.dart';
 export 'src/config/zt_language.dart';
 export 'src/config/zt_preferences.dart';
 export 'src/config/zt_suite.dart';

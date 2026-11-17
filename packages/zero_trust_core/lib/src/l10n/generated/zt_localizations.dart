@@ -614,6 +614,18 @@ abstract class ZtLocalizations {
   /// **'End-to-end encrypted. We can\'t read your data.'**
   String get endToEndEncryptedWeCant;
 
+  /// No description provided for @sponsorProject.
+  ///
+  /// In en, this message translates to:
+  /// **'Support the project'**
+  String get sponsorProject;
+
+  /// No description provided for @sponsorProjectSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Sponsor development on GitHub. It\'s a thank-you and doesn\'t unlock anything.'**
+  String get sponsorProjectSubtitle;
+
   /// No description provided for @helpAndFeedback.
   ///
   /// In en, this message translates to:
