@@ -445,5 +445,51 @@
       }
     }
   },
-  "enterYourPasswordToExport": "Enter your password to export your data."
+  "enterYourPasswordToExport": "Enter your password to export your data.",
+  "plansTitle": "Plans",
+  "plansPlusName": "Plus",
+  "plansPlusTagline": "More room in every Zero-Trust app",
+  "plansPlusSynced": "1 GB of synced data, up from 50 MB",
+  "plansPlusFiles": "20 GB of attached files, up from 500 MB",
+  "plansPlusAllApps": "One subscription covers every app",
+  "plansPlusSameEncryption": "The same end-to-end encryption as Free",
+  "plansMonthly": "{price} a month",
+  "@plansMonthly": {
+    "placeholders": {
+      "price": {
+        "type": "String"
+      }
+    }
+  },
+  "plansYearly": "{price} a year",
+  "@plansYearly": {
+    "placeholders": {
+      "price": {
+        "type": "String"
+      }
+    }
+  },
+  "plansNotAvailable": "Plus can't be bought here yet.",
+  "plansYouHave": "You have {name}. Thank you for supporting Zero-Trust.",
+  "@plansYouHave": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "plansGranted": "{name} was given to you by Zero-Trust.",
+  "@plansGranted": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "plansManage": "Manage subscription",
+  "plansRestore": "Restore purchases",
+  "plansFinePrint": "Renews automatically. No free trial. Cancel any time and keep Plus until the end of the period you've paid for. Everything that's free stays free.",
+  "plansThanks": "Thank you! Plus is on.",
+  "plansPending": "Payment pending. Plus turns on as soon as the store confirms it.",
+  "plansFailed": "The purchase didn't go through. Please try again."
 }

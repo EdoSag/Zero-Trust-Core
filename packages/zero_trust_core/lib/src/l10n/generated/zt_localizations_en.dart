@@ -828,4 +828,70 @@ class ZtLocalizationsEn extends ZtLocalizations {
   @override
   String get enterYourPasswordToExport =>
       'Enter your password to export your data.';
+
+  @override
+  String get plansTitle => 'Plans';
+
+  @override
+  String get plansPlusName => 'Plus';
+
+  @override
+  String get plansPlusTagline => 'More room in every Zero-Trust app';
+
+  @override
+  String get plansPlusSynced => '1 GB of synced data, up from 50 MB';
+
+  @override
+  String get plansPlusFiles => '20 GB of attached files, up from 500 MB';
+
+  @override
+  String get plansPlusAllApps => 'One subscription covers every app';
+
+  @override
+  String get plansPlusSameEncryption =>
+      'The same end-to-end encryption as Free';
+
+  @override
+  String plansMonthly(String price) {
+    return '$price a month';
+  }
+
+  @override
+  String plansYearly(String price) {
+    return '$price a year';
+  }
+
+  @override
+  String get plansNotAvailable => 'Plus can\'t be bought here yet.';
+
+  @override
+  String plansYouHave(String name) {
+    return 'You have $name. Thank you for supporting Zero-Trust.';
+  }
+
+  @override
+  String plansGranted(String name) {
+    return '$name was given to you by Zero-Trust.';
+  }
+
+  @override
+  String get plansManage => 'Manage subscription';
+
+  @override
+  String get plansRestore => 'Restore purchases';
+
+  @override
+  String get plansFinePrint =>
+      'Renews automatically. No free trial. Cancel any time and keep Plus until the end of the period you\'ve paid for. Everything that\'s free stays free.';
+
+  @override
+  String get plansThanks => 'Thank you! Plus is on.';
+
+  @override
+  String get plansPending =>
+      'Payment pending. Plus turns on as soon as the store confirms it.';
+
+  @override
+  String get plansFailed =>
+      'The purchase didn\'t go through. Please try again.';
 }

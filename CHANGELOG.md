@@ -5,6 +5,32 @@ an app must change.
 
 ## Unreleased
 
+### Billing backbone and Plans screen (`zero_trust_core`, database)
+
+- Migration `20261117090000_core_billing_backbone`. New `zt_billing_products`
+  (what each store sells, inactive until launch; Play products
+  `zt_plus:monthly` and `zt_plus:yearly` are seeded switched off) and
+  `zt_billing_events` (every store notification, stored once). Neither is
+  writable by apps.
+- `zt_apply_billing_event(...)`, callable only with the service role (store
+  webhooks and verification edge functions). It is idempotent (a repeated
+  event returns `duplicate`), ignores events older than what is already
+  stored (`stale`), refuses to move a purchase to another account
+  (`owner_mismatch`) and records the result on the event row.
+- Reconcile helpers for a nightly job: `zt_billing_due_for_check`,
+  `zt_billing_expire_lapsed` (manual grants are left alone) and
+  `zt_billing_purge_events` (13 months). Owner views `zt_billing_summary`
+  and `zt_billing_problems`.
+- `zt_subscriptions` gains `product_id` and `provider_updated_at`.
+- Dart: `ZtBillingStore` interface with `ztBillingStoreProvider` (null by
+  default, so nothing can be bought until a store is wired in) and
+  `FakeBillingStore` for tests and demos.
+- `ZtPlansScreen`: current plan, Plus benefits, prices from the store,
+  buy, pending and failed states, Manage subscription, Restore purchases,
+  and the "renews automatically, no free trial" note. English and Hebrew.
+- Upgrade: nothing to do in apps yet. Live database: paste
+  `core-billing-backbone.sql` once (needs the plans migrations).
+
 ### Install channel and "Support the project" (`zero_trust_core`)
 
 - New `ZtInstallChannel` (`direct`, `play`, `appStore`), set at build time
