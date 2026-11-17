@@ -5,6 +5,13 @@ an app must change.
 
 ## Unreleased
 
+### Settings links default to zerotrust.bz (`zero_trust_core`)
+
+- `ZtSettingsPage` now shows Help and feedback, Privacy policy and Terms
+  of use whenever `onOpenUrl` is set. Without their URLs they open
+  https://zerotrust.bz/support/, /privacy/ and /terms/
+  (`ztSupportUrl`, `ztPrivacyPolicyUrl`, `ztTermsUrl`).
+
 ### Optional "stay unlocked" (`zero_trust_core`)
 
 - Settings → Auto-lock has a new last choice, **Never, even after closing
