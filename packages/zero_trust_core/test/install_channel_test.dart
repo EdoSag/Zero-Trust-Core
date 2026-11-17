@@ -57,9 +57,9 @@ void main() {
 
     Future<Finder> findRow(WidgetTester tester) async {
       final row = find.text('Support the project');
-      // The row sits right above Privacy policy, which every build shows
-      // once the app can open links.
-      await tester.scrollUntilVisible(find.text('Privacy policy'), 100,
+      // The row sits right below Help and feedback, which every build
+      // shows once the app can open links.
+      await tester.scrollUntilVisible(find.text('Help and feedback'), 100,
           scrollable: find.byType(Scrollable).first);
       await tester.pumpAndSettle();
       return row;
