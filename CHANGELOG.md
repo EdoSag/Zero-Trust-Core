@@ -11,6 +11,26 @@ an app must change.
   of use whenever `onOpenUrl` is set. Without their URLs they open
   https://zerotrust.bz/support/, /privacy/ and /terms/
   (`ztSupportUrl`, `ztPrivacyPolicyUrl`, `ztTermsUrl`).
+### Install channel and "Support the project" (`zero_trust_core`)
+
+- New `ZtInstallChannel` (`direct`, `play`, `appStore`), set at build time
+  with `--dart-define=ZT_CHANNEL=...` and readable as
+  `ZtAppConfig.channel`. A build without the flag counts as a store build
+  (`play`, or `appStore` on Apple), so nothing that store rules forbid can
+  appear by accident.
+- Settings → About shows **Support the project** (GitHub Sponsors) only
+  in `direct` builds with `onOpenUrl` set. Google Play and the App Store
+  forbid links to other ways of paying, so store builds never show it.
+  Turn it off with `ZtSettingsPage(showSponsor: false)`.
+- Upgrade: add `--dart-define=ZT_CHANNEL=direct` to the APK build in each
+  app's release workflow (the GitHub release APK), and leave it off for the
+  Play `.aab`. No other change needed.
+### Release checks know ZT Quests (`zt_release_checks`)
+
+- New suite app id `quests` (ZT Quests). Its data key, signing key and a
+  synced item were made with core and checked independently with Python
+  (hashlib, hmac, cryptography), like the other apps' vectors. Nothing
+  changes for the existing apps.
 
 ### Optional "stay unlocked" (`zero_trust_core`)
 

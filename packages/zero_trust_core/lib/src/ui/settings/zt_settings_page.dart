@@ -60,6 +60,7 @@ class ZtSettingsPage extends ConsumerWidget {
     this.showPlan = false,
     this.onOpenPlans,
     this.showOtherApps = true,
+    this.showSponsor = true,
   });
 
   /// Called after sign-out and after account deletion. Route to sign-in.
@@ -109,6 +110,12 @@ class ZtSettingsPage extends ConsumerWidget {
   /// Lists the suite's other apps (same account) with a link to each in
   /// the store, opened through [onOpenUrl]. Hidden without [onOpenUrl].
   final bool showOtherApps;
+
+  /// Shows "Support the project" (GitHub Sponsors) in About. It appears
+  /// only with [onOpenUrl] set and only in builds whose
+  /// [ZtAppConfig.channel] allows outside payments (direct APKs), because
+  /// Google Play and the App Store forbid such links in store builds.
+  final bool showSponsor;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -228,6 +235,17 @@ class ZtSettingsPage extends ConsumerWidget {
               title: Text(ZtL10n.of(context).helpAndFeedback),
               onTap: () => onOpenUrl!(supportUrl ?? ztSupportUrl),
             ),
+          if (showSponsor &&
+              onOpenUrl != null &&
+              config.channel.allowsExternalPayments)
+            ListTile(
+              leading: const Icon(Icons.favorite_outline),
+              title: Text(ZtL10n.of(context).sponsorProject),
+              subtitle: Text(ZtL10n.of(context).sponsorProjectSubtitle),
+              trailing: const Icon(Icons.open_in_new, size: 20),
+              onTap: () => onOpenUrl!(ZtSuite.sponsorUrl),
+            ),
+          if (privacyPolicyUrl != null && onOpenUrl != null)
             ListTile(
               leading: const Icon(Icons.policy_outlined),
               title: Text(ZtL10n.of(context).privacyPolicy),

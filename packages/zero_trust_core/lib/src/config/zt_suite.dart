@@ -40,6 +40,10 @@ class ZtSuiteApp {
 }
 
 abstract final class ZtSuite {
+  /// Where people can sponsor development (GitHub Sponsors). Shown only in
+  /// builds whose [ZtInstallChannel] allows outside payments.
+  static final sponsorUrl = Uri.https('github.com', '/sponsors/EdoSag');
+
   static const notes = ZtSuiteApp(
     appId: 'notes',
     name: 'Notes',

@@ -290,6 +290,13 @@ class ZtLocalizationsEn extends ZtLocalizations {
       'End-to-end encrypted. We can\'t read your data.';
 
   @override
+  String get sponsorProject => 'Support the project';
+
+  @override
+  String get sponsorProjectSubtitle =>
+      'Sponsor development on GitHub. It\'s a thank-you and doesn\'t unlock anything.';
+
+  @override
   String get helpAndFeedback => 'Help and feedback';
 
   @override
