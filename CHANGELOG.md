@@ -5,6 +5,13 @@ an app must change.
 
 ## Unreleased
 
+### Release checks know ZT Quests (`zt_release_checks`)
+
+- New suite app id `quests` (ZT Quests). Its data key, signing key and a
+  synced item were made with core and checked independently with Python
+  (hashlib, hmac, cryptography), like the other apps' vectors. Nothing
+  changes for the existing apps.
+
 ### Optional "stay unlocked" (`zero_trust_core`)
 
 - Settings → Auto-lock has a new last choice, **Never, even after closing
