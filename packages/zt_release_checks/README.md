@@ -23,7 +23,7 @@ app's `test/` folder, run with the app's own dependencies, then removed):
 - Sync: an item sealed and signed by core 0.11 still opens in this app; a
   new item round-trips and is unreadable on the server; no other app's key
   can open or forge this app's data.
-- Account: an account made in any of the nine apps signs in here with the
+- Account: an account made in any of the suite apps signs in here with the
   same key; a pre-core account (both old salt formats) signs in, keeps its
   old data key and opens again after the upgrade; a wrong password never
   reaches the server.
