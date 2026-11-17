@@ -1423,6 +1423,114 @@ abstract class ZtLocalizations {
   /// In en, this message translates to:
   /// **'Enter your password to export your data.'**
   String get enterYourPasswordToExport;
+
+  /// No description provided for @plansTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Plans'**
+  String get plansTitle;
+
+  /// No description provided for @plansPlusName.
+  ///
+  /// In en, this message translates to:
+  /// **'Plus'**
+  String get plansPlusName;
+
+  /// No description provided for @plansPlusTagline.
+  ///
+  /// In en, this message translates to:
+  /// **'More room in every Zero-Trust app'**
+  String get plansPlusTagline;
+
+  /// No description provided for @plansPlusSynced.
+  ///
+  /// In en, this message translates to:
+  /// **'1 GB of synced data, up from 50 MB'**
+  String get plansPlusSynced;
+
+  /// No description provided for @plansPlusFiles.
+  ///
+  /// In en, this message translates to:
+  /// **'20 GB of attached files, up from 500 MB'**
+  String get plansPlusFiles;
+
+  /// No description provided for @plansPlusAllApps.
+  ///
+  /// In en, this message translates to:
+  /// **'One subscription covers every app'**
+  String get plansPlusAllApps;
+
+  /// No description provided for @plansPlusSameEncryption.
+  ///
+  /// In en, this message translates to:
+  /// **'The same end-to-end encryption as Free'**
+  String get plansPlusSameEncryption;
+
+  /// No description provided for @plansMonthly.
+  ///
+  /// In en, this message translates to:
+  /// **'{price} a month'**
+  String plansMonthly(String price);
+
+  /// No description provided for @plansYearly.
+  ///
+  /// In en, this message translates to:
+  /// **'{price} a year'**
+  String plansYearly(String price);
+
+  /// No description provided for @plansNotAvailable.
+  ///
+  /// In en, this message translates to:
+  /// **'Plus can\'t be bought here yet.'**
+  String get plansNotAvailable;
+
+  /// No description provided for @plansYouHave.
+  ///
+  /// In en, this message translates to:
+  /// **'You have {name}. Thank you for supporting Zero-Trust.'**
+  String plansYouHave(String name);
+
+  /// No description provided for @plansGranted.
+  ///
+  /// In en, this message translates to:
+  /// **'{name} was given to you by Zero-Trust.'**
+  String plansGranted(String name);
+
+  /// No description provided for @plansManage.
+  ///
+  /// In en, this message translates to:
+  /// **'Manage subscription'**
+  String get plansManage;
+
+  /// No description provided for @plansRestore.
+  ///
+  /// In en, this message translates to:
+  /// **'Restore purchases'**
+  String get plansRestore;
+
+  /// No description provided for @plansFinePrint.
+  ///
+  /// In en, this message translates to:
+  /// **'Renews automatically. No free trial. Cancel any time and keep Plus until the end of the period you\'ve paid for. Everything that\'s free stays free.'**
+  String get plansFinePrint;
+
+  /// No description provided for @plansThanks.
+  ///
+  /// In en, this message translates to:
+  /// **'Thank you! Plus is on.'**
+  String get plansThanks;
+
+  /// No description provided for @plansPending.
+  ///
+  /// In en, this message translates to:
+  /// **'Payment pending. Plus turns on as soon as the store confirms it.'**
+  String get plansPending;
+
+  /// No description provided for @plansFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'The purchase didn\'t go through. Please try again.'**
+  String get plansFailed;
 }
 
 class _ZtLocalizationsDelegate extends LocalizationsDelegate<ZtLocalizations> {

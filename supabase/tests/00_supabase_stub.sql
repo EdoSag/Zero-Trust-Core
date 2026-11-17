@@ -4,6 +4,7 @@
 do $$ begin
   if not exists (select 1 from pg_roles where rolname = 'anon') then create role anon nologin; end if;
   if not exists (select 1 from pg_roles where rolname = 'authenticated') then create role authenticated nologin; end if;
+  if not exists (select 1 from pg_roles where rolname = 'service_role') then create role service_role nologin bypassrls; end if;
 end $$;
 create schema auth;
 create table auth.users (id uuid primary key, email text);
@@ -16,7 +17,7 @@ alter table public.profiles enable row level security;
 create policy "ins" on public.profiles for insert with check (auth.uid() = id);
 create policy "upd" on public.profiles for update using (auth.uid() = id) with check (auth.uid() = id);
 create policy "sel" on public.profiles for select using (auth.uid() = id);
-grant usage on schema public to anon, authenticated;
+grant usage on schema public to anon, authenticated, service_role;
 grant select, insert, update, delete on all tables in schema public to authenticated;
 alter default privileges in schema public grant select, insert, update, delete on tables to authenticated, anon;
 create table public.encrypted_vault (id uuid, user_id uuid);

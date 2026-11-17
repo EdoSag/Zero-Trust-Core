@@ -836,4 +836,68 @@ class ZtLocalizationsHe extends ZtLocalizations {
   @override
   String get enterYourPasswordToExport =>
       'צריך להזין את הסיסמה כדי לייצא את המידע.';
+
+  @override
+  String get plansTitle => 'תוכניות';
+
+  @override
+  String get plansPlusName => 'פלוס';
+
+  @override
+  String get plansPlusTagline => 'יותר מקום בכל אפליקציות Zero-Trust';
+
+  @override
+  String get plansPlusSynced => '‏1 GB של נתונים מסונכרנים, במקום 50 MB';
+
+  @override
+  String get plansPlusFiles => '‏20 GB של קבצים מצורפים, במקום 500 MB';
+
+  @override
+  String get plansPlusAllApps => 'מינוי אחד לכל האפליקציות';
+
+  @override
+  String get plansPlusSameEncryption =>
+      'אותה הצפנה מקצה לקצה כמו בתוכנית החינמית';
+
+  @override
+  String plansMonthly(String price) {
+    return '$price לחודש';
+  }
+
+  @override
+  String plansYearly(String price) {
+    return '$price לשנה';
+  }
+
+  @override
+  String get plansNotAvailable => 'עדיין אי אפשר לקנות כאן את פלוס.';
+
+  @override
+  String plansYouHave(String name) {
+    return 'יש לך $name. תודה על התמיכה ב-Zero-Trust.';
+  }
+
+  @override
+  String plansGranted(String name) {
+    return '$name ניתנה לך על ידי Zero-Trust.';
+  }
+
+  @override
+  String get plansManage => 'ניהול המינוי';
+
+  @override
+  String get plansRestore => 'שחזור רכישות';
+
+  @override
+  String get plansFinePrint =>
+      'מתחדש אוטומטית. אין תקופת ניסיון. אפשר לבטל בכל עת ולהמשיך עם פלוס עד סוף התקופה ששולמה. כל מה שחינמי נשאר חינמי.';
+
+  @override
+  String get plansThanks => 'תודה! פלוס פעיל.';
+
+  @override
+  String get plansPending => 'התשלום ממתין. פלוס יופעל ברגע שהחנות תאשר אותו.';
+
+  @override
+  String get plansFailed => 'הרכישה לא הושלמה. אפשר לנסות שוב.';
 }
