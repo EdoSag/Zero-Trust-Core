@@ -68,6 +68,15 @@ begin
   r := public.zt_apply_billing_event('web', 'evt_4', 'subscription.created', now(),
          'psub_8', 'pri_test_monthly', 'active', now() + interval '30 days', null);
   assert r = 'no_user', 'notification without an account for a new purchase: ' || r;
+  -- An account that no longer exists: still stored, as no_user, not an error.
+  r := public.zt_apply_billing_event('web', 'evt_4b', 'subscription.created', now(),
+         'psub_7', 'pri_test_monthly', 'active', now() + interval '30 days',
+         '00000000-0000-0000-0000-0000000000ff');
+  assert r = 'no_user', 'deleted account for a new purchase: ' || r;
+  r := public.zt_apply_billing_event('web', 'evt_4c', 'subscription.updated', now(),
+         'psub_1', 'pri_test_monthly', 'active', now() + interval '30 days',
+         '00000000-0000-0000-0000-0000000000ff');
+  assert r = 'owner_mismatch', 'deleted account on an existing purchase: ' || r;
   r := public.zt_apply_billing_event('web', 'evt_5', 'subscription.paused', now(),
          'psub_1', 'pri_test_monthly', 'weird', null, null);
   assert r = 'ignored', 'unknown status: ' || r;
@@ -80,11 +89,15 @@ do $$ begin
          = '00000000-0000-0000-0000-0000000000b1', 'still the buyer''s';
   assert (select status from public.zt_subscriptions where provider_ref = 'psub_1') = 'active', 'still active';
   assert (select product_id from public.zt_subscriptions where provider_ref = 'psub_1') = 'plus_monthly_web', 'product kept';
-  assert (select count(*) from public.zt_billing_events) = 6, 'six events logged (duplicate not stored)';
+  assert (select count(*) from public.zt_billing_events) = 8, 'eight events logged (duplicate not stored)';
+  assert (select user_id is null and result = 'no_user' from public.zt_billing_events
+           where provider_event_id = 'evt_4b'), 'deleted account event row kept';
+  assert (select user_id is null and result = 'owner_mismatch' from public.zt_billing_events
+           where provider_event_id = 'evt_4c'), 'deleted account mismatch row kept';
   assert (select count(*) from public.zt_billing_events where result = 'pending') = 0, 'no pending rows';
   assert (select user_id from public.zt_billing_events where provider_event_id = 'evt_2')
          = '00000000-0000-0000-0000-0000000000b2', 'mismatch logs the other account';
-  assert (select count(*) from public.zt_billing_problems) = 4, 'problems view';
+  assert (select count(*) from public.zt_billing_problems) = 6, 'problems view';
   assert (select subscriptions from public.zt_billing_summary
            where plan_id = 'plus' and source = 'web' and status = 'active') = 1, 'summary';
 end $$;

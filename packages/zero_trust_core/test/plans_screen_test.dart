@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:typed_data';
 
 import 'package:flutter/material.dart';
@@ -14,6 +15,13 @@ class _FakePlan implements PlanSource {
     fetches++;
     return plan;
   }
+}
+
+/// A store whose purchase finishes only when the test says so.
+class _SlowStore extends FakeBillingStore {
+  final done = Completer<ZtPurchaseOutcome>();
+  @override
+  Future<ZtPurchaseOutcome> buy(ZtStoreOffer offer) => done.future;
 }
 
 class _Vault extends VaultController {
@@ -172,5 +180,17 @@ void main() {
     final check = tester.getTopLeft(find.byIcon(Icons.check).first).dx;
     final text = tester.getTopLeft(find.text('מינוי אחד לכל האפליקציות')).dx;
     expect(check, greaterThan(text));
+  });
+
+  testWidgets('leaving the screen during a purchase is safe', (tester) async {
+    final store = _SlowStore();
+    await tester.pumpWidget(app(_FakePlan(ZtPlan.free), store));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text(r'$2.99 a month'));
+    await tester.pump();
+    await tester.pumpWidget(const SizedBox());
+    store.done.complete(ZtPurchaseOutcome.purchased);
+    await tester.pumpAndSettle();
+    expect(tester.takeException(), isNull);
   });
 }

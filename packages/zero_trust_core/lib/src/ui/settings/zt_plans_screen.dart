@@ -55,6 +55,8 @@ class _ZtPlansScreenState extends ConsumerState<ZtPlansScreen> {
         } catch (_) {
           outcome = ZtPurchaseOutcome.failed;
         }
+        // The person may have left the screen while the store was open.
+        if (!mounted) return;
         final message = switch (outcome) {
           ZtPurchaseOutcome.purchased => l10n.plansThanks,
           ZtPurchaseOutcome.pending => l10n.plansPending,
@@ -202,7 +204,7 @@ class _ZtPlansScreenState extends ConsumerState<ZtPlansScreen> {
                     ? null
                     : () => _run(() async {
                           await store.restore();
-                          ref.invalidate(ztPlanProvider);
+                          if (mounted) ref.invalidate(ztPlanProvider);
                         }),
                 child: Text(l10n.plansRestore),
               ),

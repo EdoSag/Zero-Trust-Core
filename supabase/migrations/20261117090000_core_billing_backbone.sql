@@ -117,17 +117,22 @@ declare
   v_product public.zt_billing_products;
   v_sub     public.zt_subscriptions;
   v_result  text;
+  -- The account named by the store, or null if it no longer exists, so the
+  -- event row can always be stored (user_id references auth.users).
+  v_user    uuid;
 begin
   if p_source is null or p_event_id is null or p_occurred_at is null
      or p_provider_ref is null then
     raise exception 'zt_apply_billing_event: source, event id, time and reference are required';
   end if;
 
+  select id into v_user from auth.users where id = p_user;
+
   -- Claim the event first: a retried message stops here.
   insert into public.zt_billing_events
     (source, provider_event_id, event_type, provider_ref, user_id, occurred_at, result, detail)
   values (p_source, p_event_id, coalesce(p_event_type, 'unknown'), p_provider_ref,
-          p_user, p_occurred_at, 'pending', coalesce(p_detail, '{}'::jsonb))
+          v_user, p_occurred_at, 'pending', coalesce(p_detail, '{}'::jsonb))
   on conflict (source, provider_event_id) do nothing;
   if not found then
     return 'duplicate';
@@ -162,14 +167,13 @@ begin
          where id = v_sub.id;
         v_result := 'applied';
       end if;
-    elsif p_user is null
-          or not exists (select 1 from auth.users where id = p_user) then
+    elsif v_user is null then
       v_result := 'no_user';
     else
       insert into public.zt_subscriptions
         (user_id, plan_id, product_id, source, status, provider_ref,
          current_period_end, provider_updated_at)
-      values (p_user, v_product.plan_id, v_product.id, p_source, p_status,
+      values (v_user, v_product.plan_id, v_product.id, p_source, p_status,
               p_provider_ref, p_period_end, p_occurred_at);
       v_result := 'applied';
     end if;
@@ -177,8 +181,8 @@ begin
 
   update public.zt_billing_events
      set result = v_result,
-         user_id = case when v_result = 'owner_mismatch' then p_user
-                        else coalesce(v_sub.user_id, p_user) end
+         user_id = case when v_result = 'owner_mismatch' then v_user
+                        else coalesce(v_sub.user_id, v_user) end
    where source = p_source and provider_event_id = p_event_id;
   return v_result;
 end;
