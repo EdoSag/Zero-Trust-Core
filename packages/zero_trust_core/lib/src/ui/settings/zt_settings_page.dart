@@ -235,17 +235,14 @@ class ZtSettingsPage extends ConsumerWidget {
               title: Text(ZtL10n.of(context).helpAndFeedback),
               onTap: () => onOpenUrl!(supportUrl ?? ztSupportUrl),
             ),
-          if (showSponsor &&
-              onOpenUrl != null &&
-              config.channel.allowsExternalPayments)
-            ListTile(
-              leading: const Icon(Icons.favorite_outline),
-              title: Text(ZtL10n.of(context).sponsorProject),
-              subtitle: Text(ZtL10n.of(context).sponsorProjectSubtitle),
-              trailing: const Icon(Icons.open_in_new, size: 20),
-              onTap: () => onOpenUrl!(ZtSuite.sponsorUrl),
-            ),
-          if (privacyPolicyUrl != null && onOpenUrl != null)
+            if (showSponsor && config.channel.allowsExternalPayments)
+              ListTile(
+                leading: const Icon(Icons.favorite_outline),
+                title: Text(ZtL10n.of(context).sponsorProject),
+                subtitle: Text(ZtL10n.of(context).sponsorProjectSubtitle),
+                trailing: const Icon(Icons.open_in_new, size: 20),
+                onTap: () => onOpenUrl!(ZtSuite.sponsorUrl),
+              ),
             ListTile(
               leading: const Icon(Icons.policy_outlined),
               title: Text(ZtL10n.of(context).privacyPolicy),
