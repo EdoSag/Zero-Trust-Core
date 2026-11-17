@@ -3,8 +3,9 @@
 // deletes it again. Don't commit the copy; change the template in
 // Zero-Trust-Core/packages/zt_release_checks/templates instead.
 //
-// Every value below was made by core 0.11 and checked independently with
-// Python (hashlib, hmac, cryptography). If one fails, a dependency bump or a
+// Every value below was made by core 0.11 (quests: core 0.12, 2026-11-17,
+// same derivation and format) and checked independently with Python
+// (hashlib, hmac, cryptography). If one fails, a dependency bump or a
 // code change has changed how keys are made or data is sealed, and existing
 // accounts or synced data would no longer open. Never update the expected
 // values to make a check pass.
@@ -32,6 +33,7 @@ const _suite = [
   'browser',
   'time',
   'meds',
+  'quests',
 ];
 
 /// App key and signing public key for DEK = 00 01 .. 1f.
@@ -71,6 +73,10 @@ const _appKeys = {
   'meds': (
     'a00141d9453fe804b4ba4a367bc77fa0231a29370b62ecd86e5e40e512bb5af0',
     '8fbd62513195046dc1dddb9de787e99bfd9a8571583691f3001d8eaf7a1c760d',
+  ),
+  'quests': (
+    '9ed970de77a69e92927baf9a604b6fc67d85411e99abdf931ec2500394b961cd',
+    '21719f46041e16e090d3a748753d8ddccf67823a9fbea97fcebcc112d59657d2',
   ),
 };
 
@@ -112,6 +118,10 @@ const _syncedItems = {
   'meds': (
     'qQZez4BiAYDG3ZlT0qCdm2Rdz3IhDVqIyac/QIJbWrPVoYMb8JJrk+WAakPCBmdKYl6/QFpSX/F2/61PhYkHaqp1',
     'OoJmH2sGk4vB/UrhZzr8c867vuJ+gylHUc7+RWjv1PkLNbCH2TwAGYI5J/vhMStSY7X/htddokLXX2Lqb//aDw==',
+  ),
+  'quests': (
+    'sACWQ6ewkcvvLKhOAip/sZDgfIKmxZnsp+zEyyN5hnKGqo3l+TfSZz9iE3B3svhP4V6JQWJr1Esq/OYysrJUI7r3',
+    'dF9jztwJ0JBfyxq2UAgaAoCH6PL0IitSvI4Pw6j4VfDPDQ1zesree+RXotIhmkWOafuYedf68PgZhwSB4XWIAA==',
   ),
 };
 
