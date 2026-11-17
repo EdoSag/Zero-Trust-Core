@@ -287,6 +287,13 @@ class ZtLocalizationsHe extends ZtLocalizations {
       'מוצפן מקצה לקצה. אנחנו לא יכולים לקרוא את המידע שלך.';
 
   @override
+  String get sponsorProject => 'תמיכה בפרויקט';
+
+  @override
+  String get sponsorProjectSubtitle =>
+      'חסות על הפיתוח דרך GitHub. זו תודה, והיא לא פותחת שום תכונה.';
+
+  @override
   String get helpAndFeedback => 'עזרה ומשוב';
 
   @override
