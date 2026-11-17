@@ -31,6 +31,15 @@ import 'zt_plan_tile.dart';
 import 'zt_storage_tile.dart';
 import 'zt_sync_status_tile.dart';
 
+/// Privacy policy every Zero-Trust app links to from Settings.
+final Uri ztPrivacyPolicyUrl = Uri.parse('https://zerotrust.bz/privacy/');
+
+/// Terms of use every Zero-Trust app links to from Settings.
+final Uri ztTermsUrl = Uri.parse('https://zerotrust.bz/terms/');
+
+/// Help page every Zero-Trust app links to from Settings.
+final Uri ztSupportUrl = Uri.parse('https://zerotrust.bz/support/');
+
 /// The settings screen every Zero-Trust app shows. Sections and their order
 /// are fixed so the apps feel like one product; apps add their own rows
 /// through [appSection] and [backupSection].
@@ -70,12 +79,14 @@ class ZtSettingsPage extends ConsumerWidget {
   final String? version;
 
   /// Store requirement. Each link row shows only with [onOpenUrl] set.
+  /// Defaults to [ztPrivacyPolicyUrl] on zerotrust.bz.
   final Uri? privacyPolicyUrl;
 
-  /// Terms of use.
+  /// Terms of use. Defaults to [ztTermsUrl].
   final Uri? termsUrl;
 
-  /// Help and feedback: a web page or a `mailto:` link.
+  /// Help and feedback: a web page or a `mailto:` link. Defaults to
+  /// [ztSupportUrl].
   final Uri? supportUrl;
 
   final void Function(Uri url)? onOpenUrl;
@@ -218,34 +229,31 @@ class ZtSettingsPage extends ConsumerWidget {
               ZtL10n.of(context).endToEndEncryptedWeCant,
             ].join(' · ')),
           ),
-          if (supportUrl != null && onOpenUrl != null)
+          if (onOpenUrl != null) ...[
             ListTile(
               leading: const Icon(Icons.help_outline),
               title: Text(ZtL10n.of(context).helpAndFeedback),
-              onTap: () => onOpenUrl!(supportUrl!),
+              onTap: () => onOpenUrl!(supportUrl ?? ztSupportUrl),
             ),
-          if (showSponsor &&
-              onOpenUrl != null &&
-              config.channel.allowsExternalPayments)
-            ListTile(
-              leading: const Icon(Icons.favorite_outline),
-              title: Text(ZtL10n.of(context).sponsorProject),
-              subtitle: Text(ZtL10n.of(context).sponsorProjectSubtitle),
-              trailing: const Icon(Icons.open_in_new, size: 20),
-              onTap: () => onOpenUrl!(ZtSuite.sponsorUrl),
-            ),
-          if (privacyPolicyUrl != null && onOpenUrl != null)
+            if (showSponsor && config.channel.allowsExternalPayments)
+              ListTile(
+                leading: const Icon(Icons.favorite_outline),
+                title: Text(ZtL10n.of(context).sponsorProject),
+                subtitle: Text(ZtL10n.of(context).sponsorProjectSubtitle),
+                trailing: const Icon(Icons.open_in_new, size: 20),
+                onTap: () => onOpenUrl!(ZtSuite.sponsorUrl),
+              ),
             ListTile(
               leading: const Icon(Icons.policy_outlined),
               title: Text(ZtL10n.of(context).privacyPolicy),
-              onTap: () => onOpenUrl!(privacyPolicyUrl!),
+              onTap: () => onOpenUrl!(privacyPolicyUrl ?? ztPrivacyPolicyUrl),
             ),
-          if (termsUrl != null && onOpenUrl != null)
             ListTile(
               leading: const Icon(Icons.gavel_outlined),
               title: Text(ZtL10n.of(context).termsOfUse),
-              onTap: () => onOpenUrl!(termsUrl!),
+              onTap: () => onOpenUrl!(termsUrl ?? ztTermsUrl),
             ),
+          ],
           ListTile(
             leading: const Icon(Icons.description_outlined),
             title: Text(ZtL10n.of(context).openSourceLicences),

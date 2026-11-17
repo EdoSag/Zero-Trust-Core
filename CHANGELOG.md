@@ -5,6 +5,12 @@ an app must change.
 
 ## Unreleased
 
+### Settings links default to zerotrust.bz (`zero_trust_core`)
+
+- `ZtSettingsPage` now shows Help and feedback, Privacy policy and Terms
+  of use whenever `onOpenUrl` is set. Without their URLs they open
+  https://zerotrust.bz/support/, /privacy/ and /terms/
+  (`ztSupportUrl`, `ztPrivacyPolicyUrl`, `ztTermsUrl`).
 ### Install channel and "Support the project" (`zero_trust_core`)
 
 - New `ZtInstallChannel` (`direct`, `play`, `appStore`), set at build time
