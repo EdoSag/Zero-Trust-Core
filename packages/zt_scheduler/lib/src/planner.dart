@@ -35,7 +35,10 @@ const _maxRepairs = 8;
 ///
 /// With [rebuild], rule 3 forgets where the task blocks are: every block
 /// that isn't fixed by rule 1 is placed afresh, as early as it fits. This
-/// is "tidy up my week"; the blocks still keep their ids.
+/// is "tidy up my week"; the blocks still keep their ids. It is also what
+/// to do after the user changes [settings]: a block that is left where it
+/// is isn't checked again against the limits on blocks per day, because a
+/// block placed to make a due date is allowed to break them.
 ///
 /// Every time is a wall-clock UTC [DateTime] (see [PlanTime]); anything
 /// else throws [ArgumentError].
@@ -130,6 +133,7 @@ class _Work {
     required this.notBefore,
     required this.need,
     required this.days,
+    required this.late,
   });
 
   final PlanTask task;
@@ -141,8 +145,9 @@ class _Work {
   /// Minutes still to place.
   int need;
 
-  /// Minutes placed after the due date.
-  int late = 0;
+  /// Minutes after the due date: of blocks that can't move, and of the
+  /// ones placed there.
+  int late;
 
   /// The task's blocks so far, by day.
   final Map<int, List<(int, int)>> days;
@@ -259,8 +264,10 @@ class _Planner {
   /// which don't depend on the order tasks are placed in.
   final _settled = <PlanBlock>[];
 
-  /// Existing blocks the planner may move, by task or habit.
-  final _movable = <String, List<_Old>>{};
+  /// Existing blocks the planner may move, by task and by habit. Kept
+  /// apart: a task and a habit may have the same id.
+  final _movableTasks = <String, List<_Old>>{};
+  final _movableHabits = <String, List<_Old>>{};
 
   /// Busy times with their buffers, fixed blocks and habit blocks.
   final _occupied = Intervals();
@@ -274,6 +281,9 @@ class _Planner {
   /// Minutes of each task that done blocks and fixed blocks account for.
   final _doneMinutes = <String, int>{};
   final _fixedMinutes = <String, int>{};
+
+  /// Minutes of each task's fixed blocks that fall after its due date.
+  final _fixedLate = <String, int>{};
 
   /// `<habit id>|<day>` of days a done or fixed block already covers.
   final _habitDaysTaken = <String>{};
@@ -313,6 +323,16 @@ class _Planner {
           ((_taskDays[b.itemId] ??= {})[day] ??= []).add((s, e));
           final sums = fixed ? _fixedMinutes : _doneMinutes;
           sums[b.itemId] = (sums[b.itemId] ?? 0) + (e - s);
+          final due = _tasksById[b.itemId]!.due;
+          if (fixed && due != null) {
+            // A block that can't move and ends after the due date makes
+            // its task late all the same.
+            final dueAt = _minutes(due, 'task.due');
+            final after = e - (s > dueAt ? s : dueAt);
+            if (after > 0) {
+              _fixedLate[b.itemId] = (_fixedLate[b.itemId] ?? 0) + after;
+            }
+          }
         } else {
           _habitDaysTaken.add('${b.itemId}|${_dayOf(s)}');
         }
@@ -348,10 +368,11 @@ class _Planner {
       } else if (s < _now + settings.freezeMinutes) {
         settle(b.copyWith(reason: PlanReason.startingSoon), fixed: true);
       } else {
-        (_movable[b.itemId] ??= []).add(_Old(b, s, e));
+        final movable = isTask ? _movableTasks : _movableHabits;
+        (movable[b.itemId] ??= []).add(_Old(b, s, e));
       }
     }
-    for (final list in _movable.values) {
+    for (final list in [..._movableTasks.values, ..._movableHabits.values]) {
       list.sort((a, b) {
         final c = a.start.compareTo(b.start);
         return c != 0 ? c : a.block.id.compareTo(b.block.id);
@@ -403,7 +424,7 @@ class _Planner {
       });
     for (final h in sorted) {
       final oldByDay = <int, List<_Old>>{};
-      for (final o in _movable[h.id] ?? const <_Old>[]) {
+      for (final o in _movableHabits[h.id] ?? const <_Old>[]) {
         (oldByDay[_dayOf(o.start)] ??= []).add(o);
       }
       final lengths = [
@@ -532,8 +553,9 @@ class _Planner {
           for (final e in (_taskDays[t.id] ?? const {}).entries)
             e.key: [...e.value],
         },
+        late: _fixedLate[t.id] ?? 0,
       );
-      for (final o in _movable[t.id] ?? const <_Old>[]) {
+      for (final o in _movableTasks[t.id] ?? const <_Old>[]) {
         final day = _dayOf(o.start);
         final length = math.min(o.minutes, w.need);
         final fits = keep &&
@@ -671,7 +693,7 @@ class _Planner {
       final from = math.max(w.notBefore, dueAt);
       fill(w, from, _horizonEnd, PlanReason.late, whole: true);
       fill(w, from, _horizonEnd, PlanReason.late, whole: false);
-      w.late = before - w.need;
+      w.late += before - w.need;
     }
 
     /// Reports the task if it doesn't fit, and names its blocks.
@@ -760,9 +782,14 @@ class _Planner {
     // waits its turn.
     final tried = <String>{};
     for (var i = 0; i < _maxRepairs; i++) {
+      // Only tasks that going ahead could help: a task that is late just
+      // because of blocks that can't move stays late wherever it goes.
       final late = {
         for (final r in best.risks)
-          if (r.due != null) r.taskId,
+          if (r.due != null &&
+              (r.minutesUnplanned > 0 ||
+                  r.minutesLate > (_fixedLate[r.taskId] ?? 0)))
+            r.taskId,
       };
       final at = best.steps.indexWhere(
         (s) =>
@@ -789,7 +816,7 @@ class _Planner {
     // Now the same order with the blocks that exist left where they are.
     // That plan is the answer unless leaving them costs a due date, in
     // which case everything is placed afresh.
-    final hasBlocks = tasks.any((t) => _movable.containsKey(t.id));
+    final hasBlocks = tasks.any((t) => _movableTasks.containsKey(t.id));
     if (!rebuild && hasBlocks) {
       final kept = _attempt(best.steps, keep: true);
       if (!best.betterThan(kept)) best = kept;

@@ -318,7 +318,9 @@ class PlanSettings {
   final int maxTaskMinutesPerDay;
 
   /// Most blocks of one task in one day, and the gap kept between them.
-  /// Both are set aside when a due date can't be met otherwise.
+  /// Both are set aside when a due date can't be met otherwise. They apply
+  /// to blocks as they are placed: after changing them, plan with
+  /// `rebuild: true` so the blocks that exist follow them too.
   final int maxChunksPerDay;
   final int sameTaskGapMinutes;
 
@@ -341,7 +343,8 @@ class PlanRisk {
   final String taskId;
   final DateTime? due;
 
-  /// Minutes planned after [due].
+  /// Minutes after [due]: of blocks planned there, and of locked or
+  /// current blocks that are there.
   final int minutesLate;
 
   /// Minutes that found no room in the days planned.

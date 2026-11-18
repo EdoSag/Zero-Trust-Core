@@ -236,6 +236,45 @@ void main() {
     });
   });
 
+  group('blocks that cannot move and a due date', () {
+    test('a locked block after the due date is reported as late', () {
+      final r = plan(
+        now: at(0, 8),
+        hours: [work],
+        settings: plain,
+        tasks: [task('a', 60, due: at(0, 10))],
+        existing: [block('a:0', at(0, 14), at(0, 15), locked: true)],
+      );
+      expect(shown(r), ['a:0 d0 14:00-15:00']);
+      expect(r.risks.single.taskId, 'a');
+      expect(r.risks.single.minutesLate, 60);
+      expect(r.risks.single.minutesUnplanned, 0);
+    });
+
+    test('only the part after the due date counts', () {
+      final r = plan(
+        now: at(0, 8),
+        hours: [work],
+        settings: plain,
+        tasks: [task('a', 120, due: at(0, 14, 30))],
+        existing: [block('a:0', at(0, 14), at(0, 15), locked: true)],
+      );
+      expect(shown(r), ['a:1 d0 09:00-10:00', 'a:0 d0 14:00-15:00']);
+      expect(r.risks.single.minutesLate, 30);
+    });
+
+    test('a done block after the due date is not: the work is done', () {
+      final r = plan(
+        now: at(1, 8),
+        hours: [work],
+        settings: plain,
+        tasks: [task('a', 60, due: at(0, 10))],
+        existing: [block('a:0', at(0, 14), at(0, 15), done: true)],
+      );
+      expect(r.risks, isEmpty);
+    });
+  });
+
   group('done and passed blocks', () {
     test('done blocks count toward the task and stay as history', () {
       final r = plan(

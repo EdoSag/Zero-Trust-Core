@@ -33,7 +33,7 @@ an app must change.
 - Blocks stay where they are from one plan to the next unless they must
   move, and a moved block keeps its id, so the app updates one event.
   Planning again from a plan's own blocks changes nothing.
-- Tested with 69 tests: named scenarios for every rule, and randomized
+- Tested with 74 tests: named scenarios for every rule, and randomized
   calendars checked against the rules. New CI job `zt_scheduler`.
 - Upgrade: nothing to do in apps. Nothing uses the package yet; ZT
   Calendar will depend on it when the Planner screens are built. See

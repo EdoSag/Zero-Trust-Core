@@ -246,4 +246,30 @@ void main() {
     );
     expect(second.changesNothing, isTrue);
   });
+
+  group('a task and a habit with the same id', () {
+    test('keep their own blocks and ids, plan after plan', () {
+      const habit = PlanHabit(
+        id: 'x',
+        minutes: 30,
+        days: {1},
+        ideal: 12 * 60 + 30,
+        earliest: 11 * 60 + 30,
+        latest: 14 * 60,
+      );
+      PlanResult run([List<PlanBlock> existing = const []]) => plan(
+            now: at(0, 8),
+            hours: [work],
+            settings: const PlanSettings(bufferAfterEvents: 0, horizonDays: 1),
+            tasks: [task('x', 60)],
+            habits: const [habit],
+            existing: existing,
+          );
+      final first = run();
+      expect(shown(first), ['x:0 d0 09:00-10:00', 'x:20261123 d0 12:30-13:00']);
+      final again = run(first.blocks);
+      expect(shown(again), shown(first));
+      expect(again.changesNothing, isTrue);
+    });
+  });
 }
