@@ -206,9 +206,20 @@ void _check(_Case c, PlanResult r, DateTime now, {required bool fresh}) {
   for (final t in c.tasks) {
     final mine = r.blocks.where((b) => b.itemId == t.id).toList();
     final planned = mine.fold(0, (sum, b) => sum + b.minutes);
-    final late = mine
-        .where((b) => b.reason == PlanReason.late)
-        .fold(0, (sum, b) => sum + b.minutes);
+    // Late: what was planned after the due date, and what of a block that
+    // can't move is after it.
+    var late = 0;
+    for (final b in mine) {
+      if (b.reason == PlanReason.late) {
+        late += b.minutes;
+      } else if (b.reason != PlanReason.done &&
+          _unmoved.contains(b.reason) &&
+          t.due != null &&
+          b.end.isAfter(t.due!)) {
+        final from = b.start.isAfter(t.due!) ? b.start : t.due!;
+        late += b.end.difference(from).inMinutes;
+      }
+    }
     final risk = risks[t.id];
     if (fresh) {
       final want = max(0, _ceil(t.minutes, s.slotMinutes) - t.minutesLogged);

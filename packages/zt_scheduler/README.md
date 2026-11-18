@@ -80,7 +80,7 @@ conversion fails loudly instead of planning at the wrong hour.
 |---|---|
 | `blocks` | The whole plan, soonest first, each with a `reason` the app can turn into a sentence |
 | `create`, `update`, `delete` | What to change to get there |
-| `risks` | Tasks that end after their due date or don't fit, most important first |
+| `risks` | Tasks that end after their due date or don't fit, most important first. A locked block after the due date counts |
 | `skippedHabits` | Habit days that found no room |
 | `conflicts` | Locked blocks that overlap an event (kept: the user chose the time) |
 
@@ -106,6 +106,8 @@ conversion fails loudly instead of planning at the wrong hour.
 
 `plan(rebuild: true)` forgets where the movable blocks are and places them
 afresh, as early as they fit ("tidy up my week"). They keep their ids.
+Use it too after the user changes the Planner's settings: a block that is
+left where it is isn't checked again against the limits on blocks per day.
 
 ### Blocks whose time has passed
 
