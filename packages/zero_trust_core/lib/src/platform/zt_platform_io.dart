@@ -46,3 +46,13 @@ Future<void> ztMoveDatabaseAside(String path) async {
 /// device, where apps hand the file to the share sheet instead.
 Future<void> ztDownloadFile(String fileName, Uint8List bytes) =>
     throw UnsupportedError('Downloads are for the web build only');
+
+/// Removes everything this site keeps in the browser. Only browsers have
+/// such a per-site store; phone and desktop apps remove their own files.
+Future<void> ztWipeBrowserStorage({
+  Duration patience = const Duration(seconds: 3),
+}) =>
+    throw UnsupportedError('Only browsers have site storage to wipe');
+
+/// Loads the page again from the server. Browsers only.
+void ztReloadPage() => throw UnsupportedError('Only browsers reload a page');

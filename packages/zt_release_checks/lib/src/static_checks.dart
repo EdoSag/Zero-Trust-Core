@@ -36,6 +36,7 @@ const suiteAppIds = {
   'time',
   'meds',
   'quests',
+  'camera',
   'family',
 };
 

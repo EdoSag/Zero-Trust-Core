@@ -11,6 +11,62 @@ an app must change.
   takes a lock per member and circle before counting, so two inserts sent at
   the same moment can no longer both pass the 1200 an hour cap.
 
+### Settings for an app that works without an account (`zero_trust_core`)
+
+- `ZtSettingsPage(accountOptional: true)`: while nobody is signed in, the
+  rows that need an account are hidden (password, sign out, sync, plan,
+  storage, auto-lock, biometrics, lock now, recovery key, export, delete
+  account) and Appearance, the app's own rows, About and the other apps
+  stay. `onSignIn` adds "Sign in or create an account" under Account.
+  Crash reports need no account, so that row stays too (alone under
+  Security) in apps that set up a reporter.
+  Made for ZT Clock, which rings alarms without an account. New strings
+  `signInOrCreateAccount` and `signInToBackUpAndSync`, English and Hebrew.
+- Upgrade: nothing to do. Both are off by default, so every other app's
+  settings screen is unchanged.
+
+### The planning engine for ZT Calendar's Planner (`zt_scheduler`, new package)
+
+- New pure Dart package `packages/zt_scheduler`: `plan()` fits tasks and
+  habits into the free time around a calendar's events and returns the
+  blocks to add, move and remove. No AI, no network, no storage: it runs
+  on the device and the same inputs always give the same plan.
+- Rules: done, locked and current blocks stay; habits go nearest their
+  ideal time; tasks go most important first, then nearest due date, in
+  whole blocks where they fit; a task short of time for its due date may
+  use more blocks in a day and go ahead of tasks with time to spare;
+  what doesn't fit is planned after the due date and reported.
+- Blocks stay where they are from one plan to the next unless they must
+  move, and a moved block keeps its id, so the app updates one event.
+  Planning again from a plan's own blocks changes nothing.
+- Tested with 74 tests: named scenarios for every rule, and randomized
+  calendars checked against the rules. New CI job `zt_scheduler`.
+- Upgrade: nothing to do in apps. Nothing uses the package yet; ZT
+  Calendar will depend on it when the Planner screens are built. See
+  `packages/zt_scheduler/README.md`.
+### Web kit, platform capabilities and the web lock policy (`zero_trust_core`)
+
+- `tool/apply_web_kit.sh` writes a web app's `index.html` (strict Content
+  Security Policy, loading screen), `manifest.json`, `zt_boot.js`,
+  `flutter_bootstrap.js`, `_headers` and the pinned `sqlite3mc.wasm` from
+  the templates in `web-kit/`.
+- Fonts: Flutter on the web fetched Noto fonts from Google Fonts for Hebrew,
+  emoji and other scripts. The kit serves them from the app's own site
+  (`fallback-fonts/`, filled by `tool/fetch_fallback_fonts.sh build/web`),
+  so a web app calls no third party at all.
+- `ZtCapabilities` / `ztCapabilitiesProvider`: what the running platform can
+  do (widgets, reminders, biometrics, on-device speech and OCR, camera
+  scanning, phone integration), so apps hide phone-only features on the web
+  and desktop.
+- Web lock policy: password on every visit by default. Settings gains, in a
+  browser only, "Remember on this browser" (opt-in; the key is kept sealed
+  by a non-extractable browser key, `WebSessionKeyStore`) and "Sign out and
+  remove data from this browser" (`ztWipeBrowserStorage`). New strings in
+  English and Hebrew. Phones and desktop apps look and behave as before.
+- `accountServiceProvider` now takes its session key store from
+  `ztPlatformSessionKeyStore()`.
+- Upgrade: nothing for phone apps. A web app runs the two scripts above and
+  gates phone-only features with `ztCapabilitiesProvider`.
 ### ZT Family: release checks and location tables (`zt_release_checks`, database)
 
 - New suite app id `family` (ZT Family). Its data key, signing key and a

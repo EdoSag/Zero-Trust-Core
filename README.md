@@ -8,6 +8,7 @@ Shared foundation for every Zero-Trust app (Fitness, Contacts, Tasks, Notes, …
 | `packages/zt_places` | Flutter plugin: on-device place reminders (arrive / leave) and the shared place picker |
 | `packages/zero_trust_core` | Flutter: account service (sign-up, sign-in with legacy upgrade, change password, recovery, delete account), vault lock with auto-lock, shared theme |
 | `packages/zt_sharing_ui` | Flutter: the sharing screens every app uses (space members, invite with QR, join, compare codes), English and Hebrew |
+| `packages/zt_scheduler` | Pure Dart: the planner behind ZT Calendar's Planner. Fits tasks and habits into free time around events, on the device, and says which blocks to add, move and remove (see its README) |
 | `packages/zt_release_checks` | Release checks every app runs in CI: key, sync and sign-in vectors, app setup, database rules (see its README) |
 | `supabase/migrations` | The only schema source of truth for the shared Supabase project |
 | `supabase/functions/delete-account` | Edge Function behind in-app account deletion |
@@ -424,6 +425,42 @@ What is different off the phone:
   survive a reload.
 - **Export my data on the web** downloads the zip through the browser;
   `onDataExported` is only called on devices.
+- **Web kit.** `tool/apply_web_kit.sh <app>/web --name ... --supabase-url ...`
+  writes the page every web app ships: `index.html` with a strict Content
+  Security Policy (scripts only from the app's own site plus WebAssembly;
+  network only to the app's site and the account server), a loading screen,
+  `manifest.json` so the app installs from the browser, a `_headers` file
+  for hosts that send response headers (Cloudflare Pages), and the pinned
+  `sqlite3mc.wasm`. Run it again when the kit changes.
+- **Fonts from the app's own site.** Flutter on the web downloads Noto fonts
+  from Google Fonts for any script the app's font lacks, Hebrew and emoji
+  included. The kit's `flutter_bootstrap.js` points that at
+  `fallback-fonts/` on the app's site instead; fill it after each build:
+
+  ```sh
+  flutter build web --no-web-resources-cdn
+  path/to/Zero-Trust-Core/tool/fetch_fallback_fonts.sh build/web
+  ```
+
+  (about 11 MB, fetched by the browser one script at a time, only when
+  needed; `--with-cjk` adds Chinese, Japanese and Korean).
+- **Hide what the platform can't do.** Read `ztCapabilitiesProvider`
+  (`ZtCapabilities`): `homeScreenWidgets`, `scheduledNotifications`,
+  `biometricUnlock`, `onDeviceSpeech`, `onDeviceTextRecognition`,
+  `cameraScanning`, `phoneIntegration`, `shareSheet`. Ask for the feature,
+  not the platform, and override the provider in tests.
+- **Lock policy on the web.** The password is asked on every visit: nothing
+  that opens the vault is kept once the page closes. Settings shows two
+  rows only in a browser:
+  - *Remember on this browser* (off by default). After a warning and the
+    password, the DEK is kept in IndexedDB sealed with a **non-extractable**
+    AES-GCM key the browser made (`WebSessionKeyStore`). Scripts of this
+    site can ask the browser to unseal it; nobody can read the sealing key.
+    It is weaker than a phone's hardware store, which the warning says.
+    Lock now, sign-out and a timed auto-lock remove it.
+  - *Sign out and remove data from this browser*, for shared computers:
+    signs out, deletes every IndexedDB database and the site's storage
+    (`ztWipeBrowserStorage`), then reloads the page.
 
 `packages/zero_trust_core/example` is a small app that checks the encrypted
 store on each platform; CI builds it for the web. Run it on Linux, Windows or macOS by hand (see its README); the Actions runners here cannot reach the Ubuntu package servers to install GTK.
@@ -438,6 +475,7 @@ Android widgets in every app use the shared look in
 
 ```bash
 (cd packages/zt_crypto && dart pub get && dart test)
+(cd packages/zt_scheduler && dart pub get && dart test)
 (cd packages/zero_trust_core && flutter pub get && flutter test)
 (cd packages/zt_sharing_ui && flutter pub get && flutter test)
 # Database: every migration plus the guard tests, on a plain Postgres 16

@@ -244,6 +244,12 @@ class ZtLocalizationsHe extends ZtLocalizations {
   String get oneAccountForEveryApp => 'חשבון אחד לכל אפליקציות Zero-Trust';
 
   @override
+  String get signInOrCreateAccount => 'כניסה או יצירת חשבון';
+
+  @override
+  String get signInToBackUpAndSync => 'גיבוי וסנכרון עם חשבון Zero-Trust שלך';
+
+  @override
   String get changePassword => 'שינוי סיסמה';
 
   @override
@@ -914,4 +920,54 @@ class ZtLocalizationsHe extends ZtLocalizations {
 
   @override
   String get plansFailed => 'הרכישה לא הושלמה. אפשר לנסות שוב.';
+
+  @override
+  String get rememberOnThisBrowser => 'לזכור בדפדפן הזה';
+
+  @override
+  String get rememberOnThisBrowserOff => 'כבוי: הסיסמה נדרשת בכל פתיחה של הדף';
+
+  @override
+  String get rememberOnThisBrowserOn => 'פועל: נפתח בלי סיסמה בדפדפן הזה';
+
+  @override
+  String rememberOnThisBrowserQuestion(String appName) {
+    return 'לזכור את $appName בדפדפן הזה?';
+  }
+
+  @override
+  String rememberOnThisBrowserExplanation(String appName) {
+    return '$appName תיפתח בדפדפן הזה בלי סיסמה, גם אחרי סגירת הלשונית או הפעלה מחדש של המחשב. כל מי שיכול להשתמש בדפדפן הזה יוכל לפתוח את המידע שלך, לכן אין להפעיל זאת במחשב משותף או ציבורי.\n\nהמידע שלך נשאר מוצפן בדפדפן ובשרתים שלנו. שינוי סיסמה, מפתח שחזור חדש, ייצוא המידע ומחיקת החשבון עדיין דורשים את הסיסמה.';
+  }
+
+  @override
+  String get remember => 'לזכור';
+
+  @override
+  String enterYourPasswordToRemember(String appName) {
+    return 'יש להזין את הסיסמה כדי לזכור את $appName בדפדפן הזה.';
+  }
+
+  @override
+  String get rememberNotAvailable =>
+      'הדפדפן לא יכול לשמור כאן את המפתח בבטחה. יש לפתוח את האפליקציה בחיבור מאובטח (https).';
+
+  @override
+  String get neverRememberedOnThisBrowser => 'אף פעם, נשמר בדפדפן הזה';
+
+  @override
+  String get signOutAndRemoveData => 'התנתקות והסרת המידע מהדפדפן הזה';
+
+  @override
+  String get forSharedOrPublicComputers => 'למחשבים משותפים או ציבוריים';
+
+  @override
+  String get removeYourDataFromThisBrowser => 'להסיר את המידע שלך מהדפדפן הזה?';
+
+  @override
+  String get removeFromBrowserExplanation =>
+      'החשבון ינותק, והעותק המוצפן שנשמר בדפדפן הזה יימחק יחד עם ההגדרות שלך כאן. שינויים שעדיין לא סונכרנו יאבדו.\n\nהחשבון שלך וכל מה שכבר סונכרן נשארים בטוחים. אפשר להתחבר שוב בכל עת כדי לקבל אותם בחזרה.';
+
+  @override
+  String get signOutAndRemove => 'התנתקות והסרה';
 }
