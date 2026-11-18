@@ -44,7 +44,7 @@ jobs:
       - run: flutter test
       - name: The apps' release checks pass against this core, for every app
         run: |
-          for app in notes tasks fitness contacts calendar phone browser time meds quests home; do
+          for app in notes tasks fitness contacts calendar phone browser time meds quests family home; do
             sed "s/{{APP_ID}}/$app/" ../zt_release_checks/templates/release_checks_test.dart \
               > "test/release_checks_${app}_test.dart"
           done
@@ -123,7 +123,8 @@ jobs:
             -f tests/plans_test.sql \
             -f tests/billing_test.sql \
             -f tests/booking_pages_test.sql \
-            -f tests/booking_slots_fixes_test.sql
+            -f tests/booking_slots_fixes_test.sql \
+            -f tests/family_location_test.sql
 
   edge_functions:
     runs-on: ubuntu-latest
