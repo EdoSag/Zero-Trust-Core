@@ -5,6 +5,13 @@ an app must change.
 
 ## Unreleased
 
+### Release checks know ZT Home (`zt_release_checks`)
+
+- New suite app id `home` (ZT Home, the smart home app). Its data key,
+  signing key and a synced item were made with core and checked
+  independently with Python (cryptography: HKDF, AES-GCM, Ed25519), like the
+  other apps' vectors. Nothing changes for the existing apps.
+
 ### Unlimited plan for the owner (`zero_trust_core`, database)
 
 - Migration `20261118090000_core_unlimited_plan`. New hidden plan
