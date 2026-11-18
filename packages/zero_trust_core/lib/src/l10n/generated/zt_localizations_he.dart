@@ -692,6 +692,16 @@ class ZtLocalizationsHe extends ZtLocalizations {
   }
 
   @override
+  String storageUsedNoLimit(String used) {
+    return '$used בשימוש, ללא הגבלה';
+  }
+
+  @override
+  String storageAttachmentsNoLimit(String used) {
+    return 'קבצים מצורפים: $used, ללא הגבלה';
+  }
+
+  @override
   String get language => 'שפה';
 
   @override

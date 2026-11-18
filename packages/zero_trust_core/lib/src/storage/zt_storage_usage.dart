@@ -27,6 +27,10 @@ class ZtStorageUsage {
     );
   }
 
+  /// A limit this high or higher (2^50 bytes, about a million GB) means
+  /// "no limit": the owner-granted `unlimited` plan. Show no number for it.
+  static const noLimitFrom = 1125899906842624;
+
   /// Synced items, across every app.
   final int itemBytes;
   final int itemCount;
@@ -37,6 +41,12 @@ class ZtStorageUsage {
   final int maxItemBytes;
   final int maxItems;
   final int maxAttachmentBytes;
+
+  /// Whether synced data has no limit.
+  bool get itemsUnlimited => maxItemBytes >= noLimitFrom;
+
+  /// Whether attachments have no limit.
+  bool get attachmentsUnlimited => maxAttachmentBytes >= noLimitFrom;
 
   /// The fuller of the two limits, 0 to 1.
   double get fraction {

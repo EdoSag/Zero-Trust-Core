@@ -5,6 +5,27 @@ an app must change.
 
 ## Unreleased
 
+### Unlimited plan for the owner (`zero_trust_core`, database)
+
+- Migration `20261118090000_core_unlimited_plan`. New hidden plan
+  `unlimited`, ranked above Plus, never sold: the project owner gives it
+  by hand with `zt_grant_plan('<user id>', 'unlimited', null, 'owner')`.
+  No storage limit (every limit is 2^53 - 1) and every feature, also ones
+  added later: its `features` are `*`, which `zt_has_feature()` now treats
+  as "all of them". The 1 MiB cap per synced item stays, as on every plan.
+- Nobody can give it to themselves: plans, subscriptions and
+  `zt_grant_plan` stay closed to apps. A bought Plus on the same account
+  changes nothing, because the highest-ranked plan wins.
+- Dart: `ZtPlan.has()` is true for every feature on that plan
+  (`ZtPlan.hasEverything`, `ZtPlan.everyFeature`). `ZtStorageUsage` gains
+  `itemsUnlimited` and `attachmentsUnlimited`; the Storage row then reads
+  "2.4 MB used, no limit" without a bar. `ZtPlansScreen` hides the Plus
+  offer for an account on a plan other than Plus.
+- Upgrade: nothing to do in apps. Gate paid features with `plan.has(...)`
+  and `zt_has_feature(...)` only, never by comparing the plan id, so the
+  Unlimited plan keeps including them. Live database: paste
+  `core-unlimited-plan.sql` once (needs the plans migrations).
+
 ### Sign-up says when the email could not be sent (`zero_trust_core`)
 
 - When the account server can't send a confirmation, reset or change-email

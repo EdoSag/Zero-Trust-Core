@@ -58,6 +58,29 @@ void main() {
     expect(p.periodEnd, isNull);
   });
 
+  test('the Unlimited plan has every feature, also ones added later', () {
+    final p = ZtPlan.fromJson({
+      'plan': 'unlimited',
+      'names': {'en': 'Unlimited', 'he': 'ללא הגבלה'},
+      'features': ['*'],
+      'status': 'active',
+      'source': 'manual',
+      'current_period_end': null,
+    });
+    expect(p.isFree, isFalse);
+    expect(p.hasEverything, isTrue);
+    expect(p.has('drive'), isTrue);
+    expect(p.has('a_feature_added_next_year'), isTrue);
+    expect(p.source, ZtPlanSource.manual);
+    expect(p.periodEnd, isNull);
+    expect(p.nameFor('he'), 'ללא הגבלה');
+
+    // Other plans have only what they list.
+    const plus = ZtPlan(id: 'plus', features: {'drive'});
+    expect(plus.hasEverything, isFalse);
+    expect(plus.has('vpn'), isFalse);
+  });
+
   test('unknown values from a newer server are tolerated', () {
     final p = ZtPlan.fromJson({
       'plan': 'family',
@@ -113,6 +136,21 @@ void main() {
     await tester.pumpAndSettle();
     expect(find.text('Plan: Plus'), findsOneWidget);
     expect(find.text('Renews Dec 11, 2026'), findsOneWidget);
+  });
+
+  testWidgets('Unlimited, granted with no end: the name and no date',
+      (tester) async {
+    await tester.pumpWidget(app(const ZtPlan(
+      id: 'unlimited',
+      names: {'en': 'Unlimited'},
+      features: {ZtPlan.everyFeature},
+      status: ZtPlanStatus.active,
+      source: ZtPlanSource.manual,
+    )));
+    await tester.pumpAndSettle();
+    expect(find.text('Plan: Unlimited'), findsOneWidget);
+    expect(find.textContaining('Renews'), findsNothing);
+    expect(find.textContaining('Ends'), findsNothing);
   });
 
   testWidgets('payment problem is shown', (tester) async {

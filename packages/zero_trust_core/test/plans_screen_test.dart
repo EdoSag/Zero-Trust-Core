@@ -161,6 +161,29 @@ void main() {
     expect(find.text('Manage subscription'), findsNothing);
   });
 
+  testWidgets('the owner-granted Unlimited plan: no Plus offer, nothing to buy',
+      (tester) async {
+    const unlimited = ZtPlan(
+        id: 'unlimited',
+        names: {'en': 'Unlimited', 'he': 'ללא הגבלה'},
+        features: {ZtPlan.everyFeature},
+        status: ZtPlanStatus.active,
+        source: ZtPlanSource.manual);
+    await tester.pumpWidget(app(_FakePlan(unlimited), FakeBillingStore()));
+    await tester.pumpAndSettle();
+    expect(find.text('Plan: Unlimited'), findsOneWidget);
+    expect(
+        find.text('Unlimited was given to you by Zero-Trust.'), findsOneWidget);
+    // The Plus card's heading and benefits are gone, and so is every way
+    // to pay.
+    expect(find.text('Plus'), findsNothing);
+    expect(find.byIcon(Icons.check), findsNothing);
+    expect(find.byType(FilledButton), findsNothing);
+    expect(find.byType(OutlinedButton), findsNothing);
+    expect(find.text('Manage subscription'), findsNothing);
+    expect(find.text('Restore purchases'), findsNothing);
+  });
+
   testWidgets('terms link opens the terms page', (tester) async {
     Uri? opened;
     await tester.pumpWidget(app(_FakePlan(ZtPlan.free), FakeBillingStore(),

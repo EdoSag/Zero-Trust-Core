@@ -53,6 +53,10 @@ class ZtPlan {
   static const freeId = 'free';
   static const free = ZtPlan(id: freeId);
 
+  /// In [features]: the plan includes every feature, also ones added
+  /// later. Only the owner-granted `unlimited` plan has it.
+  static const everyFeature = '*';
+
   factory ZtPlan.fromJson(Map<String, dynamic> json) {
     final names = json['names'];
     final features = json['features'];
@@ -79,7 +83,8 @@ class ZtPlan {
   /// The plan's name by language code, from the server.
   final Map<String, String> names;
 
-  /// Switches beyond storage, e.g. `drive`, `vpn`. Free has none.
+  /// Switches beyond storage, e.g. `drive`, `vpn`. Free has none. Ask
+  /// [has], which also knows [everyFeature].
   final Set<String> features;
 
   /// Null on the free plan.
@@ -91,7 +96,10 @@ class ZtPlan {
 
   bool get isFree => id == freeId;
 
-  bool has(String feature) => features.contains(feature);
+  /// Whether the plan includes every feature there is or will be.
+  bool get hasEverything => features.contains(everyFeature);
+
+  bool has(String feature) => hasEverything || features.contains(feature);
 
   /// The name in [languageCode], else English, else the id. Null for the
   /// free plan, whose name the apps translate themselves.

@@ -7,6 +7,8 @@ import '../../storage/zt_storage_usage.dart';
 /// The shared "Storage: 2.4 MB of 50 MB used" row, with a bar. Shows nothing
 /// while loading or when the server can't be reached. [ZtSettingsPage] shows
 /// it when `showStorageUsage` is set.
+///
+/// On a plan without a limit it says "2.4 MB used, no limit" and has no bar.
 class ZtStorageTile extends ConsumerWidget {
   const ZtStorageTile({super.key});
 
@@ -23,22 +25,29 @@ class ZtStorageTile extends ConsumerWidget {
       subtitle: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(l10n.storageUsed(
-            formatBytes(usage.itemBytes),
-            formatBytes(usage.maxItemBytes),
-          )),
-          const SizedBox(height: 6),
-          LinearProgressIndicator(
-            value: usage.fraction,
-            color: full ? theme.colorScheme.error : null,
-            semanticsLabel: l10n.storage,
-          ),
+          if (usage.itemsUnlimited)
+            Text(l10n.storageUsedNoLimit(formatBytes(usage.itemBytes)))
+          else ...[
+            Text(l10n.storageUsed(
+              formatBytes(usage.itemBytes),
+              formatBytes(usage.maxItemBytes),
+            )),
+            const SizedBox(height: 6),
+            LinearProgressIndicator(
+              value: usage.fraction,
+              color: full ? theme.colorScheme.error : null,
+              semanticsLabel: l10n.storage,
+            ),
+          ],
           if (usage.attachmentBytes > 0) ...[
             const SizedBox(height: 6),
-            Text(l10n.storageAttachments(
-              formatBytes(usage.attachmentBytes),
-              formatBytes(usage.maxAttachmentBytes),
-            )),
+            Text(usage.attachmentsUnlimited
+                ? l10n.storageAttachmentsNoLimit(
+                    formatBytes(usage.attachmentBytes))
+                : l10n.storageAttachments(
+                    formatBytes(usage.attachmentBytes),
+                    formatBytes(usage.maxAttachmentBytes),
+                  )),
           ],
         ],
       ),

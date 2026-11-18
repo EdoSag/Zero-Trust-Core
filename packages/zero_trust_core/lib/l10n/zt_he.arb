@@ -181,6 +181,8 @@
   "storage": "אחסון",
   "storageUsed": "{used} מתוך {limit} בשימוש",
   "storageAttachments": "קבצים מצורפים: {used} מתוך {limit}",
+  "storageUsedNoLimit": "{used} בשימוש, ללא הגבלה",
+  "storageAttachmentsNoLimit": "קבצים מצורפים: {used}, ללא הגבלה",
   "language": "שפה",
   "languagePhone": "שפת הטלפון",
   "taglineNotes": "פתקים, רשימות ומחברות",
