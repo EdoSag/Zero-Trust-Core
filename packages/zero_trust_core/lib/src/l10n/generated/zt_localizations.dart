@@ -1178,6 +1178,18 @@ abstract class ZtLocalizations {
   /// **'Attachments: {used} of {limit}'**
   String storageAttachments(String used, String limit);
 
+  /// Storage row on a plan without a storage limit
+  ///
+  /// In en, this message translates to:
+  /// **'{used} used, no limit'**
+  String storageUsedNoLimit(String used);
+
+  /// No description provided for @storageAttachmentsNoLimit.
+  ///
+  /// In en, this message translates to:
+  /// **'Attachments: {used}, no limit'**
+  String storageAttachmentsNoLimit(String used);
+
   /// Settings row and dialog title for the app's language.
   ///
   /// In en, this message translates to:

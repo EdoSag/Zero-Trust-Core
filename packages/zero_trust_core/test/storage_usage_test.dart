@@ -73,6 +73,52 @@ void main() {
     expect(find.byType(LinearProgressIndicator), findsOneWidget);
   });
 
+  test('the Unlimited plan has no limit', () {
+    // What zt_my_storage() returns for it: 2^53 - 1 everywhere.
+    final u = ZtStorageUsage.fromJson({
+      'item_bytes': 2500000,
+      'item_count': 527,
+      'attachment_bytes': 12000000,
+      'max_blob_bytes': 1048576,
+      'max_item_bytes': 9007199254740991,
+      'max_items': 9007199254740991,
+      'max_attachment_bytes': 9007199254740991,
+    });
+    expect(u.itemsUnlimited, isTrue);
+    expect(u.attachmentsUnlimited, isTrue);
+    expect(u.fraction, lessThan(0.000001));
+
+    // Plus (1 GiB, 20 GiB) is a real limit.
+    const plus = ZtStorageUsage(
+      itemBytes: 0,
+      itemCount: 0,
+      attachmentBytes: 0,
+      maxBlobBytes: 1048576,
+      maxItemBytes: 1073741824,
+      maxItems: 1000000,
+      maxAttachmentBytes: 21474836480,
+    );
+    expect(plus.itemsUnlimited, isFalse);
+    expect(plus.attachmentsUnlimited, isFalse);
+  });
+
+  testWidgets('no limit: usage without a limit or a bar', (tester) async {
+    await tester.pumpWidget(app(const ZtStorageUsage(
+      itemBytes: 2400000,
+      itemCount: 10,
+      attachmentBytes: 12000000,
+      maxBlobBytes: 1048576,
+      maxItemBytes: 9007199254740991,
+      maxItems: 9007199254740991,
+      maxAttachmentBytes: 9007199254740991,
+    )));
+    await tester.pumpAndSettle();
+    expect(find.text('2.4 MB used, no limit'), findsOneWidget);
+    expect(find.text('Attachments: 12 MB, no limit'), findsOneWidget);
+    expect(find.byType(LinearProgressIndicator), findsNothing);
+    expect(find.textContaining(' of '), findsNothing);
+  });
+
   testWidgets('signed out: no row', (tester) async {
     await tester.pumpWidget(app(null));
     await tester.pumpAndSettle();

@@ -80,6 +80,9 @@ class _ZtPlansScreenState extends ConsumerState<ZtPlansScreen> {
     final language = Localizations.localeOf(context).languageCode;
     final planName = plan?.nameFor(language) ?? l10n.planFree;
     final paid = plan != null && !plan.isFree;
+    // On a plan other than Plus (the owner-granted Unlimited), the Plus
+    // offer below would only confuse: say what the account has instead.
+    final onOtherPlan = paid && plan.id != 'plus';
 
     final end = plan?.periodEnd;
     final date = end == null
@@ -117,31 +120,33 @@ class _ZtPlansScreenState extends ConsumerState<ZtPlansScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  Text(l10n.plansPlusName,
-                      style: theme.textTheme.headlineSmall),
-                  const SizedBox(height: 4),
-                  Text(l10n.plansPlusTagline,
-                      style: theme.textTheme.bodyMedium),
-                  const SizedBox(height: 12),
-                  for (final line in [
-                    l10n.plansPlusSynced,
-                    l10n.plansPlusFiles,
-                    l10n.plansPlusAllApps,
-                    l10n.plansPlusSameEncryption,
-                  ])
-                    Padding(
-                      padding: const EdgeInsets.symmetric(vertical: 4),
-                      child: Row(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Icon(Icons.check,
-                              size: 20, color: theme.colorScheme.primary),
-                          const SizedBox(width: 8),
-                          Expanded(child: Text(line)),
-                        ],
+                  if (!onOtherPlan) ...[
+                    Text(l10n.plansPlusName,
+                        style: theme.textTheme.headlineSmall),
+                    const SizedBox(height: 4),
+                    Text(l10n.plansPlusTagline,
+                        style: theme.textTheme.bodyMedium),
+                    const SizedBox(height: 12),
+                    for (final line in [
+                      l10n.plansPlusSynced,
+                      l10n.plansPlusFiles,
+                      l10n.plansPlusAllApps,
+                      l10n.plansPlusSameEncryption,
+                    ])
+                      Padding(
+                        padding: const EdgeInsets.symmetric(vertical: 4),
+                        child: Row(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Icon(Icons.check,
+                                size: 20, color: theme.colorScheme.primary),
+                            const SizedBox(width: 8),
+                            Expanded(child: Text(line)),
+                          ],
+                        ),
                       ),
-                    ),
-                  const SizedBox(height: 12),
+                    const SizedBox(height: 12),
+                  ],
                   if (paid)
                     _PaidActions(
                       plan: plan,

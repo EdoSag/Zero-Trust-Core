@@ -679,6 +679,16 @@ class ZtLocalizationsEn extends ZtLocalizations {
   }
 
   @override
+  String storageUsedNoLimit(String used) {
+    return '$used used, no limit';
+  }
+
+  @override
+  String storageAttachmentsNoLimit(String used) {
+    return 'Attachments: $used, no limit';
+  }
+
+  @override
   String get language => 'Language';
 
   @override

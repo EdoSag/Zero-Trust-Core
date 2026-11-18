@@ -343,6 +343,23 @@
       }
     }
   },
+  "storageUsedNoLimit": "{used} used, no limit",
+  "@storageUsedNoLimit": {
+    "description": "Storage row on a plan without a storage limit",
+    "placeholders": {
+      "used": {
+        "type": "String"
+      }
+    }
+  },
+  "storageAttachmentsNoLimit": "Attachments: {used}, no limit",
+  "@storageAttachmentsNoLimit": {
+    "placeholders": {
+      "used": {
+        "type": "String"
+      }
+    }
+  },
   "language": "Language",
   "@language": {
     "description": "Settings row and dialog title for the app's language."
