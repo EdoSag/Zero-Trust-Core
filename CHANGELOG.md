@@ -5,6 +5,12 @@ an app must change.
 
 ## Unreleased
 
+### ZT Family: hourly event cap holds for requests sent together (database)
+
+- Migration `20261118130000_family_events_cap_lock`. `family_events_guard()`
+  takes a lock per member and circle before counting, so two inserts sent at
+  the same moment can no longer both pass the 1200 an hour cap.
+
 ### ZT Family: release checks and location tables (`zt_release_checks`, database)
 
 - New suite app id `family` (ZT Family). Its data key, signing key and a
