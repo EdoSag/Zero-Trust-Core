@@ -530,6 +530,18 @@ abstract class ZtLocalizations {
   /// **'One account for every Zero-Trust app'**
   String get oneAccountForEveryApp;
 
+  /// No description provided for @signInOrCreateAccount.
+  ///
+  /// In en, this message translates to:
+  /// **'Sign in or create an account'**
+  String get signInOrCreateAccount;
+
+  /// No description provided for @signInToBackUpAndSync.
+  ///
+  /// In en, this message translates to:
+  /// **'Back up and sync with your Zero-Trust account'**
+  String get signInToBackUpAndSync;
+
   /// No description provided for @changePassword.
   ///
   /// In en, this message translates to:

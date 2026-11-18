@@ -140,6 +140,76 @@ void main() {
         findsOneWidget);
   });
 
+  testWidgets(
+      'settings without an account: only rows that need none, and a way in',
+      (tester) async {
+    var signIns = 0;
+    await tester.pumpWidget(app(ZtSettingsPage(
+      onSignedOut: () {},
+      accountOptional: true,
+      onSignIn: () => signIns++,
+      appSection: const [ListTile(title: Text('App row'))],
+    )));
+    await tester.pumpAndSettle();
+
+    // No account rows, nothing to lock, nothing to delete.
+    for (final gone in [
+      'Not signed in',
+      'Change password',
+      'Sign out',
+      'Auto-lock',
+      'Lock now',
+      'New recovery key',
+    ]) {
+      expect(find.text(gone), findsNothing, reason: gone);
+    }
+    await tester.scrollUntilVisible(find.text('Open-source licences'), 300);
+    await tester.drag(find.byType(ListView), const Offset(0, -2000));
+    await tester.pumpAndSettle();
+    expect(find.text('Delete account'), findsNothing);
+    expect(find.text('Danger zone'), findsNothing);
+
+    // Appearance and the app's own rows stay, under the sign-in row.
+    await tester.drag(find.byType(ListView), const Offset(0, 5000));
+    await tester.pumpAndSettle();
+    final signIn = find.text('Sign in or create an account');
+    expect(signIn, findsOneWidget);
+    expect(find.text('Back up and sync with your Zero-Trust account'),
+        findsOneWidget);
+    expect(tester.getTopLeft(signIn).dy,
+        lessThan(tester.getTopLeft(find.text('Language')).dy));
+    await tester.tap(signIn);
+    expect(signIns, 1);
+    await tester.scrollUntilVisible(find.text('App row'), 300);
+    expect(find.text('App row'), findsOneWidget);
+  });
+
+  testWidgets(
+      'settings without an account: no Account section without onSignIn',
+      (tester) async {
+    await tester.pumpWidget(
+        app(ZtSettingsPage(onSignedOut: () {}, accountOptional: true)));
+    await tester.pumpAndSettle();
+    expect(find.text('Account'), findsNothing);
+    expect(find.text('Sign in or create an account'), findsNothing);
+    // Appearance is now the first section.
+    expect(find.text('Appearance'), findsOneWidget);
+    expect(find.text('Language'), findsOneWidget);
+  });
+
+  testWidgets('settings with accountOptional: a signed-in account sees it all',
+      (tester) async {
+    await account.signUp(email: email, password: password);
+    await tester.pumpWidget(app(ZtSettingsPage(
+        onSignedOut: () {}, accountOptional: true, onSignIn: () {})));
+    await tester.pumpAndSettle();
+    expect(find.text(email), findsOneWidget);
+    expect(find.text('Change password'), findsOneWidget);
+    expect(find.text('Sign in or create an account'), findsNothing);
+    await tester.scrollUntilVisible(find.text('Delete account'), 400);
+    expect(find.text('Delete account'), findsOneWidget);
+  });
+
   testWidgets('settings: auto-lock picker saves the choice', (tester) async {
     await account.signUp(email: email, password: password);
     await tester.pumpWidget(app(ZtSettingsPage(onSignedOut: () {})));

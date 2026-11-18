@@ -5,6 +5,20 @@ an app must change.
 
 ## Unreleased
 
+### Settings for an app that works without an account (`zero_trust_core`)
+
+- `ZtSettingsPage(accountOptional: true)`: while nobody is signed in, the
+  rows that need an account are hidden (password, sign out, sync, plan,
+  storage, auto-lock, biometrics, lock now, recovery key, export, delete
+  account) and Appearance, the app's own rows, About and the other apps
+  stay. `onSignIn` adds "Sign in or create an account" under Account.
+  Crash reports need no account, so that row stays too (alone under
+  Security) in apps that set up a reporter.
+  Made for ZT Clock, which rings alarms without an account. New strings
+  `signInOrCreateAccount` and `signInToBackUpAndSync`, English and Hebrew.
+- Upgrade: nothing to do. Both are off by default, so every other app's
+  settings screen is unchanged.
+
 ### The planning engine for ZT Calendar's Planner (`zt_scheduler`, new package)
 
 - New pure Dart package `packages/zt_scheduler`: `plan()` fits tasks and

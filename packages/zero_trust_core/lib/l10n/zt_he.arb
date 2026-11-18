@@ -72,6 +72,8 @@
   "account": "חשבון",
   "notSignedIn": "לא מחובר/ת",
   "oneAccountForEveryApp": "חשבון אחד לכל אפליקציות Zero-Trust",
+  "signInOrCreateAccount": "כניסה או יצירת חשבון",
+  "signInToBackUpAndSync": "גיבוי וסנכרון עם חשבון Zero-Trust שלך",
   "changePassword": "שינוי סיסמה",
   "security": "אבטחה",
   "autoLock": "נעילה אוטומטית",

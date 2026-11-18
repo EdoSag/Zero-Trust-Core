@@ -425,6 +425,32 @@ void main() {
           lessThan(tester.getRect(find.text('Appearance')).top));
     });
 
+    testWidgets('settings without an account still offer crash reports',
+        (tester) async {
+      tester.view.physicalSize = const Size(1080, 9000);
+      tester.view.devicePixelRatio = 3;
+      addTearDown(tester.view.reset);
+      await reporter.load();
+      await tester.pumpWidget(app(
+          ZtSettingsPage(onSignedOut: () {}, accountOptional: true),
+          withReporter: false));
+      await tester.pumpAndSettle();
+      expect(find.text('Crash reports'), findsNothing);
+      expect(find.text('Security'), findsNothing);
+
+      await tester.pumpWidget(const SizedBox());
+      await tester.pumpWidget(
+          app(ZtSettingsPage(onSignedOut: () {}, accountOptional: true)));
+      await tester.pumpAndSettle();
+      // The only row under Security, above Appearance.
+      expect(find.text('Lock now'), findsNothing);
+      expect(find.text('Crash reports'), findsOneWidget);
+      expect(tester.getRect(find.text('Crash reports')).top,
+          greaterThan(tester.getRect(find.text('Security')).bottom));
+      expect(tester.getRect(find.text('Crash reports')).bottom,
+          lessThan(tester.getRect(find.text('Appearance')).top));
+    });
+
     testWidgets('turn on, read the exact report, send it', (tester) async {
       await reporter.load();
       await tester.pumpWidget(app(ZtCrashReportsScreen(reporter: reporter)));
