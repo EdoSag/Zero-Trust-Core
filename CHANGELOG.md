@@ -5,6 +5,12 @@ an app must change.
 
 ## Unreleased
 
+### ZT Family: hourly event cap holds for requests sent together (database)
+
+- Migration `20261118130000_family_events_cap_lock`. `family_events_guard()`
+  takes a lock per member and circle before counting, so two inserts sent at
+  the same moment can no longer both pass the 1200 an hour cap.
+
 ### Settings for an app that works without an account (`zero_trust_core`)
 
 - `ZtSettingsPage(accountOptional: true)`: while nobody is signed in, the
