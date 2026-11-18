@@ -123,7 +123,8 @@ jobs:
             -f tests/plans_test.sql \
             -f tests/billing_test.sql \
             -f tests/booking_pages_test.sql \
-            -f tests/booking_slots_fixes_test.sql
+            -f tests/booking_slots_fixes_test.sql \
+            -f tests/family_location_test.sql
 
   edge_functions:
     runs-on: ubuntu-latest
