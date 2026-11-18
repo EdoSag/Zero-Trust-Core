@@ -1,0 +1,11 @@
+name: zt_scheduler
+description: Pure-Dart planner that fits tasks and habits into free calendar time. Runs on the device, no network, no AI.
+version: 0.1.0
+publish_to: none
+
+environment:
+  sdk: ^3.5.0
+
+dev_dependencies:
+  test: ^1.25.0
+  lints: ^5.0.0
