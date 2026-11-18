@@ -245,6 +245,13 @@ class ZtLocalizationsEn extends ZtLocalizations {
   String get oneAccountForEveryApp => 'One account for every Zero-Trust app';
 
   @override
+  String get signInOrCreateAccount => 'Sign in or create an account';
+
+  @override
+  String get signInToBackUpAndSync =>
+      'Back up and sync with your Zero-Trust account';
+
+  @override
   String get changePassword => 'Change password';
 
   @override
@@ -908,4 +915,59 @@ class ZtLocalizationsEn extends ZtLocalizations {
   @override
   String get plansFailed =>
       'The purchase didn\'t go through. Please try again.';
+
+  @override
+  String get rememberOnThisBrowser => 'Remember on this browser';
+
+  @override
+  String get rememberOnThisBrowserOff =>
+      'Off: your password is asked every time you open this page';
+
+  @override
+  String get rememberOnThisBrowserOn =>
+      'On: opens without your password on this browser';
+
+  @override
+  String rememberOnThisBrowserQuestion(String appName) {
+    return 'Remember $appName on this browser?';
+  }
+
+  @override
+  String rememberOnThisBrowserExplanation(String appName) {
+    return '$appName will open on this browser without your password, even after you close the tab or restart the computer. Anyone who can use this browser can then open your data, so never turn this on on a shared or public computer.\n\nYour data stays encrypted in the browser and on our servers. Changing your password, a new recovery key, exporting your data and deleting your account still ask for your password.';
+  }
+
+  @override
+  String get remember => 'Remember';
+
+  @override
+  String enterYourPasswordToRemember(String appName) {
+    return 'Enter your password to remember $appName on this browser.';
+  }
+
+  @override
+  String get rememberNotAvailable =>
+      'This browser can\'t keep the key safely here. Open the app over a secure (https) connection.';
+
+  @override
+  String get neverRememberedOnThisBrowser =>
+      'Never, remembered on this browser';
+
+  @override
+  String get signOutAndRemoveData =>
+      'Sign out and remove data from this browser';
+
+  @override
+  String get forSharedOrPublicComputers => 'For shared or public computers';
+
+  @override
+  String get removeYourDataFromThisBrowser =>
+      'Remove your data from this browser?';
+
+  @override
+  String get removeFromBrowserExplanation =>
+      'You\'ll be signed out, and the encrypted copy kept in this browser will be deleted, along with your settings here. Changes that haven\'t synced yet will be lost.\n\nYour account and everything already synced stay safe. Sign in again any time to get it back.';
+
+  @override
+  String get signOutAndRemove => 'Sign out and remove';
 }
