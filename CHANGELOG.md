@@ -5,6 +5,29 @@ an app must change.
 
 ## Unreleased
 
+### Web kit, platform capabilities and the web lock policy (`zero_trust_core`)
+
+- `tool/apply_web_kit.sh` writes a web app's `index.html` (strict Content
+  Security Policy, loading screen), `manifest.json`, `zt_boot.js`,
+  `flutter_bootstrap.js`, `_headers` and the pinned `sqlite3mc.wasm` from
+  the templates in `web-kit/`.
+- Fonts: Flutter on the web fetched Noto fonts from Google Fonts for Hebrew,
+  emoji and other scripts. The kit serves them from the app's own site
+  (`fallback-fonts/`, filled by `tool/fetch_fallback_fonts.sh build/web`),
+  so a web app calls no third party at all.
+- `ZtCapabilities` / `ztCapabilitiesProvider`: what the running platform can
+  do (widgets, reminders, biometrics, on-device speech and OCR, camera
+  scanning, phone integration), so apps hide phone-only features on the web
+  and desktop.
+- Web lock policy: password on every visit by default. Settings gains, in a
+  browser only, "Remember on this browser" (opt-in; the key is kept sealed
+  by a non-extractable browser key, `WebSessionKeyStore`) and "Sign out and
+  remove data from this browser" (`ztWipeBrowserStorage`). New strings in
+  English and Hebrew. Phones and desktop apps look and behave as before.
+- `accountServiceProvider` now takes its session key store from
+  `ztPlatformSessionKeyStore()`.
+- Upgrade: nothing for phone apps. A web app runs the two scripts above and
+  gates phone-only features with `ztCapabilitiesProvider`.
 ### ZT Family: release checks and location tables (`zt_release_checks`, database)
 
 - New suite app id `family` (ZT Family). Its data key, signing key and a
