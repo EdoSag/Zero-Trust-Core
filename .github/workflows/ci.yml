@@ -17,6 +17,18 @@ jobs:
       - run: dart analyze --fatal-infos
       - run: dart test
 
+  zt_scheduler:
+    runs-on: ubuntu-latest
+    defaults: { run: { working-directory: packages/zt_scheduler } }
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dart-lang/setup-dart@v1
+        with: { sdk: 3.13.7 }
+      - run: dart pub get
+      - run: dart format --output=none --set-exit-if-changed .
+      - run: dart analyze --fatal-infos
+      - run: dart test
+
   zt_release_checks:
     runs-on: ubuntu-latest
     defaults: { run: { working-directory: packages/zt_release_checks } }
