@@ -392,6 +392,40 @@ void main() {
       expect(r.risks.single.minutesLate, 120);
     });
 
+    test(
+        'tasks that are late only because of locked blocks do not use up '
+        'the tries', () {
+      // Eight tasks are due at 9:00 and sit in locked blocks in the
+      // afternoon: late, and nothing can change that. "soon" can still
+      // make 10:00 if it goes ahead of "big".
+      final r = plan(
+        now: at(0, 8),
+        hours: [work],
+        settings: plain,
+        tasks: [
+          task('big', 120, priority: PlanPriority.high),
+          for (var i = 0; i < 8; i++) task('fixed$i', 30, due: at(0, 9)),
+          task('soon', 60, due: at(0, 10)),
+        ],
+        existing: [
+          for (var i = 0; i < 8; i++)
+            block(
+              'fixed$i:0',
+              at(0, 13, 0).add(Duration(minutes: 30 * i)),
+              at(0, 13, 30).add(Duration(minutes: 30 * i)),
+              locked: true,
+            ),
+        ],
+      );
+      expect(shown(r, 'soon'), ['soon:0 d0 09:00-10:00']);
+      // The locked blocks and "soon" leave an hour of the day's limit,
+      // so "big" goes to Tuesday in one piece.
+      expect(shown(r, 'big'), ['big:0 d1 09:00-11:00']);
+      expect(r.risks.map((x) => x.taskId), [
+        for (var i = 0; i < 8; i++) 'fixed$i',
+      ]);
+    });
+
     test('what finds no room in the days planned is reported', () {
       final r = plan(
         now: at(0, 8),

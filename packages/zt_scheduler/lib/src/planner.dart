@@ -782,9 +782,14 @@ class _Planner {
     // waits its turn.
     final tried = <String>{};
     for (var i = 0; i < _maxRepairs; i++) {
+      // Only tasks that going ahead could help: a task that is late just
+      // because of blocks that can't move stays late wherever it goes.
       final late = {
         for (final r in best.risks)
-          if (r.due != null) r.taskId,
+          if (r.due != null &&
+              (r.minutesUnplanned > 0 ||
+                  r.minutesLate > (_fixedLate[r.taskId] ?? 0)))
+            r.taskId,
       };
       final at = best.steps.indexWhere(
         (s) =>
