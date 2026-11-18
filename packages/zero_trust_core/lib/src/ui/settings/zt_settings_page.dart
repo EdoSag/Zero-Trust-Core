@@ -15,6 +15,7 @@ import '../../attachments/database_attachment_cache.dart';
 import '../../config/zt_language.dart';
 import '../../config/zt_preferences.dart';
 import '../../config/zt_suite.dart';
+import '../../crash/zt_crash_reporter.dart';
 import '../brand/zt_brand_mark.dart';
 import 'zt_crash_reports_screen.dart';
 import 'zt_data_protection_screen.dart';
@@ -209,6 +210,12 @@ class ZtSettingsPage extends ConsumerWidget {
               onTap: () => Navigator.of(context).push(MaterialPageRoute<void>(
                   builder: (_) => const ZtDataProtectionScreen())),
             ),
+            const ZtCrashReportsTile(),
+          ],
+          // Crash reports do not need an account, so the row stays when
+          // nobody is signed in (only in apps that set up a reporter).
+          if (signedOut && ref.watch(ztCrashReporterProvider) != null) ...[
+            _Header(ZtL10n.of(context).security),
             const ZtCrashReportsTile(),
           ],
           _Header(ZtL10n.of(context).appearance),
