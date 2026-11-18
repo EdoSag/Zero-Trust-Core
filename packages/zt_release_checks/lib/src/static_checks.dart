@@ -38,6 +38,7 @@ const suiteAppIds = {
   'quests',
   'camera',
   'family',
+  'home',
 };
 
 /// Checks that need no device and no network: what went wrong in past
