@@ -274,6 +274,7 @@
   "errVaultLocked": "Unlock the app first.",
   "errTooMany": "Too many attempts. Wait a few minutes and try again.",
   "errServerDown": "Our server isn't responding right now. Your data is safe; try again soon.",
+  "errEmailNotSent": "We couldn't send the email. The problem is on our side, not yours. Try again later.",
   "errGeneric": "Something went wrong. Check your connection and try again.",
   "enterValidEmail": "Enter a valid email address.",
   "useAtLeast12": "Use at least 12 characters.",

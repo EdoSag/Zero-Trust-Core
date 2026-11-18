@@ -26,6 +26,15 @@ an app must change.
   Unlimited plan keeps including them. Live database: paste
   `core-unlimited-plan.sql` once (needs the plans migrations).
 
+### Sign-up says when the email could not be sent (`zero_trust_core`)
+
+- When the account server can't send a confirmation, reset or change-email
+  message (its mail provider refused or failed), sign-up and Forgot password
+  now show "We couldn't send the email. The problem is on our side, not
+  yours. Try again later." instead of "Our server isn't responding right
+  now". New string `errEmailNotSent`, English and Hebrew. No app changes
+  needed.
+
 ### Billing backbone and Plans screen (`zero_trust_core`, database)
 
 - Migration `20261117090000_core_billing_backbone`. New `zt_billing_products`

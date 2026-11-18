@@ -66,10 +66,19 @@ class FakeBackend implements AccountBackend {
   /// Simulates no network for profile reads.
   bool offline = false;
 
+  /// Thrown by the next [signUp], which then creates nothing: what the
+  /// server does when it can't send the confirmation email.
+  Object? failNextSignUp;
+
   @override
   Future<bool> signUp(String email, String authPassword,
       {String? redirectTo}) async {
     passwordsSeenByServer.add(authPassword);
+    final failure = failNextSignUp;
+    if (failure != null) {
+      failNextSignUp = null;
+      throw failure;
+    }
     authPasswords[email] = authPassword;
     if (requireConfirmation) {
       unconfirmed.add(email);

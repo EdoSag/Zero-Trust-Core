@@ -619,6 +619,10 @@ class ZtLocalizationsHe extends ZtLocalizations {
       'השרת שלנו לא עונה כרגע. המידע שלך בטוח; כדאי לנסות שוב בקרוב.';
 
   @override
+  String get errEmailNotSent =>
+      'לא הצלחנו לשלוח את האימייל. הבעיה אצלנו, לא אצלך. כדאי לנסות שוב מאוחר יותר.';
+
+  @override
   String get errGeneric => 'משהו השתבש. כדאי לבדוק את החיבור ולנסות שוב.';
 
   @override

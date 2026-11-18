@@ -609,6 +609,10 @@ class ZtLocalizationsEn extends ZtLocalizations {
       'Our server isn\'t responding right now. Your data is safe; try again soon.';
 
   @override
+  String get errEmailNotSent =>
+      'We couldn\'t send the email. The problem is on our side, not yours. Try again later.';
+
+  @override
   String get errGeneric =>
       'Something went wrong. Check your connection and try again.';
 
