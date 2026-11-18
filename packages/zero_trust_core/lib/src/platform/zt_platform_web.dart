@@ -151,3 +151,47 @@ Future<void> ztDownloadFile(String fileName, Uint8List bytes) async {
   await Future<void>.delayed(const Duration(seconds: 1));
   web.URL.revokeObjectURL(url);
 }
+
+/// Removes everything this site keeps in the browser: every IndexedDB
+/// database (the encrypted local stores, attachment caches, the key kept
+/// by "Remember on this browser") and the site's local and session storage
+/// (sign-in session, cached key rows, preferences). Each web app has its
+/// own site, so this never touches another app.
+///
+/// Close open stores first: the browser deletes a database only once
+/// nothing has it open. A database still held after [patience] is left
+/// for the browser to delete when the page goes away.
+Future<void> ztWipeBrowserStorage({
+  Duration patience = const Duration(seconds: 3),
+}) async {
+  final names = <String>{_idbName, 'zt_session_keys'};
+  try {
+    final listed = (await web.window.indexedDB.databases().toDart).toDart;
+    names.addAll([for (final d in listed) d.name]);
+  } on Object {
+    // Older browsers can't list databases: the known ones still go.
+  }
+  await Future.wait([
+    for (final name in names)
+      () {
+        final gone = Completer<void>();
+        final request = web.window.indexedDB.deleteDatabase(name);
+        void finish(web.Event _) {
+          if (!gone.isCompleted) gone.complete();
+        }
+
+        request.onsuccess = finish.toJS;
+        request.onerror = finish.toJS;
+        return gone.future.timeout(patience, onTimeout: () {});
+      }(),
+  ]);
+  try {
+    web.window.localStorage.clear();
+    web.window.sessionStorage.clear();
+  } on Object {
+    // Storage blocked (private window): nothing was kept there.
+  }
+}
+
+/// Loads the page again from the server, dropping everything in memory.
+void ztReloadPage() => web.window.location.reload();
