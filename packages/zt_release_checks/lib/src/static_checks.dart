@@ -37,6 +37,7 @@ const suiteAppIds = {
   'meds',
   'quests',
   'camera',
+  'family',
 };
 
 /// Checks that need no device and no network: what went wrong in past

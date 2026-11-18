@@ -4,7 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'account/account_service.dart';
 import 'account/biometric_key_store.dart';
 import 'account/key_cache.dart';
-import 'account/session_key_store.dart';
+import 'account/platform_session_key_store.dart';
 import 'account/supabase_account_backend.dart';
 import 'config/zt_app_config.dart';
 import 'config/zt_preferences.dart';
@@ -18,7 +18,7 @@ final accountServiceProvider = Provider<AccountService>(
     biometrics: SecureBiometricKeyStore(
       promptTitle: 'Unlock ${ref.watch(ztAppConfigProvider).displayName}',
     ),
-    sessionKeys: SecureSessionKeyStore(),
+    sessionKeys: ztPlatformSessionKeyStore(),
   ),
 );
 

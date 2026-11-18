@@ -5,6 +5,8 @@
 //
 // Every value below was made by core 0.11 (quests: core 0.12, 2026-11-17;
 // camera: core 0.12, 2026-11-18; same derivation and format) and checked independently with Python
+// family: core 0.12, 2026-11-18; same derivation and format) and checked
+// independently with Python
 // (hashlib, hmac, cryptography). If one fails, a dependency bump or a
 // code change has changed how keys are made or data is sealed, and existing
 // accounts or synced data would no longer open. Never update the expected
@@ -35,6 +37,7 @@ const _suite = [
   'meds',
   'quests',
   'camera',
+  'family',
 ];
 
 /// App key and signing public key for DEK = 00 01 .. 1f.
@@ -82,6 +85,10 @@ const _appKeys = {
   'camera': (
     'd10e3e14af615b59b28551a46c5799134174b70146dc9f83410550202feda1d9',
     'c121183235bf2ac575a1525531c3171514f688872159b6fdad11e8e67de03694',
+  ),
+  'family': (
+    '9a6de6986ccfe3bc241c817d616e48148354c4e4dab6c2eede9481198cc67093',
+    '0885fd69a497a570902ea253872063b34fffc9b94668050448e7976b50ce350c',
   ),
 };
 
@@ -131,6 +138,9 @@ const _syncedItems = {
   'camera': (
     '89tJGwEAkLScgCOhBmz4+ZmZGqSAxo4J8p3j95raRIAIRsxc9Dl0zo0pVJZuVi6AYGcl0xDQCwvJnDcSiIFqKm9b',
     'Id95LFLVWRsyEvwfiIHeXH6qhk8gs3SQudmAJUc5xGIDAy9y84U2syS0GscKdkbnVxG60ntx0cf3CiPO9IpZDA==',
+  'family': (
+    'nI81wf5Ay1GuYl/9mqWhu7AyQhwn2m0Tgf5eiKTlsLtcMV0W5s1Cj0VQmlFRWomnOTStqL1XnQZCdP/aGrDjJMyZ',
+    'pMCjcr06rrrB8TkVyinH24qD+XXSpfIptZO2dZm1iVnxMbPwvT1z+PQN6PexkQTiIA9Z0nbHYt25sxwwzXD+Cw==',
   ),
 };
 
