@@ -1549,6 +1549,90 @@ abstract class ZtLocalizations {
   /// In en, this message translates to:
   /// **'The purchase didn\'t go through. Please try again.'**
   String get plansFailed;
+
+  /// No description provided for @rememberOnThisBrowser.
+  ///
+  /// In en, this message translates to:
+  /// **'Remember on this browser'**
+  String get rememberOnThisBrowser;
+
+  /// No description provided for @rememberOnThisBrowserOff.
+  ///
+  /// In en, this message translates to:
+  /// **'Off: your password is asked every time you open this page'**
+  String get rememberOnThisBrowserOff;
+
+  /// No description provided for @rememberOnThisBrowserOn.
+  ///
+  /// In en, this message translates to:
+  /// **'On: opens without your password on this browser'**
+  String get rememberOnThisBrowserOn;
+
+  /// No description provided for @rememberOnThisBrowserQuestion.
+  ///
+  /// In en, this message translates to:
+  /// **'Remember {appName} on this browser?'**
+  String rememberOnThisBrowserQuestion(String appName);
+
+  /// No description provided for @rememberOnThisBrowserExplanation.
+  ///
+  /// In en, this message translates to:
+  /// **'{appName} will open on this browser without your password, even after you close the tab or restart the computer. Anyone who can use this browser can then open your data, so never turn this on on a shared or public computer.\n\nYour data stays encrypted in the browser and on our servers. Changing your password, a new recovery key, exporting your data and deleting your account still ask for your password.'**
+  String rememberOnThisBrowserExplanation(String appName);
+
+  /// No description provided for @remember.
+  ///
+  /// In en, this message translates to:
+  /// **'Remember'**
+  String get remember;
+
+  /// No description provided for @enterYourPasswordToRemember.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter your password to remember {appName} on this browser.'**
+  String enterYourPasswordToRemember(String appName);
+
+  /// No description provided for @rememberNotAvailable.
+  ///
+  /// In en, this message translates to:
+  /// **'This browser can\'t keep the key safely here. Open the app over a secure (https) connection.'**
+  String get rememberNotAvailable;
+
+  /// No description provided for @neverRememberedOnThisBrowser.
+  ///
+  /// In en, this message translates to:
+  /// **'Never, remembered on this browser'**
+  String get neverRememberedOnThisBrowser;
+
+  /// No description provided for @signOutAndRemoveData.
+  ///
+  /// In en, this message translates to:
+  /// **'Sign out and remove data from this browser'**
+  String get signOutAndRemoveData;
+
+  /// No description provided for @forSharedOrPublicComputers.
+  ///
+  /// In en, this message translates to:
+  /// **'For shared or public computers'**
+  String get forSharedOrPublicComputers;
+
+  /// No description provided for @removeYourDataFromThisBrowser.
+  ///
+  /// In en, this message translates to:
+  /// **'Remove your data from this browser?'**
+  String get removeYourDataFromThisBrowser;
+
+  /// No description provided for @removeFromBrowserExplanation.
+  ///
+  /// In en, this message translates to:
+  /// **'You\'ll be signed out, and the encrypted copy kept in this browser will be deleted, along with your settings here. Changes that haven\'t synced yet will be lost.\n\nYour account and everything already synced stay safe. Sign in again any time to get it back.'**
+  String get removeFromBrowserExplanation;
+
+  /// No description provided for @signOutAndRemove.
+  ///
+  /// In en, this message translates to:
+  /// **'Sign out and remove'**
+  String get signOutAndRemove;
 }
 
 class _ZtLocalizationsDelegate extends LocalizationsDelegate<ZtLocalizations> {
