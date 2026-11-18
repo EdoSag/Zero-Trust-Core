@@ -19,6 +19,70 @@ an app must change.
 - Upgrade: nothing to do. Both are off by default, so every other app's
   settings screen is unchanged.
 
+### The planning engine for ZT Calendar's Planner (`zt_scheduler`, new package)
+
+- New pure Dart package `packages/zt_scheduler`: `plan()` fits tasks and
+  habits into the free time around a calendar's events and returns the
+  blocks to add, move and remove. No AI, no network, no storage: it runs
+  on the device and the same inputs always give the same plan.
+- Rules: done, locked and current blocks stay; habits go nearest their
+  ideal time; tasks go most important first, then nearest due date, in
+  whole blocks where they fit; a task short of time for its due date may
+  use more blocks in a day and go ahead of tasks with time to spare;
+  what doesn't fit is planned after the due date and reported.
+- Blocks stay where they are from one plan to the next unless they must
+  move, and a moved block keeps its id, so the app updates one event.
+  Planning again from a plan's own blocks changes nothing.
+- Tested with 69 tests: named scenarios for every rule, and randomized
+  calendars checked against the rules. New CI job `zt_scheduler`.
+- Upgrade: nothing to do in apps. Nothing uses the package yet; ZT
+  Calendar will depend on it when the Planner screens are built. See
+  `packages/zt_scheduler/README.md`.
+### Web kit, platform capabilities and the web lock policy (`zero_trust_core`)
+
+- `tool/apply_web_kit.sh` writes a web app's `index.html` (strict Content
+  Security Policy, loading screen), `manifest.json`, `zt_boot.js`,
+  `flutter_bootstrap.js`, `_headers` and the pinned `sqlite3mc.wasm` from
+  the templates in `web-kit/`.
+- Fonts: Flutter on the web fetched Noto fonts from Google Fonts for Hebrew,
+  emoji and other scripts. The kit serves them from the app's own site
+  (`fallback-fonts/`, filled by `tool/fetch_fallback_fonts.sh build/web`),
+  so a web app calls no third party at all.
+- `ZtCapabilities` / `ztCapabilitiesProvider`: what the running platform can
+  do (widgets, reminders, biometrics, on-device speech and OCR, camera
+  scanning, phone integration), so apps hide phone-only features on the web
+  and desktop.
+- Web lock policy: password on every visit by default. Settings gains, in a
+  browser only, "Remember on this browser" (opt-in; the key is kept sealed
+  by a non-extractable browser key, `WebSessionKeyStore`) and "Sign out and
+  remove data from this browser" (`ztWipeBrowserStorage`). New strings in
+  English and Hebrew. Phones and desktop apps look and behave as before.
+- `accountServiceProvider` now takes its session key store from
+  `ztPlatformSessionKeyStore()`.
+- Upgrade: nothing for phone apps. A web app runs the two scripts above and
+  gates phone-only features with `ztCapabilitiesProvider`.
+### ZT Family: release checks and location tables (`zt_release_checks`, database)
+
+- New suite app id `family` (ZT Family). Its data key, signing key and a
+  synced item were made with core and checked independently with Python
+  (hashlib, hmac, cryptography), like the other apps' vectors. Nothing
+  changes for the existing apps.
+- Migration `20261118120000_family_location_tables`. Two tables for the
+  sealed location updates of a family circle (a shared space of app
+  `family`): `family_latest` (one row per member device, what the map
+  reads) and `family_events` (history: points, arrivals, check-ins, SOS),
+  plus `family_settings` (days of history a circle keeps, 7 by default,
+  1 to 30, set by an owner with `family_set_history_days`). Ciphertext
+  only. Only the circle's members read them; everyone writes only as
+  themselves (the server sets the sender and the time, so nothing can be
+  backdated or put in someone else's name); rows must be sealed under the
+  circle's current key; events can't be edited; a member's rows go when
+  they leave, are removed or delete their account. `family_purge_history`
+  runs hourly (pg_cron) and deletes history past the window and devices
+  silent for 30 days. Both tables are in the realtime publication.
+- Upgrade: nothing to do in the existing apps. Live database: paste
+  `family-location-tables.sql` once (needs the shared spaces migration).
+
 ### Unlimited plan for the owner (`zero_trust_core`, database)
 
 - Migration `20261118090000_core_unlimited_plan`. New hidden plan

@@ -511,5 +511,40 @@
   "plansFinePrint": "Renews automatically. No free trial. Cancel any time and keep Plus until the end of the period you've paid for. Everything that's free stays free.",
   "plansThanks": "Thank you! Plus is on.",
   "plansPending": "Payment pending. Plus turns on as soon as the store confirms it.",
-  "plansFailed": "The purchase didn't go through. Please try again."
+  "plansFailed": "The purchase didn't go through. Please try again.",
+  "rememberOnThisBrowser": "Remember on this browser",
+  "rememberOnThisBrowserOff": "Off: your password is asked every time you open this page",
+  "rememberOnThisBrowserOn": "On: opens without your password on this browser",
+  "rememberOnThisBrowserQuestion": "Remember {appName} on this browser?",
+  "@rememberOnThisBrowserQuestion": {
+    "placeholders": {
+      "appName": {
+        "type": "String"
+      }
+    }
+  },
+  "rememberOnThisBrowserExplanation": "{appName} will open on this browser without your password, even after you close the tab or restart the computer. Anyone who can use this browser can then open your data, so never turn this on on a shared or public computer.\n\nYour data stays encrypted in the browser and on our servers. Changing your password, a new recovery key, exporting your data and deleting your account still ask for your password.",
+  "@rememberOnThisBrowserExplanation": {
+    "placeholders": {
+      "appName": {
+        "type": "String"
+      }
+    }
+  },
+  "remember": "Remember",
+  "enterYourPasswordToRemember": "Enter your password to remember {appName} on this browser.",
+  "@enterYourPasswordToRemember": {
+    "placeholders": {
+      "appName": {
+        "type": "String"
+      }
+    }
+  },
+  "rememberNotAvailable": "This browser can't keep the key safely here. Open the app over a secure (https) connection.",
+  "neverRememberedOnThisBrowser": "Never, remembered on this browser",
+  "signOutAndRemoveData": "Sign out and remove data from this browser",
+  "forSharedOrPublicComputers": "For shared or public computers",
+  "removeYourDataFromThisBrowser": "Remove your data from this browser?",
+  "removeFromBrowserExplanation": "You'll be signed out, and the encrypted copy kept in this browser will be deleted, along with your settings here. Changes that haven't synced yet will be lost.\n\nYour account and everything already synced stay safe. Sign in again any time to get it back.",
+  "signOutAndRemove": "Sign out and remove"
 }

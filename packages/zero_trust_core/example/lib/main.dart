@@ -79,7 +79,26 @@ Future<String> runSmokeCheck() async {
   await DatabaseAttachmentCache.deleteFor(appId: 'smoke', userId: 'check');
   log.add(attachmentKept ? 'attachment kept' : 'ATTACHMENT LOST');
 
-  final ok = readBack && refused && exclusive && attachmentKept;
+  // "Remember on this browser": the kept key comes back, and "Sign out and
+  // remove data from this browser" takes it away again.
+  var remembered = true;
+  if (kIsWeb) {
+    final keys = ztPlatformSessionKeyStore();
+    await keys.save('check', (dek: key, legacyDek: false));
+    final kept = await keys.read('check');
+    final other = await keys.read('someone-else');
+    await ztWipeBrowserStorage();
+    final after = await keys.read('check');
+    remembered =
+        await keys.isAvailable() &&
+        kept != null &&
+        listEquals(kept.dek, key) &&
+        other == null &&
+        after == null;
+    log.add(remembered ? 'browser key kept, then wiped' : 'BROWSER KEY WRONG');
+  }
+
+  final ok = readBack && refused && exclusive && attachmentKept && remembered;
   return '${ok ? 'PASS' : 'FAIL'}: ${log.join(', ')}';
 }
 
@@ -107,6 +126,8 @@ class _SmokeCheckState extends State<SmokeCheck> {
   }
 
   @override
-  Widget build(BuildContext context) =>
-      Scaffold(body: Center(child: SelectableText(_result)));
+  Widget build(BuildContext context) => Scaffold(
+    // The second line checks that Hebrew draws with no font download.
+    body: Center(child: SelectableText('$_result\nשלום, הכול מוצפן')),
+  );
 }

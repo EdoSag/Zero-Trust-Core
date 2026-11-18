@@ -1,0 +1,11 @@
+# Response headers for hosts that read a `_headers` file (Cloudflare Pages,
+# Netlify). GitHub Pages ignores it; there the policy in index.html is all
+# the browser gets. These add what a <meta> tag can't say.
+/*
+  Content-Security-Policy: frame-ancestors 'none'
+  X-Frame-Options: DENY
+  X-Content-Type-Options: nosniff
+  Referrer-Policy: no-referrer
+  Strict-Transport-Security: max-age=63072000; includeSubDomains
+  Cross-Origin-Opener-Policy: same-origin
+  Permissions-Policy: camera=(), microphone=(), geolocation=(), payment=(), usb=(), interest-cohort=()

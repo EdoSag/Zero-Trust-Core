@@ -17,6 +17,18 @@ jobs:
       - run: dart analyze --fatal-infos
       - run: dart test
 
+  zt_scheduler:
+    runs-on: ubuntu-latest
+    defaults: { run: { working-directory: packages/zt_scheduler } }
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dart-lang/setup-dart@v1
+        with: { sdk: 3.13.7 }
+      - run: dart pub get
+      - run: dart format --output=none --set-exit-if-changed .
+      - run: dart analyze --fatal-infos
+      - run: dart test
+
   zt_release_checks:
     runs-on: ubuntu-latest
     defaults: { run: { working-directory: packages/zt_release_checks } }
@@ -95,8 +107,21 @@ jobs:
         with: { channel: stable, flutter-version: 3.47.9 }
       - run: flutter pub get
       - run: flutter analyze --fatal-infos
-      - run: ../../../tool/fetch_sqlite3mc_wasm.sh web/
+      - name: Web kit files are up to date
+        run: |
+          ../../../tool/apply_web_kit.sh web \
+            --name "Zero-Trust platform check" --short-name "ZT check" \
+            --description "Checks that Zero-Trust Core builds and its encrypted store works on web and desktop." \
+            --supabase-url https://example.supabase.co
+          git diff --exit-code web
       - run: flutter build web --no-web-resources-cdn
+      - run: ../../../tool/fetch_fallback_fonts.sh build/web
+      - name: The build asks no other site for anything
+        run: |
+          grep -q "default-src 'self'" build/web/index.html
+          grep -q "fallback-fonts/" build/web/flutter_bootstrap.js
+          test -s build/web/fallback-fonts/notosanshebrew/*/*.woff2
+          grep -q '"useLocalCanvasKit":true' build/web/flutter_bootstrap.js
 
   database:
     runs-on: ubuntu-latest
@@ -123,7 +148,8 @@ jobs:
             -f tests/plans_test.sql \
             -f tests/billing_test.sql \
             -f tests/booking_pages_test.sql \
-            -f tests/booking_slots_fixes_test.sql
+            -f tests/booking_slots_fixes_test.sql \
+            -f tests/family_location_test.sql
 
   edge_functions:
     runs-on: ubuntu-latest

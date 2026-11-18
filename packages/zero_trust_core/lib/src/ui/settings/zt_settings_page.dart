@@ -26,6 +26,8 @@ import '../../account/password_check.dart';
 import '../auth/zt_confirm_identity.dart';
 import '../auth/zt_auth_messages.dart';
 import '../auth/zt_password_strength.dart';
+import '../../platform/zt_capabilities.dart';
+import '../../platform/zt_platform.dart';
 import '../../sync/zt_local_store.dart';
 import '../auth/zt_recovery_key_screen.dart';
 import 'zt_plan_tile.dart';
@@ -40,6 +42,16 @@ final Uri ztTermsUrl = Uri.parse('https://zerotrust.bz/terms/');
 
 /// Help page every Zero-Trust app links to from Settings.
 final Uri ztSupportUrl = Uri.parse('https://zerotrust.bz/support/');
+
+/// What "Sign out and remove data from this browser" runs once the account
+/// is signed out: it empties this site's browser storage and loads the page
+/// again, so nothing stays in memory either. Tests override it.
+final ztBrowserWipeProvider = Provider<Future<void> Function()>(
+  (ref) => () async {
+    await ztWipeBrowserStorage();
+    ztReloadPage();
+  },
+);
 
 /// The settings screen every Zero-Trust app shows. Sections and their order
 /// are fixed so the apps feel like one product; apps add their own rows
@@ -139,6 +151,7 @@ class ZtSettingsPage extends ConsumerWidget {
     final language = ref.watch(ztLanguageProvider);
     final autoLock = ref.watch(ztAutoLockProvider);
     final stayUnlocked = ref.watch(ztStayUnlockedProvider);
+    final caps = ref.watch(ztCapabilitiesProvider);
     final theme = Theme.of(context);
     // An app that works without an account, and nobody is signed in.
     final signedOut = accountOptional && account.currentEmail == null;
@@ -182,15 +195,36 @@ class ZtSettingsPage extends ConsumerWidget {
                 onSignedOut();
               },
             ),
+            if (caps.browserSession)
+              ListTile(
+                leading: const Icon(Icons.cleaning_services_outlined),
+                title: Text(ZtL10n.of(context).signOutAndRemoveData),
+                subtitle: Text(ZtL10n.of(context).forSharedOrPublicComputers),
+                onTap: () => _signOutAndWipe(context, ref),
+              ),
             _Header(ZtL10n.of(context).security),
             ListTile(
               leading: const Icon(Icons.lock_clock_outlined),
               title: Text(ZtL10n.of(context).autoLock),
-              subtitle: Text(stayUnlocked
-                  ? ZtL10n.of(context).neverStaysOpenAfterClosing
-                  : _autoLockLabel(autoLock)),
+              subtitle: Text(!stayUnlocked
+                  ? _autoLockLabel(autoLock)
+                  : caps.browserSession
+                      ? ZtL10n.of(context).neverRememberedOnThisBrowser
+                      : ZtL10n.of(context).neverStaysOpenAfterClosing),
               onTap: () => _pickAutoLock(context, ref, autoLock, stayUnlocked),
             ),
+            if (caps.browserSession)
+              SwitchListTile(
+                secondary: const Icon(Icons.bookmark_added_outlined),
+                title: Text(ZtL10n.of(context).rememberOnThisBrowser),
+                subtitle: Text(stayUnlocked
+                    ? ZtL10n.of(context).rememberOnThisBrowserOn
+                    : ZtL10n.of(context).rememberOnThisBrowserOff),
+                value: stayUnlocked,
+                onChanged: (on) => on
+                    ? _turnOnStayUnlocked(context, ref)
+                    : _turnOffStayUnlocked(ref),
+              ),
             const _BiometricTile(),
             ListTile(
               leading: const Icon(Icons.lock_outline),
@@ -367,7 +401,9 @@ class ZtSettingsPage extends ConsumerWidget {
   Future<void> _pickAutoLock(BuildContext context, WidgetRef ref,
       Duration? current, bool stayUnlocked) async {
     final account = ref.read(accountServiceProvider);
-    final offerStay = SecureBiometricKeyStore.platformSupported || stayUnlocked;
+    // Browsers have their own switch for it, "Remember on this browser".
+    final offerStay = !ref.read(ztCapabilitiesProvider).browserSession &&
+        (SecureBiometricKeyStore.platformSupported || stayUnlocked);
     final canStay = stayUnlocked || await account.stayUnlockedAvailable();
     if (!context.mounted) return;
     final choices = {...AutoLockController.choices, current}.toList();
@@ -414,23 +450,43 @@ class ZtSettingsPage extends ConsumerWidget {
     await ref.read(ztAutoLockProvider.notifier).set(after);
   }
 
-  /// Explains what "Never, even after closing the app" means, then asks
-  /// for the fingerprint or password: loosening the lock is itself a
-  /// sensitive action, and it yields the key to keep.
+  /// Explains what "Never, even after closing the app" (on the web:
+  /// "Remember on this browser") means, then asks for the fingerprint or
+  /// password: loosening the lock is itself a sensitive action, and it
+  /// yields the key to keep.
   Future<void> _turnOnStayUnlocked(BuildContext context, WidgetRef ref) async {
     final name = ref.read(ztAppConfigProvider).displayName;
+    final browser = ref.read(ztCapabilitiesProvider).browserSession;
+    final account = ref.read(accountServiceProvider);
+    if (browser && !await account.stayUnlockedAvailable()) {
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text(ZtL10n.of(context).rememberNotAvailable)));
+      }
+      return;
+    }
+    if (!context.mounted) return;
+    final l = ZtL10n.of(context);
+    final title = browser
+        ? l.rememberOnThisBrowserQuestion(name)
+        : l.keepAppOpenQuestion(name);
+    final action = browser ? l.remember : l.keepOpen;
     final go = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
-        title: Text(ZtL10n.of(context).keepAppOpenQuestion(name)),
-        content: Text(ZtL10n.of(context).keepAppOpenExplanation(name)),
+        title: Text(title),
+        content: SingleChildScrollView(
+          child: Text(browser
+              ? l.rememberOnThisBrowserExplanation(name)
+              : l.keepAppOpenExplanation(name)),
+        ),
         actions: [
           TextButton(
               onPressed: () => Navigator.pop(context, false),
               child: Text(ZtL10n.of(context).cancel)),
           FilledButton(
               onPressed: () => Navigator.pop(context, true),
-              child: Text(ZtL10n.of(context).keepOpen)),
+              child: Text(action)),
         ],
       ),
     );
@@ -438,20 +494,67 @@ class ZtSettingsPage extends ConsumerWidget {
     final result = await ztConfirmIdentity(
       context,
       ref,
-      title: ZtL10n.of(context).keepAppOpenQuestion(name),
-      message: ZtL10n.of(context).enterYourPasswordToKeepOpen(name),
-      action: ZtL10n.of(context).keepOpen,
+      title: title,
+      message: browser
+          ? l.enterYourPasswordToRemember(name)
+          : l.enterYourPasswordToKeepOpen(name),
+      action: action,
     );
     if (result == null) return;
     try {
       await ref.read(ztStayUnlockedProvider.notifier).set(true);
       await ref.read(ztAutoLockProvider.notifier).set(null);
-      await ref
-          .read(accountServiceProvider)
-          .rememberSession(result.dek, legacyDek: result.legacyDek);
+      await account.rememberSession(result.dek, legacyDek: result.legacyDek);
     } finally {
       result.dek.fillRange(0, result.dek.length, 0);
     }
+  }
+
+  /// "Remember on this browser" switched off: the kept key is removed and
+  /// the app's usual auto-lock comes back, so the next visit asks for the
+  /// password again.
+  Future<void> _turnOffStayUnlocked(WidgetRef ref) async {
+    await ref.read(ztStayUnlockedProvider.notifier).set(false);
+    await ref.read(accountServiceProvider).forgetSession();
+    await ref
+        .read(ztAutoLockProvider.notifier)
+        .set(ref.read(ztAppConfigProvider).autoLockAfter);
+  }
+
+  /// For a shared or public computer: signs out, then removes everything
+  /// this site kept in the browser (the encrypted local copy, the sign-in
+  /// session, a remembered key, preferences).
+  Future<void> _signOutAndWipe(BuildContext context, WidgetRef ref) async {
+    final go = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text(ZtL10n.of(context).removeYourDataFromThisBrowser),
+        content: SingleChildScrollView(
+          child: Text(ZtL10n.of(context).removeFromBrowserExplanation),
+        ),
+        actions: [
+          TextButton(
+              onPressed: () => Navigator.pop(context, false),
+              child: Text(ZtL10n.of(context).cancel)),
+          FilledButton(
+              onPressed: () => Navigator.pop(context, true),
+              child: Text(ZtL10n.of(context).signOutAndRemove)),
+        ],
+      ),
+    );
+    if (go != true) return;
+    final account = ref.read(accountServiceProvider);
+    final wipe = ref.read(ztBrowserWipeProvider);
+    // Locking closes the local store, which the browser needs before it
+    // can delete it.
+    ref.read(vaultControllerProvider.notifier).lock();
+    try {
+      await account.signOut();
+    } on Object {
+      // Offline: the session is removed from this browser all the same.
+    }
+    await wipe();
+    onSignedOut();
   }
 
   Future<void> _pickLanguage(
