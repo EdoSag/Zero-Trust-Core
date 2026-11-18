@@ -28,6 +28,27 @@ an app must change.
   `ztPlatformSessionKeyStore()`.
 - Upgrade: nothing for phone apps. A web app runs the two scripts above and
   gates phone-only features with `ztCapabilitiesProvider`.
+### ZT Family: release checks and location tables (`zt_release_checks`, database)
+
+- New suite app id `family` (ZT Family). Its data key, signing key and a
+  synced item were made with core and checked independently with Python
+  (hashlib, hmac, cryptography), like the other apps' vectors. Nothing
+  changes for the existing apps.
+- Migration `20261118120000_family_location_tables`. Two tables for the
+  sealed location updates of a family circle (a shared space of app
+  `family`): `family_latest` (one row per member device, what the map
+  reads) and `family_events` (history: points, arrivals, check-ins, SOS),
+  plus `family_settings` (days of history a circle keeps, 7 by default,
+  1 to 30, set by an owner with `family_set_history_days`). Ciphertext
+  only. Only the circle's members read them; everyone writes only as
+  themselves (the server sets the sender and the time, so nothing can be
+  backdated or put in someone else's name); rows must be sealed under the
+  circle's current key; events can't be edited; a member's rows go when
+  they leave, are removed or delete their account. `family_purge_history`
+  runs hourly (pg_cron) and deletes history past the window and devices
+  silent for 30 days. Both tables are in the realtime publication.
+- Upgrade: nothing to do in the existing apps. Live database: paste
+  `family-location-tables.sql` once (needs the shared spaces migration).
 
 ### Unlimited plan for the owner (`zero_trust_core`, database)
 
