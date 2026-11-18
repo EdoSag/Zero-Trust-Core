@@ -1094,6 +1094,12 @@ abstract class ZtLocalizations {
   /// **'Our server isn\'t responding right now. Your data is safe; try again soon.'**
   String get errServerDown;
 
+  /// No description provided for @errEmailNotSent.
+  ///
+  /// In en, this message translates to:
+  /// **'We couldn\'t send the email. The problem is on our side, not yours. Try again later.'**
+  String get errEmailNotSent;
+
   /// No description provided for @errGeneric.
   ///
   /// In en, this message translates to:

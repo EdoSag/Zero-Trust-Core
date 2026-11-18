@@ -43,6 +43,11 @@ String ztErrorMessage(Object error) {
                 code == 'over_email_send_rate_limit' =>
           l.errTooMany,
         '401' || '403' => l.errSessionEnded,
+        // The account server answered, but its mail provider refused or
+        // failed ("Error sending confirmation email", "... recovery email").
+        // Saying "server isn't responding" here sends people looking for an
+        // outage that doesn't exist.
+        _ when _emailNotSent(error) => l.errEmailNotSent,
         _ when (int.tryParse(statusCode) ?? 0) >= 500 => l.errServerDown,
         _ => l.errGeneric,
       },
@@ -71,6 +76,15 @@ String ztErrorMessage(Object error) {
     _ when _looksOffline(error) => l.errOffline,
     _ => l.errGeneric,
   };
+}
+
+/// The auth server reports a failed confirmation, reset or change-email
+/// send as a 5xx "Error sending ... email" with no code of its own.
+bool _emailNotSent(AuthException error) {
+  final message = error.message.toLowerCase();
+  return (int.tryParse(error.statusCode ?? '') ?? 0) >= 500 &&
+      message.contains('sending') &&
+      message.contains('email');
 }
 
 /// Network failures arrive as `SocketException` or `ClientException`,
