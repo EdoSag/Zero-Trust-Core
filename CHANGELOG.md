@@ -5,6 +5,26 @@ an app must change.
 
 ## Unreleased
 
+### The planning engine for ZT Calendar's Planner (`zt_scheduler`, new package)
+
+- New pure Dart package `packages/zt_scheduler`: `plan()` fits tasks and
+  habits into the free time around a calendar's events and returns the
+  blocks to add, move and remove. No AI, no network, no storage: it runs
+  on the device and the same inputs always give the same plan.
+- Rules: done, locked and current blocks stay; habits go nearest their
+  ideal time; tasks go most important first, then nearest due date, in
+  whole blocks where they fit; a task short of time for its due date may
+  use more blocks in a day and go ahead of tasks with time to spare;
+  what doesn't fit is planned after the due date and reported.
+- Blocks stay where they are from one plan to the next unless they must
+  move, and a moved block keeps its id, so the app updates one event.
+  Planning again from a plan's own blocks changes nothing.
+- Tested with 69 tests: named scenarios for every rule, and randomized
+  calendars checked against the rules. New CI job `zt_scheduler`.
+- Upgrade: nothing to do in apps. Nothing uses the package yet; ZT
+  Calendar will depend on it when the Planner screens are built. See
+  `packages/zt_scheduler/README.md`.
+
 ### Unlimited plan for the owner (`zero_trust_core`, database)
 
 - Migration `20261118090000_core_unlimited_plan`. New hidden plan
