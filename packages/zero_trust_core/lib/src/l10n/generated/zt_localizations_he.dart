@@ -244,6 +244,12 @@ class ZtLocalizationsHe extends ZtLocalizations {
   String get oneAccountForEveryApp => 'חשבון אחד לכל אפליקציות Zero-Trust';
 
   @override
+  String get signInOrCreateAccount => 'כניסה או יצירת חשבון';
+
+  @override
+  String get signInToBackUpAndSync => 'גיבוי וסנכרון עם חשבון Zero-Trust שלך';
+
+  @override
   String get changePassword => 'שינוי סיסמה';
 
   @override

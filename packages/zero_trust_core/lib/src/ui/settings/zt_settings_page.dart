@@ -61,6 +61,8 @@ class ZtSettingsPage extends ConsumerWidget {
     this.onOpenPlans,
     this.showOtherApps = true,
     this.showSponsor = true,
+    this.accountOptional = false,
+    this.onSignIn,
   });
 
   /// Called after sign-out and after account deletion. Route to sign-in.
@@ -117,6 +119,17 @@ class ZtSettingsPage extends ConsumerWidget {
   /// Google Play and the App Store forbid such links in store builds.
   final bool showSponsor;
 
+  /// For an app that also works without an account (ZT Clock). While
+  /// nobody is signed in, the rows that need an account (password, sign
+  /// out, sync, plan, storage, lock, recovery key, export, delete account)
+  /// are hidden, and Appearance, the app's own rows and About stay.
+  final bool accountOptional;
+
+  /// With [accountOptional] and nobody signed in: shows "Sign in or create
+  /// an account" under Account and opens the app's sign-in from it. Leave
+  /// null to show no Account section while signed out.
+  final VoidCallback? onSignIn;
+
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final config = ref.watch(ztAppConfigProvider);
@@ -126,63 +139,78 @@ class ZtSettingsPage extends ConsumerWidget {
     final autoLock = ref.watch(ztAutoLockProvider);
     final stayUnlocked = ref.watch(ztStayUnlockedProvider);
     final theme = Theme.of(context);
+    // An app that works without an account, and nobody is signed in.
+    final signedOut = accountOptional && account.currentEmail == null;
 
     return Scaffold(
       appBar: AppBar(title: Text(ZtL10n.of(context).settings)),
       body: ListView(
         children: [
-          _Header(ZtL10n.of(context).account),
-          ListTile(
-            leading: const Icon(Icons.account_circle_outlined),
-            title: Text(account.currentEmail ?? ZtL10n.of(context).notSignedIn),
-            subtitle: Text(ZtL10n.of(context).oneAccountForEveryApp),
-          ),
-          if (showSyncStatus) const ZtSyncStatusTile(),
-          if (showPlan) ZtPlanTile(onTap: onOpenPlans),
-          if (showStorageUsage) const ZtStorageTile(),
-          ListTile(
-            leading: const Icon(Icons.password),
-            title: Text(ZtL10n.of(context).changePassword),
-            onTap: () => _changePassword(context, ref),
-          ),
-          ListTile(
-            leading: const Icon(Icons.logout),
-            title: Text(ZtL10n.of(context).signOut),
-            onTap: () async {
-              ref.read(vaultControllerProvider.notifier).lock();
-              await account.signOut();
-              onSignedOut();
-            },
-          ),
-          _Header(ZtL10n.of(context).security),
-          ListTile(
-            leading: const Icon(Icons.lock_clock_outlined),
-            title: Text(ZtL10n.of(context).autoLock),
-            subtitle: Text(stayUnlocked
-                ? ZtL10n.of(context).neverStaysOpenAfterClosing
-                : _autoLockLabel(autoLock)),
-            onTap: () => _pickAutoLock(context, ref, autoLock, stayUnlocked),
-          ),
-          const _BiometricTile(),
-          ListTile(
-            leading: const Icon(Icons.lock_outline),
-            title: Text(ZtL10n.of(context).lockNow),
-            onTap: () => ref.read(vaultControllerProvider.notifier).lock(),
-          ),
-          ListTile(
-            leading: const Icon(Icons.key_outlined),
-            title: Text(ZtL10n.of(context).newRecoveryKey),
-            subtitle: Text(ZtL10n.of(context).yourCurrentRecoveryKeyWillStop),
-            onTap: () => _newRecoveryKey(context, ref),
-          ),
-          ListTile(
-            leading: const Icon(Icons.verified_user_outlined),
-            title: Text(ZtL10n.of(context).howYourDataIsProtected),
-            subtitle: Text(ZtL10n.of(context).endToEndEncryptionInPlain),
-            onTap: () => Navigator.of(context).push(MaterialPageRoute<void>(
-                builder: (_) => const ZtDataProtectionScreen())),
-          ),
-          const ZtCrashReportsTile(),
+          if (signedOut && onSignIn != null) ...[
+            _Header(ZtL10n.of(context).account),
+            ListTile(
+              leading: const Icon(Icons.account_circle_outlined),
+              title: Text(ZtL10n.of(context).signInOrCreateAccount),
+              subtitle: Text(ZtL10n.of(context).signInToBackUpAndSync),
+              trailing: const Icon(Icons.chevron_right),
+              onTap: onSignIn,
+            ),
+          ],
+          if (!signedOut) ...[
+            _Header(ZtL10n.of(context).account),
+            ListTile(
+              leading: const Icon(Icons.account_circle_outlined),
+              title:
+                  Text(account.currentEmail ?? ZtL10n.of(context).notSignedIn),
+              subtitle: Text(ZtL10n.of(context).oneAccountForEveryApp),
+            ),
+            if (showSyncStatus) const ZtSyncStatusTile(),
+            if (showPlan) ZtPlanTile(onTap: onOpenPlans),
+            if (showStorageUsage) const ZtStorageTile(),
+            ListTile(
+              leading: const Icon(Icons.password),
+              title: Text(ZtL10n.of(context).changePassword),
+              onTap: () => _changePassword(context, ref),
+            ),
+            ListTile(
+              leading: const Icon(Icons.logout),
+              title: Text(ZtL10n.of(context).signOut),
+              onTap: () async {
+                ref.read(vaultControllerProvider.notifier).lock();
+                await account.signOut();
+                onSignedOut();
+              },
+            ),
+            _Header(ZtL10n.of(context).security),
+            ListTile(
+              leading: const Icon(Icons.lock_clock_outlined),
+              title: Text(ZtL10n.of(context).autoLock),
+              subtitle: Text(stayUnlocked
+                  ? ZtL10n.of(context).neverStaysOpenAfterClosing
+                  : _autoLockLabel(autoLock)),
+              onTap: () => _pickAutoLock(context, ref, autoLock, stayUnlocked),
+            ),
+            const _BiometricTile(),
+            ListTile(
+              leading: const Icon(Icons.lock_outline),
+              title: Text(ZtL10n.of(context).lockNow),
+              onTap: () => ref.read(vaultControllerProvider.notifier).lock(),
+            ),
+            ListTile(
+              leading: const Icon(Icons.key_outlined),
+              title: Text(ZtL10n.of(context).newRecoveryKey),
+              subtitle: Text(ZtL10n.of(context).yourCurrentRecoveryKeyWillStop),
+              onTap: () => _newRecoveryKey(context, ref),
+            ),
+            ListTile(
+              leading: const Icon(Icons.verified_user_outlined),
+              title: Text(ZtL10n.of(context).howYourDataIsProtected),
+              subtitle: Text(ZtL10n.of(context).endToEndEncryptionInPlain),
+              onTap: () => Navigator.of(context).push(MaterialPageRoute<void>(
+                  builder: (_) => const ZtDataProtectionScreen())),
+            ),
+            const ZtCrashReportsTile(),
+          ],
           _Header(ZtL10n.of(context).appearance),
           ListTile(
             leading: const Icon(Icons.language),
@@ -210,9 +238,10 @@ class ZtSettingsPage extends ConsumerWidget {
             ),
           ),
           const _DynamicColorTile(),
-          if (backupSection.isNotEmpty || onDataExported != null) ...[
+          if (backupSection.isNotEmpty ||
+              (onDataExported != null && !signedOut)) ...[
             _Header(ZtL10n.of(context).backup),
-            if (onDataExported != null)
+            if (onDataExported != null && !signedOut)
               ZtExportDataTile(onExported: onDataExported!),
             ...backupSection,
           ],
@@ -280,15 +309,17 @@ class ZtSettingsPage extends ConsumerWidget {
                   onTap: () => onOpenUrl!(app.playStoreUrl),
                 ),
           ],
-          _Header(ZtL10n.of(context).dangerZone),
-          ListTile(
-            leading: Icon(Icons.delete_forever_outlined,
-                color: theme.colorScheme.error),
-            title: Text(ZtL10n.of(context).deleteAccount,
-                style: TextStyle(color: theme.colorScheme.error)),
-            subtitle: Text(ZtL10n.of(context).deletesYourDataInEveryZero),
-            onTap: () => _deleteAccount(context, ref),
-          ),
+          if (!signedOut) ...[
+            _Header(ZtL10n.of(context).dangerZone),
+            ListTile(
+              leading: Icon(Icons.delete_forever_outlined,
+                  color: theme.colorScheme.error),
+              title: Text(ZtL10n.of(context).deleteAccount,
+                  style: TextStyle(color: theme.colorScheme.error)),
+              subtitle: Text(ZtL10n.of(context).deletesYourDataInEveryZero),
+              onTap: () => _deleteAccount(context, ref),
+            ),
+          ],
           const SizedBox(height: 24),
         ],
       ),

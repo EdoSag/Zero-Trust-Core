@@ -245,6 +245,13 @@ class ZtLocalizationsEn extends ZtLocalizations {
   String get oneAccountForEveryApp => 'One account for every Zero-Trust app';
 
   @override
+  String get signInOrCreateAccount => 'Sign in or create an account';
+
+  @override
+  String get signInToBackUpAndSync =>
+      'Back up and sync with your Zero-Trust account';
+
+  @override
   String get changePassword => 'Change password';
 
   @override

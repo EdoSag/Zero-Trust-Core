@@ -5,6 +5,18 @@ an app must change.
 
 ## Unreleased
 
+### Settings for an app that works without an account (`zero_trust_core`)
+
+- `ZtSettingsPage(accountOptional: true)`: while nobody is signed in, the
+  rows that need an account are hidden (password, sign out, sync, plan,
+  storage, auto-lock, biometrics, lock now, recovery key, export, delete
+  account) and Appearance, the app's own rows, About and the other apps
+  stay. `onSignIn` adds "Sign in or create an account" under Account.
+  Made for ZT Clock, which rings alarms without an account. New strings
+  `signInOrCreateAccount` and `signInToBackUpAndSync`, English and Hebrew.
+- Upgrade: nothing to do. Both are off by default, so every other app's
+  settings screen is unchanged.
+
 ### Unlimited plan for the owner (`zero_trust_core`, database)
 
 - Migration `20261118090000_core_unlimited_plan`. New hidden plan

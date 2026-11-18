@@ -72,6 +72,8 @@
   "account": "Account",
   "notSignedIn": "Not signed in",
   "oneAccountForEveryApp": "One account for every Zero-Trust app",
+  "signInOrCreateAccount": "Sign in or create an account",
+  "signInToBackUpAndSync": "Back up and sync with your Zero-Trust account",
   "changePassword": "Change password",
   "security": "Security",
   "autoLock": "Auto-lock",
