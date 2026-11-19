@@ -4,7 +4,8 @@
 // Zero-Trust-Core/packages/zt_release_checks/templates instead.
 //
 // Every value below was made by core 0.11 (quests: core 0.12, 2026-11-17;
-// camera, family and home: core 0.12, 2026-11-18; same derivation and format)
+// camera, family and home: core 0.12, 2026-11-18; clock: core 0.12,
+// 2026-11-19; same derivation and format)
 // and checked independently with Python (hashlib, hmac, cryptography). If one
 // fails, a dependency bump or a
 // code change has changed how keys are made or data is sealed, and existing
@@ -38,6 +39,7 @@ const _suite = [
   'camera',
   'family',
   'home',
+  'clock',
 ];
 
 /// App key and signing public key for DEK = 00 01 .. 1f.
@@ -93,6 +95,10 @@ const _appKeys = {
   'home': (
     'c501fc20f206d61e358fa2c4018d36b958b993cc49b620e05e46e6dd34f411cb',
     '0628b2ba5adc88527d14a63b0fe07e052d819ada97e6b29f023adb4d861b7054',
+  ),
+  'clock': (
+    'eaf4668842679514d4b5cacdee5b61aea54d700154d6197a9e6f4724484e0ac5',
+    '8c1f42fb0a5100bb4c3e6cd1dcdd1149200bf4b55b385cdb67697c8a7d2b7c3a',
   ),
 };
 
@@ -150,6 +156,10 @@ const _syncedItems = {
   'home': (
     'w/JuzVkPOHNkFr5Tn/92zT7asJ7oqGf8/Lqes468gbr5tc5jHe/5E7fRRU3S18ETZvx5teMnFqJt8Gk7TuJzF+eo',
     'B/v8Y8aSLK2xLSlw7NRV9Vei3SbHHYSutBPQobyvNLeWcvSeIAjLuhrmFGQn0+WmOmY788LQlRe5H2SNXog8DA==',
+  ),
+  'clock': (
+    'AYEi9Lu369+nKzZqu+N4d+RDvE7TjS5AIJUgjXzTw4KO8iU5fwaHpqc0Sm5kqxowauzp+1DMBagw02gImPgULKYo',
+    '8jpGWMz8LRPItaqIYwCdntevhGVxCsCNcR7l6NVf0OYk2EWe80MpjDpUkf3RYd8lcgT4Q/j2M1aXUueQPjBpCg==',
   ),
 };
 
