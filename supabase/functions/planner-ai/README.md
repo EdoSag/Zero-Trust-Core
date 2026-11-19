@@ -9,7 +9,7 @@ What it does, for Plus accounts that switch it on in ZT Calendar:
 
 What is kept: per user and month, the number of requests, tokens and cost (`public.zt_ai_usage`). Never the text. The function doesn't log it.
 
-Limits: 300 requests per user per month and a $20 monthly budget for everyone (both in `public.zt_ai_config`), checked before each request.
+Limits: 300 requests per user per month and a $20 monthly budget for everyone (both in `public.zt_ai_config`), checked before each request. Each request holds $0.005 of the budget while it runs (`reserve_usd`), swapped for its real cost when it ends, so requests running at the same time can't pass the budget together.
 
 ## Switching it on
 

@@ -49,21 +49,32 @@ Deno.serve(async (req) => {
   const apiKey = Deno.env.get("ANTHROPIC_API_KEY");
   if (!apiKey) return json({ error: "off" }, 503);
 
-  // Counts the request (or says why not) before anything is sent.
+  // The month the request counts in, for taking it and for recording its
+  // tokens, so a request running over midnight at the month's end stays in
+  // one month.
+  const month = new Date().toISOString().slice(0, 7) + "-01";
+  // Counts the request and holds part of the budget (or says why not)
+  // before anything is sent.
   const { data: verdict, error: takeError } = await admin.rpc(
     "zt_ai_take_request",
-    { p_user: user.id },
+    { p_user: user.id, p_month: month },
   );
   if (takeError) return json({ error: "server" }, 500);
   if (verdict !== "ok") return json({ error: verdict }, verdict === "off" ? 503 : 429);
 
-  // A failure here must not lose the answer the person already has.
-  const record = (usage: { input_tokens: number; output_tokens: number }) =>
-    admin.rpc("zt_ai_record_tokens", {
+  // Swaps the budget held for this request for its real cost, once. A
+  // failure here must not lose the answer the person already has.
+  let recorded = false;
+  const record = (usage: { input_tokens: number; output_tokens: number }) => {
+    if (recorded) return Promise.resolve();
+    recorded = true;
+    return admin.rpc("zt_ai_record_tokens", {
       p_user: user.id,
+      p_month: month,
       p_input: usage.input_tokens,
       p_output: usage.output_tokens,
     }).then(() => {}, () => {});
+  };
 
   const client = new Anthropic({ apiKey, maxRetries: 1, timeout: 30_000 });
   try {
@@ -93,6 +104,8 @@ Deno.serve(async (req) => {
     if (!response.parsed_output) return json({ error: "no_answer" }, 502);
     return json({ changes: checkChanges(input, response.parsed_output) });
   } catch (e) {
+    // The model wasn't reached or didn't answer: release the hold.
+    await record({ input_tokens: 0, output_tokens: 0 });
     if (e instanceof Anthropic.RateLimitError) return json({ error: "busy" }, 503);
     if (e instanceof Anthropic.APIError) return json({ error: "provider" }, 502);
     return json({ error: "server" }, 500);

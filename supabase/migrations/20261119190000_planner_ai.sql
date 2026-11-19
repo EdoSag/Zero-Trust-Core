@@ -19,7 +19,12 @@ create table if not exists public.zt_ai_config (
   monthly_budget_usd numeric(10, 2) not null default 20 check (monthly_budget_usd >= 0),
   -- Prices of the model in use, US dollars per million tokens.
   input_usd_per_mtok numeric(10, 4) not null default 0.10,
-  output_usd_per_mtok numeric(10, 4) not null default 0.50
+  output_usd_per_mtok numeric(10, 4) not null default 0.50,
+  -- Held from the budget for each request while it runs, and swapped for
+  -- its real cost when the tokens are recorded, so requests running at the
+  -- same time can't pass the budget together. A request costs well under
+  -- this (about $0.003 at most at the prices above).
+  reserve_usd numeric(10, 4) not null default 0.005 check (reserve_usd >= 0)
 );
 insert into public.zt_ai_config (id) values (true) on conflict (id) do nothing;
 alter table public.zt_ai_config enable row level security;
@@ -62,17 +67,22 @@ $$;
 revoke execute on function public.zt_planner_ai_status() from public, anon;
 grant execute on function public.zt_planner_ai_status() to authenticated;
 
--- Takes one request for [p_user] if allowed: 'ok', or why not ('off',
--- 'no_plan', 'limit', 'budget'). Counts the request at once, so parallel
--- calls can't pass the limit. Edge function only.
-create or replace function public.zt_ai_take_request(p_user uuid)
+-- Takes one request for [p_user] in [p_month] (the first day of the UTC
+-- month, which the edge function passes again to zt_ai_record_tokens) if
+-- allowed: 'ok', or why not ('off', 'no_plan', 'limit', 'budget'). Counts
+-- the request and holds `reserve_usd` of the budget at once; admissions
+-- take turns (the config row is locked), so parallel calls can't pass the
+-- limit or the budget. Edge function only.
+create or replace function public.zt_ai_take_request(p_user uuid, p_month date)
 returns text language plpgsql security definer set search_path = '' as $$
 declare
   c public.zt_ai_config;
-  v_month date := date_trunc('month', now() at time zone 'utc')::date;
   v_used int;
 begin
-  select * into c from public.zt_ai_config where id;
+  if p_month is null or p_month <> date_trunc('month', p_month)::date then
+    raise exception 'p_month must be the first day of a month';
+  end if;
+  select * into c from public.zt_ai_config where id for update;
   if c is null or not c.enabled then return 'off'; end if;
   if c.monthly_limit <= 0 then return 'limit'; end if;
   if not coalesce(
@@ -80,24 +90,29 @@ begin
          from public.zt_plans p where p.id = public.zt_plan_for(p_user)), false) then
     return 'no_plan';
   end if;
-  if (select coalesce(sum(cost_usd), 0) from public.zt_ai_usage where month = v_month)
-      >= c.monthly_budget_usd then
+  if (select coalesce(sum(cost_usd), 0) from public.zt_ai_usage where month = p_month)
+      + c.reserve_usd > c.monthly_budget_usd then
     return 'budget';
   end if;
-  insert into public.zt_ai_usage as u (user_id, month, requests)
-  values (p_user, v_month, 1)
-  on conflict (user_id, month) do update set requests = u.requests + 1
+  insert into public.zt_ai_usage as u (user_id, month, requests, cost_usd)
+  values (p_user, p_month, 1, c.reserve_usd)
+  on conflict (user_id, month) do update
+    set requests = u.requests + 1, cost_usd = u.cost_usd + c.reserve_usd
     where u.requests < c.monthly_limit
   returning requests into v_used;
   if v_used is null then return 'limit'; end if;
   return 'ok';
 end;
 $$;
-revoke execute on function public.zt_ai_take_request(uuid) from public, anon, authenticated;
-grant execute on function public.zt_ai_take_request(uuid) to service_role;
+revoke execute on function public.zt_ai_take_request(uuid, date) from public, anon, authenticated;
+grant execute on function public.zt_ai_take_request(uuid, date) to service_role;
 
--- Records the tokens a request used, priced with the config. Edge function only.
-create or replace function public.zt_ai_record_tokens(p_user uuid, p_input bigint, p_output bigint)
+-- Records the tokens a request taken in [p_month] used, priced with the
+-- config, in place of the amount held for it. Called once per request that
+-- was taken, with zeros when the model wasn't reached, so the hold is
+-- always released. Edge function only.
+create or replace function public.zt_ai_record_tokens(
+  p_user uuid, p_month date, p_input bigint, p_output bigint)
 returns void language plpgsql security definer set search_path = '' as $$
 declare
   c public.zt_ai_config;
@@ -106,12 +121,12 @@ begin
   update public.zt_ai_usage
      set input_tokens = input_tokens + greatest(p_input, 0),
          output_tokens = output_tokens + greatest(p_output, 0),
-         cost_usd = cost_usd
+         cost_usd = greatest(cost_usd - c.reserve_usd
            + greatest(p_input, 0) * c.input_usd_per_mtok / 1000000
-           + greatest(p_output, 0) * c.output_usd_per_mtok / 1000000
+           + greatest(p_output, 0) * c.output_usd_per_mtok / 1000000, 0)
    where user_id = p_user
-     and month = date_trunc('month', now() at time zone 'utc')::date;
+     and month = p_month;
 end;
 $$;
-revoke execute on function public.zt_ai_record_tokens(uuid, bigint, bigint) from public, anon, authenticated;
-grant execute on function public.zt_ai_record_tokens(uuid, bigint, bigint) to service_role;
+revoke execute on function public.zt_ai_record_tokens(uuid, date, bigint, bigint) from public, anon, authenticated;
+grant execute on function public.zt_ai_record_tokens(uuid, date, bigint, bigint) to service_role;

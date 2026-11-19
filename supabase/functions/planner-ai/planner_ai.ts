@@ -242,7 +242,8 @@ export function checkChanges(input: RequestInput, out: Changes): Change[] {
           return !!c.blockId && blocks.has(c.blockId);
         case "block_out":
           return c.start != null && c.end != null && DATETIME.test(c.start) &&
-            DATETIME.test(c.end) && c.start < c.end &&
+            DATETIME.test(c.end) && validTime(c.start.slice(11)) &&
+            validTime(c.end.slice(11)) && c.start < c.end &&
             dates.has(c.start.slice(0, 10)) && dates.has(c.end.slice(0, 10));
         case "set_hours":
           return c.weekday != null && c.weekday >= 1 && c.weekday <= 7 &&

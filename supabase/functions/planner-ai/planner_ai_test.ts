@@ -80,6 +80,8 @@ Deno.test("changes with ids or dates not in the data are dropped", () => {
       change({ type: "lock", blockId: "b-nope" }),
       change({ type: "set_due", taskId: "t-tax", date: "2027-05-01" }),
       change({ type: "block_out", start: "2026-11-24 16:00", end: "2026-11-24 14:00" }),
+      change({ type: "block_out", start: "2026-11-24 14:00", end: "2026-11-24 25:00" }),
+      change({ type: "block_out", start: "2026-11-24 14:99", end: "2026-11-24 16:00" }),
       change({ type: "set_hours", weekday: 8, hours: "work", from: "09:00", to: "16:00" }),
       change({ type: "set_hours", weekday: 2, hours: "work", from: "25:00", to: "16:00" }),
       change({ type: "add_habit", title: " ", minutes: 30, days: [1], from: "12:00" }),
