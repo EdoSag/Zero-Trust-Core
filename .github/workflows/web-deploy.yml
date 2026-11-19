@@ -26,6 +26,8 @@
 # One-time setup per app repo for deploys (Settings > Secrets and variables
 # > Actions): CLOUDFLARE_API_TOKEN (permission "Cloudflare Pages: Edit")
 # and CLOUDFLARE_ACCOUNT_ID.
+# Until both are set, a release builds the site, skips publishing with a
+# warning and stays green.
 name: Web deploy
 
 on:
@@ -188,8 +190,11 @@ jobs:
           PROJECT: ${{ inputs.pages-project }}
         run: |
           if [ -z "$CLOUDFLARE_API_TOKEN" ] || [ -z "$CLOUDFLARE_ACCOUNT_ID" ]; then
-            echo "::error::Missing CLOUDFLARE_API_TOKEN or CLOUDFLARE_ACCOUNT_ID. Add them under Settings > Secrets and variables > Actions."
-            exit 1
+            # Not a failure: an app can release its Android build before its
+            # web hosting is set up. The built site is in the artifact above.
+            echo "::warning::Not published: CLOUDFLARE_API_TOKEN or CLOUDFLARE_ACCOUNT_ID is not set. Add them under Settings > Secrets and variables > Actions, then run this workflow again."
+            echo "Web build was not published: the Cloudflare secrets are not set." >> "$GITHUB_STEP_SUMMARY"
+            exit 0
           fi
           # Pinned so a new wrangler release can't change what is published.
           wrangler="npx --yes wrangler@4.165.0"
