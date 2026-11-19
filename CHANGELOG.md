@@ -5,6 +5,21 @@ an app must change.
 
 ## Unreleased
 
+### Reusable web deploy workflow
+
+- `.github/workflows/web-deploy.yml` (`workflow_call`): builds an app for
+  the web with the web kit, self-hosted fonts and a `SHA256SUMS` of every
+  file, and on a release publishes it to Cloudflare Pages. Apps add a
+  ten-line workflow that calls it, plus the repository secrets
+  `CLOUDFLARE_API_TOKEN` and `CLOUDFLARE_ACCOUNT_ID`.
+- `tool/fetch_sqlite3mc_wasm.sh` stops with a clear message when the app's
+  locked `sqlite3` package is not the version the wasm file was built for.
+  A mismatch used to build fine and then never open the store in the
+  browser.
+- The web kit's content security policy allows `api.pwnedpasswords.com`,
+  so the breached password check at sign-up works in a browser (only the
+  first five characters of a hash are sent, as on the phone).
+
 ### ZT Family: hourly event cap holds for requests sent together (database)
 
 - Migration `20261118130000_family_events_cap_lock`. `family_events_guard()`

@@ -123,6 +123,19 @@ jobs:
           test -s build/web/fallback-fonts/notosanshebrew/*/*.woff2
           grep -q '"useLocalCanvasKit":true' build/web/flutter_bootstrap.js
 
+  # Runs the workflow apps call to build and publish their web version,
+  # without the publish step, so a change that breaks it fails here.
+  web_deploy_workflow:
+    uses: ./.github/workflows/web-deploy.yml
+    with:
+      core-ref: ${{ github.sha }}
+      app-name: Zero-Trust platform check
+      short-name: ZT check
+      description: Checks that Zero-Trust Core builds for the web.
+      pages-project: zt-platform-check
+      working-directory: packages/zero_trust_core/example
+      supabase-url: https://example.supabase.co
+
   database:
     runs-on: ubuntu-latest
     services:

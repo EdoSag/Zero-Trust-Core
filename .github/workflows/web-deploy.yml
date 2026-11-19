@@ -1,0 +1,200 @@
+# Builds a Zero-Trust app for the web and, on a release, publishes it to
+# Cloudflare Pages. Apps call it from their own workflow:
+#
+#   jobs:
+#     web:
+#       uses: EdoSag/Zero-Trust-Core/.github/workflows/web-deploy.yml@Dev
+#       with:
+#         core-ref: Dev                       # same ref as on the line above
+#         app-name: Zero-Trust Notes
+#         short-name: ZT Notes
+#         description: Private notes, encrypted in your browser.
+#         theme-color: '#F59E0B'
+#         pages-project: zt-notes             # Cloudflare Pages project
+#         deploy: ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' }}
+#       secrets:
+#         CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+#         CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+#
+# Without `deploy` it only builds (pull requests), and the built site is
+# kept as a downloadable artifact. Every build:
+#   - writes the web kit (security policy, loading screen, _headers),
+#   - is built with no CDN resources and with fonts served from the site,
+#   - lists the SHA-256 of every file in SHA256SUMS, published with the
+#     site, so anyone can check what is served against this public build.
+#
+# One-time setup per app repo for deploys (Settings > Secrets and variables
+# > Actions): CLOUDFLARE_API_TOKEN (permission "Cloudflare Pages: Edit")
+# and CLOUDFLARE_ACCOUNT_ID.
+name: Web deploy
+
+on:
+  workflow_call:
+    inputs:
+      core-ref:
+        description: Zero-Trust-Core ref the kit and scripts are taken from.
+        type: string
+        default: Dev
+      app-name:
+        type: string
+        required: true
+      short-name:
+        type: string
+        required: true
+      description:
+        type: string
+        required: true
+      theme-color:
+        type: string
+        default: '#2563EB'
+      pages-project:
+        description: Cloudflare Pages project name (created on first deploy).
+        type: string
+        required: true
+      deploy:
+        description: Publish to Cloudflare Pages after building.
+        type: boolean
+        default: false
+      supabase-url:
+        type: string
+        default: https://ohgxpnchqmisvktqjmcx.supabase.co
+      supabase-publishable-key:
+        description: Public client key; ships inside every build anyway.
+        type: string
+        default: sb_publishable_C1geAnwr0LZSxfQKRg21YA_G-OXHYky
+      connect:
+        description: Extra hosts the app may call, space separated.
+        type: string
+        default: ''
+      img:
+        description: Extra hosts images may load from, space separated.
+        type: string
+        default: ''
+      working-directory:
+        type: string
+        default: .
+      flutter-version:
+        type: string
+        default: 3.47.9
+      build-args:
+        description: Extra arguments for `flutter build web`.
+        type: string
+        default: ''
+    secrets:
+      CLOUDFLARE_API_TOKEN:
+        required: false
+      CLOUDFLARE_ACCOUNT_ID:
+        required: false
+      ENV_FILE:
+        description: Replaces the generated .env when set.
+        required: false
+
+permissions:
+  contents: read
+
+jobs:
+  web:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    defaults:
+      run:
+        working-directory: ${{ inputs.working-directory }}
+    steps:
+      - uses: actions/checkout@v5
+
+      - name: Check out the web kit
+        uses: actions/checkout@v5
+        with:
+          repository: EdoSag/Zero-Trust-Core
+          ref: ${{ inputs.core-ref }}
+          path: .zt-core
+          sparse-checkout: |
+            tool
+            web-kit
+
+      - uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          flutter-version: ${{ inputs.flutter-version }}
+          cache: true
+
+      - name: Write .env when it is not committed
+        env:
+          ENV_FILE: ${{ secrets.ENV_FILE }}
+          SUPABASE_URL: ${{ inputs.supabase-url }}
+          SUPABASE_KEY: ${{ inputs.supabase-publishable-key }}
+        run: |
+          if [ -f .env ]; then
+            echo "Using the .env committed in the repository."
+          elif [ -n "$ENV_FILE" ]; then
+            printf '%s\n' "$ENV_FILE" > .env
+          else
+            printf 'SUPABASE_URL=%s\nSUPABASE_ANON_KEY=%s\n' "$SUPABASE_URL" "$SUPABASE_KEY" > .env
+          fi
+
+      - name: Write the web kit
+        env:
+          APP_NAME: ${{ inputs.app-name }}
+          SHORT_NAME: ${{ inputs.short-name }}
+          DESCRIPTION: ${{ inputs.description }}
+          THEME_COLOR: ${{ inputs.theme-color }}
+          SUPABASE_URL: ${{ inputs.supabase-url }}
+          CONNECT: ${{ inputs.connect }}
+          IMG: ${{ inputs.img }}
+        run: |
+          "$GITHUB_WORKSPACE/.zt-core/tool/apply_web_kit.sh" web \
+            --name "$APP_NAME" --short-name "$SHORT_NAME" \
+            --description "$DESCRIPTION" --theme-color "$THEME_COLOR" \
+            --supabase-url "$SUPABASE_URL" --connect "$CONNECT" --img "$IMG"
+
+      - run: flutter pub get
+
+      - name: Build
+        env:
+          BUILD_ARGS: ${{ inputs.build-args }}
+        run: flutter build web --release --no-web-resources-cdn $BUILD_ARGS
+
+      - name: Fonts from this site, not Google
+        run: '"$GITHUB_WORKSPACE/.zt-core/tool/fetch_fallback_fonts.sh" build/web'
+
+      - name: The build asks no other site for anything
+        run: |
+          grep -q "default-src 'self'" build/web/index.html
+          grep -q "fallback-fonts/" build/web/flutter_bootstrap.js
+          grep -q '"useLocalCanvasKit":true' build/web/flutter_bootstrap.js
+          test -s build/web/sqlite3mc.wasm
+          test -s build/web/_headers
+
+      - name: List the SHA-256 of every file
+        run: |
+          cd build/web
+          find . -type f ! -name SHA256SUMS -print0 | sort -z \
+            | xargs -0 sha256sum > SHA256SUMS
+          echo "$(wc -l < SHA256SUMS) files, site digest $(sha256sum SHA256SUMS | cut -d' ' -f1)" \
+            | tee -a "$GITHUB_STEP_SUMMARY"
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: web-${{ inputs.pages-project }}
+          path: ${{ inputs.working-directory }}/build/web
+          include-hidden-files: true
+          retention-days: 14
+
+      - name: Publish to Cloudflare Pages
+        if: inputs.deploy
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          PROJECT: ${{ inputs.pages-project }}
+        run: |
+          if [ -z "$CLOUDFLARE_API_TOKEN" ] || [ -z "$CLOUDFLARE_ACCOUNT_ID" ]; then
+            echo "::error::Missing CLOUDFLARE_API_TOKEN or CLOUDFLARE_ACCOUNT_ID. Add them under Settings > Secrets and variables > Actions."
+            exit 1
+          fi
+          # Pinned so a new wrangler release can't change what is published.
+          wrangler="npx --yes wrangler@4.165.0"
+          if ! $wrangler pages project list | grep -qw -- "$PROJECT"; then
+            $wrangler pages project create "$PROJECT" --production-branch main
+          fi
+          $wrangler pages deploy build/web --project-name "$PROJECT" \
+            --branch main --commit-hash "$GITHUB_SHA" --commit-dirty=true
