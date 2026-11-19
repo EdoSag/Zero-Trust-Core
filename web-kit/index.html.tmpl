@@ -9,10 +9,11 @@
 
     The policy below is the app's safety net in a browser. Scripts run only
     from this site (plus WebAssembly for the encrypted database and the
-    renderer), and the page may only talk to this site and the account
-    server. Nothing loads from a CDN or any third party.
+    renderer), and the page may only talk to this site, the account server
+    and the breached-password check (which is sent five characters of a
+    hash, never the password). Nothing loads from a CDN or any third party.
   -->
-  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'wasm-unsafe-eval'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:@ZT_IMG@; font-src 'self'; connect-src 'self' @ZT_CONNECT@; worker-src 'self' blob:; media-src 'self' blob:; object-src 'none'; base-uri 'self'; form-action 'none'">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'wasm-unsafe-eval'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:@ZT_IMG@; font-src 'self'; connect-src 'self' https://api.pwnedpasswords.com @ZT_CONNECT@; worker-src 'self' blob:; media-src 'self' blob:; object-src 'none'; base-uri 'self'; form-action 'none'">
   <meta name="referrer" content="no-referrer">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="description" content="@ZT_DESCRIPTION@">

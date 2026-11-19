@@ -12,6 +12,13 @@ an app must change.
   file, and on a release publishes it to Cloudflare Pages. Apps add a
   ten-line workflow that calls it, plus the repository secrets
   `CLOUDFLARE_API_TOKEN` and `CLOUDFLARE_ACCOUNT_ID`.
+- `tool/fetch_sqlite3mc_wasm.sh` stops with a clear message when the app's
+  locked `sqlite3` package is not the version the wasm file was built for.
+  A mismatch used to build fine and then never open the store in the
+  browser.
+- The web kit's content security policy allows `api.pwnedpasswords.com`,
+  so the breached password check at sign-up works in a browser (only the
+  first five characters of a hash are sent, as on the phone).
 
 ### ZT Family: hourly event cap holds for requests sent together (database)
 
