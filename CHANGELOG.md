@@ -5,6 +5,14 @@ an app must change.
 
 ## Unreleased
 
+### Reusable web deploy workflow
+
+- `.github/workflows/web-deploy.yml` (`workflow_call`): builds an app for
+  the web with the web kit, self-hosted fonts and a `SHA256SUMS` of every
+  file, and on a release publishes it to Cloudflare Pages. Apps add a
+  ten-line workflow that calls it, plus the repository secrets
+  `CLOUDFLARE_API_TOKEN` and `CLOUDFLARE_ACCOUNT_ID`.
+
 ### ZT Family: hourly event cap holds for requests sent together (database)
 
 - Migration `20261118130000_family_events_cap_lock`. `family_events_guard()`

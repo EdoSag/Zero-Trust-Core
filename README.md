@@ -444,6 +444,12 @@ What is different off the phone:
 
   (about 11 MB, fetched by the browser one script at a time, only when
   needed; `--with-cjk` adds Chinese, Japanese and Korean).
+- **Deploying.** Apps call the reusable workflow
+  `.github/workflows/web-deploy.yml` (usage in its header): it writes the
+  kit, builds, fetches the fonts, publishes a `SHA256SUMS` of every file
+  with the site, and on a release deploys to Cloudflare Pages, whose
+  `_headers` support adds the response headers a `<meta>` policy can't
+  (`frame-ancestors`, HSTS, COOP). Pull requests only build.
 - **Hide what the platform can't do.** Read `ztCapabilitiesProvider`
   (`ZtCapabilities`): `homeScreenWidgets`, `scheduledNotifications`,
   `biometricUnlock`, `onDeviceSpeech`, `onDeviceTextRecognition`,
