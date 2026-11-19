@@ -162,7 +162,8 @@ jobs:
             -f tests/billing_test.sql \
             -f tests/booking_pages_test.sql \
             -f tests/booking_slots_fixes_test.sql \
-            -f tests/family_location_test.sql
+            -f tests/family_location_test.sql \
+            -f tests/planner_ai_test.sql
 
   edge_functions:
     runs-on: ubuntu-latest
@@ -173,3 +174,5 @@ jobs:
         with: { deno-version: v2.x }
       - run: deno lint
       - run: deno check delete-account/index.ts
+      - run: deno check planner-ai/index.ts planner-ai/eval/run.ts
+      - run: deno test --allow-read planner-ai/
