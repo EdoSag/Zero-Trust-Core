@@ -106,6 +106,8 @@ set role authenticated;
 do $$ begin
   assert (public.zt_my_plan() ->> 'plan') = 'plus', 'plus granted';
   assert (select max_items from public.zt_storage_limits_for(auth.uid())) = 1000000, 'plus limits';
+  assert public.zt_has_feature('planner'), 'plus has the Calendar Planner';
+  assert not public.zt_has_feature('drive'), 'plus has only its own features';
 end $$;
 reset role;
 select public.zt_grant_plan('00000000-0000-0000-0000-0000000000f2', 'free');
