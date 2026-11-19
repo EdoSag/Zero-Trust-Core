@@ -530,6 +530,18 @@ abstract class ZtLocalizations {
   /// **'One account for every Zero-Trust app'**
   String get oneAccountForEveryApp;
 
+  /// No description provided for @signInOrCreateAccount.
+  ///
+  /// In en, this message translates to:
+  /// **'Sign in or create an account'**
+  String get signInOrCreateAccount;
+
+  /// No description provided for @signInToBackUpAndSync.
+  ///
+  /// In en, this message translates to:
+  /// **'Back up and sync with your Zero-Trust account'**
+  String get signInToBackUpAndSync;
+
   /// No description provided for @changePassword.
   ///
   /// In en, this message translates to:
@@ -613,6 +625,18 @@ abstract class ZtLocalizations {
   /// In en, this message translates to:
   /// **'End-to-end encrypted. We can\'t read your data.'**
   String get endToEndEncryptedWeCant;
+
+  /// No description provided for @sponsorProject.
+  ///
+  /// In en, this message translates to:
+  /// **'Support the project'**
+  String get sponsorProject;
+
+  /// No description provided for @sponsorProjectSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Sponsor development on GitHub. It\'s a thank-you and doesn\'t unlock anything.'**
+  String get sponsorProjectSubtitle;
 
   /// No description provided for @helpAndFeedback.
   ///
@@ -1082,6 +1106,12 @@ abstract class ZtLocalizations {
   /// **'Our server isn\'t responding right now. Your data is safe; try again soon.'**
   String get errServerDown;
 
+  /// No description provided for @errEmailNotSent.
+  ///
+  /// In en, this message translates to:
+  /// **'We couldn\'t send the email. The problem is on our side, not yours. Try again later.'**
+  String get errEmailNotSent;
+
   /// No description provided for @errGeneric.
   ///
   /// In en, this message translates to:
@@ -1165,6 +1195,18 @@ abstract class ZtLocalizations {
   /// In en, this message translates to:
   /// **'Attachments: {used} of {limit}'**
   String storageAttachments(String used, String limit);
+
+  /// Storage row on a plan without a storage limit
+  ///
+  /// In en, this message translates to:
+  /// **'{used} used, no limit'**
+  String storageUsedNoLimit(String used);
+
+  /// No description provided for @storageAttachmentsNoLimit.
+  ///
+  /// In en, this message translates to:
+  /// **'Attachments: {used}, no limit'**
+  String storageAttachmentsNoLimit(String used);
 
   /// Settings row and dialog title for the app's language.
   ///
@@ -1363,6 +1405,246 @@ abstract class ZtLocalizations {
   /// In en, this message translates to:
   /// **'Don\'t send'**
   String get crashReportDontSend;
+
+  /// No description provided for @neverEvenAfterClosing.
+  ///
+  /// In en, this message translates to:
+  /// **'Never, even after closing the app'**
+  String get neverEvenAfterClosing;
+
+  /// No description provided for @neverStaysOpenAfterClosing.
+  ///
+  /// In en, this message translates to:
+  /// **'Never, stays open even after closing'**
+  String get neverStaysOpenAfterClosing;
+
+  /// No description provided for @needsAScreenLock.
+  ///
+  /// In en, this message translates to:
+  /// **'Needs a screen lock on your phone'**
+  String get needsAScreenLock;
+
+  /// No description provided for @keepAppOpenQuestion.
+  ///
+  /// In en, this message translates to:
+  /// **'Keep {appName} open?'**
+  String keepAppOpenQuestion(String appName);
+
+  /// No description provided for @keepAppOpenExplanation.
+  ///
+  /// In en, this message translates to:
+  /// **'{appName} will open without your password or fingerprint, even after you close it or restart the phone. Anyone who can unlock your phone can open it, so choose this only if your phone\'s screen lock is yours alone.\n\nYour data stays encrypted on the phone and on our servers. Changing your password, a new recovery key, exporting your data and deleting your account still ask for your password.'**
+  String keepAppOpenExplanation(String appName);
+
+  /// No description provided for @keepOpen.
+  ///
+  /// In en, this message translates to:
+  /// **'Keep open'**
+  String get keepOpen;
+
+  /// No description provided for @enterYourPasswordToKeepOpen.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter your password to keep {appName} open.'**
+  String enterYourPasswordToKeepOpen(String appName);
+
+  /// No description provided for @enterYourPasswordToExport.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter your password to export your data.'**
+  String get enterYourPasswordToExport;
+
+  /// No description provided for @plansTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Plans'**
+  String get plansTitle;
+
+  /// No description provided for @plansPlusName.
+  ///
+  /// In en, this message translates to:
+  /// **'Plus'**
+  String get plansPlusName;
+
+  /// No description provided for @plansPlusTagline.
+  ///
+  /// In en, this message translates to:
+  /// **'More room in every Zero-Trust app'**
+  String get plansPlusTagline;
+
+  /// No description provided for @plansPlusSynced.
+  ///
+  /// In en, this message translates to:
+  /// **'1 GB of synced data, up from 50 MB'**
+  String get plansPlusSynced;
+
+  /// No description provided for @plansPlusFiles.
+  ///
+  /// In en, this message translates to:
+  /// **'20 GB of attached files, up from 500 MB'**
+  String get plansPlusFiles;
+
+  /// No description provided for @plansPlusAllApps.
+  ///
+  /// In en, this message translates to:
+  /// **'One subscription covers every app'**
+  String get plansPlusAllApps;
+
+  /// No description provided for @plansPlusSameEncryption.
+  ///
+  /// In en, this message translates to:
+  /// **'The same end-to-end encryption as Free'**
+  String get plansPlusSameEncryption;
+
+  /// No description provided for @plansMonthly.
+  ///
+  /// In en, this message translates to:
+  /// **'{price} a month'**
+  String plansMonthly(String price);
+
+  /// No description provided for @plansYearly.
+  ///
+  /// In en, this message translates to:
+  /// **'{price} a year'**
+  String plansYearly(String price);
+
+  /// No description provided for @plansNotAvailable.
+  ///
+  /// In en, this message translates to:
+  /// **'Plus can\'t be bought here yet.'**
+  String get plansNotAvailable;
+
+  /// No description provided for @plansYouHave.
+  ///
+  /// In en, this message translates to:
+  /// **'You have {name}. Thank you for supporting Zero-Trust.'**
+  String plansYouHave(String name);
+
+  /// No description provided for @plansGranted.
+  ///
+  /// In en, this message translates to:
+  /// **'{name} was given to you by Zero-Trust.'**
+  String plansGranted(String name);
+
+  /// No description provided for @plansManage.
+  ///
+  /// In en, this message translates to:
+  /// **'Manage subscription'**
+  String get plansManage;
+
+  /// No description provided for @plansRestore.
+  ///
+  /// In en, this message translates to:
+  /// **'Restore purchases'**
+  String get plansRestore;
+
+  /// No description provided for @plansFinePrint.
+  ///
+  /// In en, this message translates to:
+  /// **'Renews automatically. No free trial. Cancel any time and keep Plus until the end of the period you\'ve paid for. Everything that\'s free stays free.'**
+  String get plansFinePrint;
+
+  /// No description provided for @plansThanks.
+  ///
+  /// In en, this message translates to:
+  /// **'Thank you! Plus is on.'**
+  String get plansThanks;
+
+  /// No description provided for @plansPending.
+  ///
+  /// In en, this message translates to:
+  /// **'Payment pending. Plus turns on as soon as the store confirms it.'**
+  String get plansPending;
+
+  /// No description provided for @plansFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'The purchase didn\'t go through. Please try again.'**
+  String get plansFailed;
+
+  /// No description provided for @rememberOnThisBrowser.
+  ///
+  /// In en, this message translates to:
+  /// **'Remember on this browser'**
+  String get rememberOnThisBrowser;
+
+  /// No description provided for @rememberOnThisBrowserOff.
+  ///
+  /// In en, this message translates to:
+  /// **'Off: your password is asked every time you open this page'**
+  String get rememberOnThisBrowserOff;
+
+  /// No description provided for @rememberOnThisBrowserOn.
+  ///
+  /// In en, this message translates to:
+  /// **'On: opens without your password on this browser'**
+  String get rememberOnThisBrowserOn;
+
+  /// No description provided for @rememberOnThisBrowserQuestion.
+  ///
+  /// In en, this message translates to:
+  /// **'Remember {appName} on this browser?'**
+  String rememberOnThisBrowserQuestion(String appName);
+
+  /// No description provided for @rememberOnThisBrowserExplanation.
+  ///
+  /// In en, this message translates to:
+  /// **'{appName} will open on this browser without your password, even after you close the tab or restart the computer. Anyone who can use this browser can then open your data, so never turn this on on a shared or public computer.\n\nYour data stays encrypted in the browser and on our servers. Changing your password, a new recovery key, exporting your data and deleting your account still ask for your password.'**
+  String rememberOnThisBrowserExplanation(String appName);
+
+  /// No description provided for @remember.
+  ///
+  /// In en, this message translates to:
+  /// **'Remember'**
+  String get remember;
+
+  /// No description provided for @enterYourPasswordToRemember.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter your password to remember {appName} on this browser.'**
+  String enterYourPasswordToRemember(String appName);
+
+  /// No description provided for @rememberNotAvailable.
+  ///
+  /// In en, this message translates to:
+  /// **'This browser can\'t keep the key safely here. Open the app over a secure (https) connection.'**
+  String get rememberNotAvailable;
+
+  /// No description provided for @neverRememberedOnThisBrowser.
+  ///
+  /// In en, this message translates to:
+  /// **'Never, remembered on this browser'**
+  String get neverRememberedOnThisBrowser;
+
+  /// No description provided for @signOutAndRemoveData.
+  ///
+  /// In en, this message translates to:
+  /// **'Sign out and remove data from this browser'**
+  String get signOutAndRemoveData;
+
+  /// No description provided for @forSharedOrPublicComputers.
+  ///
+  /// In en, this message translates to:
+  /// **'For shared or public computers'**
+  String get forSharedOrPublicComputers;
+
+  /// No description provided for @removeYourDataFromThisBrowser.
+  ///
+  /// In en, this message translates to:
+  /// **'Remove your data from this browser?'**
+  String get removeYourDataFromThisBrowser;
+
+  /// No description provided for @removeFromBrowserExplanation.
+  ///
+  /// In en, this message translates to:
+  /// **'You\'ll be signed out, and the encrypted copy kept in this browser will be deleted, along with your settings here. Changes that haven\'t synced yet will be lost.\n\nYour account and everything already synced stay safe. Sign in again any time to get it back.'**
+  String get removeFromBrowserExplanation;
+
+  /// No description provided for @signOutAndRemove.
+  ///
+  /// In en, this message translates to:
+  /// **'Sign out and remove'**
+  String get signOutAndRemove;
 }
 
 class _ZtLocalizationsDelegate extends LocalizationsDelegate<ZtLocalizations> {

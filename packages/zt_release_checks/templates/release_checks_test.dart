@@ -3,8 +3,11 @@
 // deletes it again. Don't commit the copy; change the template in
 // Zero-Trust-Core/packages/zt_release_checks/templates instead.
 //
-// Every value below was made by core 0.11 and checked independently with
-// Python (hashlib, hmac, cryptography). If one fails, a dependency bump or a
+// Every value below was made by core 0.11 (quests: core 0.12, 2026-11-17;
+// camera, family and home: core 0.12, 2026-11-18; clock: core 0.12,
+// 2026-11-19; same derivation and format)
+// and checked independently with Python (hashlib, hmac, cryptography). If one
+// fails, a dependency bump or a
 // code change has changed how keys are made or data is sealed, and existing
 // accounts or synced data would no longer open. Never update the expected
 // values to make a check pass.
@@ -32,6 +35,11 @@ const _suite = [
   'browser',
   'time',
   'meds',
+  'quests',
+  'camera',
+  'family',
+  'home',
+  'clock',
 ];
 
 /// App key and signing public key for DEK = 00 01 .. 1f.
@@ -71,6 +79,26 @@ const _appKeys = {
   'meds': (
     'a00141d9453fe804b4ba4a367bc77fa0231a29370b62ecd86e5e40e512bb5af0',
     '8fbd62513195046dc1dddb9de787e99bfd9a8571583691f3001d8eaf7a1c760d',
+  ),
+  'quests': (
+    '9ed970de77a69e92927baf9a604b6fc67d85411e99abdf931ec2500394b961cd',
+    '21719f46041e16e090d3a748753d8ddccf67823a9fbea97fcebcc112d59657d2',
+  ),
+  'camera': (
+    'd10e3e14af615b59b28551a46c5799134174b70146dc9f83410550202feda1d9',
+    'c121183235bf2ac575a1525531c3171514f688872159b6fdad11e8e67de03694',
+  ),
+  'family': (
+    '9a6de6986ccfe3bc241c817d616e48148354c4e4dab6c2eede9481198cc67093',
+    '0885fd69a497a570902ea253872063b34fffc9b94668050448e7976b50ce350c',
+  ),
+  'home': (
+    'c501fc20f206d61e358fa2c4018d36b958b993cc49b620e05e46e6dd34f411cb',
+    '0628b2ba5adc88527d14a63b0fe07e052d819ada97e6b29f023adb4d861b7054',
+  ),
+  'clock': (
+    'eaf4668842679514d4b5cacdee5b61aea54d700154d6197a9e6f4724484e0ac5',
+    '8c1f42fb0a5100bb4c3e6cd1dcdd1149200bf4b55b385cdb67697c8a7d2b7c3a',
   ),
 };
 
@@ -112,6 +140,26 @@ const _syncedItems = {
   'meds': (
     'qQZez4BiAYDG3ZlT0qCdm2Rdz3IhDVqIyac/QIJbWrPVoYMb8JJrk+WAakPCBmdKYl6/QFpSX/F2/61PhYkHaqp1',
     'OoJmH2sGk4vB/UrhZzr8c867vuJ+gylHUc7+RWjv1PkLNbCH2TwAGYI5J/vhMStSY7X/htddokLXX2Lqb//aDw==',
+  ),
+  'quests': (
+    'sACWQ6ewkcvvLKhOAip/sZDgfIKmxZnsp+zEyyN5hnKGqo3l+TfSZz9iE3B3svhP4V6JQWJr1Esq/OYysrJUI7r3',
+    'dF9jztwJ0JBfyxq2UAgaAoCH6PL0IitSvI4Pw6j4VfDPDQ1zesree+RXotIhmkWOafuYedf68PgZhwSB4XWIAA==',
+  ),
+  'camera': (
+    '89tJGwEAkLScgCOhBmz4+ZmZGqSAxo4J8p3j95raRIAIRsxc9Dl0zo0pVJZuVi6AYGcl0xDQCwvJnDcSiIFqKm9b',
+    'Id95LFLVWRsyEvwfiIHeXH6qhk8gs3SQudmAJUc5xGIDAy9y84U2syS0GscKdkbnVxG60ntx0cf3CiPO9IpZDA==',
+  ),
+  'family': (
+    'nI81wf5Ay1GuYl/9mqWhu7AyQhwn2m0Tgf5eiKTlsLtcMV0W5s1Cj0VQmlFRWomnOTStqL1XnQZCdP/aGrDjJMyZ',
+    'pMCjcr06rrrB8TkVyinH24qD+XXSpfIptZO2dZm1iVnxMbPwvT1z+PQN6PexkQTiIA9Z0nbHYt25sxwwzXD+Cw==',
+  ),
+  'home': (
+    'w/JuzVkPOHNkFr5Tn/92zT7asJ7oqGf8/Lqes468gbr5tc5jHe/5E7fRRU3S18ETZvx5teMnFqJt8Gk7TuJzF+eo',
+    'B/v8Y8aSLK2xLSlw7NRV9Vei3SbHHYSutBPQobyvNLeWcvSeIAjLuhrmFGQn0+WmOmY788LQlRe5H2SNXog8DA==',
+  ),
+  'clock': (
+    'AYEi9Lu369+nKzZqu+N4d+RDvE7TjS5AIJUgjXzTw4KO8iU5fwaHpqc0Sm5kqxowauzp+1DMBagw02gImPgULKYo',
+    '8jpGWMz8LRPItaqIYwCdntevhGVxCsCNcR7l6NVf0OYk2EWe80MpjDpUkf3RYd8lcgT4Q/j2M1aXUueQPjBpCg==',
   ),
 };
 

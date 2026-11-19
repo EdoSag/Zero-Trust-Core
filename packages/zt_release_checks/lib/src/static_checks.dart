@@ -35,6 +35,11 @@ const suiteAppIds = {
   'browser',
   'time',
   'meds',
+  'quests',
+  'camera',
+  'family',
+  'home',
+  'clock',
 };
 
 /// Checks that need no device and no network: what went wrong in past

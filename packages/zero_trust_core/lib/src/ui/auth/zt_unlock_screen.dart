@@ -12,6 +12,10 @@ import 'zt_auth_messages.dart';
 
 /// Unlock an already signed-in session (app relaunch, after auto-lock).
 /// Works offline, and offers biometrics when the user turned them on.
+///
+/// When the user chose "Never, even after closing the app" in Auto-lock, it
+/// first opens the vault with the key kept on the phone, without asking
+/// (see `AccountService.resumeSession`). Otherwise it behaves as before.
 class ZtUnlockScreen extends ConsumerStatefulWidget {
   const ZtUnlockScreen({
     super.key,
@@ -41,11 +45,28 @@ class _ZtUnlockScreenState extends ConsumerState<ZtUnlockScreen> {
   bool _busy = false;
   bool _biometrics = false;
   String? _error;
+  final _passwordFocus = FocusNode();
 
   @override
   void initState() {
     super.initState();
-    _checkBiometrics();
+    _start();
+  }
+
+  Future<void> _start() async {
+    final kept = await ref.read(accountServiceProvider).resumeSession();
+    if (!mounted) {
+      kept?.dek.fillRange(0, kept.dek.length, 0);
+      return;
+    }
+    if (kept != null) {
+      widget.onUnlocked(kept);
+      return;
+    }
+    // Focused only now, so the keyboard doesn't flash up for a vault that
+    // opens on its own.
+    _passwordFocus.requestFocus();
+    await _checkBiometrics();
   }
 
   Future<void> _checkBiometrics() async {
@@ -80,6 +101,7 @@ class _ZtUnlockScreenState extends ConsumerState<ZtUnlockScreen> {
   @override
   void dispose() {
     _password.dispose();
+    _passwordFocus.dispose();
     super.dispose();
   }
 
@@ -141,7 +163,7 @@ class _ZtUnlockScreenState extends ConsumerState<ZtUnlockScreen> {
                         labelText: ZtL10n.of(context).password,
                         errorText: _error),
                     obscureText: true,
-                    autofocus: true,
+                    focusNode: _passwordFocus,
                     autofillHints: const [AutofillHints.password],
                     onSubmitted: (_) => _unlock(),
                   ),

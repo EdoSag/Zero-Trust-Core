@@ -5,6 +5,7 @@ import 'package:fake_async/fake_async.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:supabase_flutter/supabase_flutter.dart' show AuthException;
 import 'package:zero_trust_core/zero_trust_core.dart';
 
 import 'support/fake_backend.dart';
@@ -276,6 +277,29 @@ void main() {
       expect(ztErrorMessage(Exception('SocketException: Failed host lookup')),
           contains('offline'));
       expect(ztErrorMessage(const VaultIsLocked()), 'Unlock the app first.');
+    });
+
+    test('a failed email send is told apart from a server outage', () {
+      for (final message in [
+        'Error sending confirmation email',
+        'Error sending recovery email',
+        'Error sending email change email',
+      ]) {
+        expect(
+            ztErrorMessage(AuthException(message,
+                statusCode: '500', code: 'unexpected_failure')),
+            contains("couldn't send the email"),
+            reason: message);
+      }
+      // Other 5xx answers are still an outage; a rate limit still says wait.
+      expect(
+          ztErrorMessage(const AuthException('Database error saving new user',
+              statusCode: '500', code: 'unexpected_failure')),
+          contains("isn't responding"));
+      expect(
+          ztErrorMessage(const AuthException('email rate limit exceeded',
+              statusCode: '429', code: 'over_email_send_rate_limit')),
+          contains('Too many attempts'));
     });
   });
 

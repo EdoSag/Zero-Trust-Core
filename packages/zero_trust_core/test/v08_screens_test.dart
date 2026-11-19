@@ -186,7 +186,33 @@ void main() {
       expect(find.byType(LicensePage), findsOneWidget);
     });
 
-    testWidgets('links hidden without URLs; licences always there',
+    testWidgets('links default to zerotrust.bz', (tester) async {
+      await account.signUp(email: email, password: password);
+      final opened = <Uri>[];
+      await tester.pumpWidget(app(ZtSettingsPage(
+        onSignedOut: () {},
+        onOpenUrl: opened.add,
+      )));
+      await settle(tester);
+
+      for (final label in [
+        'Help and feedback',
+        'Privacy policy',
+        'Terms of use'
+      ]) {
+        await tester.scrollUntilVisible(find.text(label), 100);
+        await tester.tap(find.text(label));
+        await tester.pump();
+      }
+      expect(opened.map((u) => u.toString()), [
+        'https://zerotrust.bz/support/',
+        'https://zerotrust.bz/privacy/',
+        'https://zerotrust.bz/terms/',
+      ]);
+    });
+
+    testWidgets(
+        'links hidden without a way to open them; licences always there',
         (tester) async {
       await account.signUp(email: email, password: password);
       await tester.pumpWidget(app(ZtSettingsPage(onSignedOut: () {})));
@@ -229,7 +255,13 @@ void main() {
     await tester.pumpAndSettle();
     expect(find.textContaining('isn\'t encrypted'), findsOneWidget);
     await tester.tap(find.widgetWithText(FilledButton, 'Export'));
-    for (var i = 0; i < 50 && exported == null; i++) {
+    await tester.pumpAndSettle();
+    // It asks for the password whatever the auto-lock setting is.
+    expect(
+        find.text('Enter your password to export your data.'), findsOneWidget);
+    await tester.enterText(find.byType(TextField).last, password);
+    await tester.tap(find.widgetWithText(FilledButton, 'Export'));
+    for (var i = 0; i < 100 && exported == null; i++) {
       await tester.runAsync(
           () => Future<void>.delayed(const Duration(milliseconds: 20)));
       await tester.pump();

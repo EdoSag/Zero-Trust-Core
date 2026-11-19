@@ -244,6 +244,12 @@ class ZtLocalizationsHe extends ZtLocalizations {
   String get oneAccountForEveryApp => 'חשבון אחד לכל אפליקציות Zero-Trust';
 
   @override
+  String get signInOrCreateAccount => 'כניסה או יצירת חשבון';
+
+  @override
+  String get signInToBackUpAndSync => 'גיבוי וסנכרון עם חשבון Zero-Trust שלך';
+
+  @override
   String get changePassword => 'שינוי סיסמה';
 
   @override
@@ -285,6 +291,13 @@ class ZtLocalizationsHe extends ZtLocalizations {
   @override
   String get endToEndEncryptedWeCant =>
       'מוצפן מקצה לקצה. אנחנו לא יכולים לקרוא את המידע שלך.';
+
+  @override
+  String get sponsorProject => 'תמיכה בפרויקט';
+
+  @override
+  String get sponsorProjectSubtitle =>
+      'חסות על הפיתוח דרך GitHub. זו תודה, והיא לא פותחת שום תכונה.';
 
   @override
   String get helpAndFeedback => 'עזרה ומשוב';
@@ -612,6 +625,10 @@ class ZtLocalizationsHe extends ZtLocalizations {
       'השרת שלנו לא עונה כרגע. המידע שלך בטוח; כדאי לנסות שוב בקרוב.';
 
   @override
+  String get errEmailNotSent =>
+      'לא הצלחנו לשלוח את האימייל. הבעיה אצלנו, לא אצלך. כדאי לנסות שוב מאוחר יותר.';
+
+  @override
   String get errGeneric => 'משהו השתבש. כדאי לבדוק את החיבור ולנסות שוב.';
 
   @override
@@ -678,6 +695,16 @@ class ZtLocalizationsHe extends ZtLocalizations {
   @override
   String storageAttachments(String used, String limit) {
     return 'קבצים מצורפים: $used מתוך $limit';
+  }
+
+  @override
+  String storageUsedNoLimit(String used) {
+    return '$used בשימוש, ללא הגבלה';
+  }
+
+  @override
+  String storageAttachmentsNoLimit(String used) {
+    return 'קבצים מצורפים: $used, ללא הגבלה';
   }
 
   @override
@@ -798,4 +825,149 @@ class ZtLocalizationsHe extends ZtLocalizations {
 
   @override
   String get crashReportDontSend => 'לא לשלוח';
+
+  @override
+  String get neverEvenAfterClosing => 'אף פעם, גם אחרי סגירת האפליקציה';
+
+  @override
+  String get neverStaysOpenAfterClosing => 'אף פעם, נשארת פתוחה גם אחרי סגירה';
+
+  @override
+  String get needsAScreenLock => 'צריך נעילת מסך בטלפון';
+
+  @override
+  String keepAppOpenQuestion(String appName) {
+    return 'להשאיר את $appName פתוחה?';
+  }
+
+  @override
+  String keepAppOpenExplanation(String appName) {
+    return '$appName תיפתח בלי סיסמה או טביעת אצבע, גם אחרי סגירה או הפעלה מחדש של הטלפון. כל מי שיכול לפתוח את נעילת הטלפון יוכל לפתוח אותה, לכן כדאי לבחור באפשרות הזו רק אם נעילת המסך ידועה רק לך.\n\nהמידע נשאר מוצפן בטלפון ובשרתים שלנו. שינוי סיסמה, מפתח שחזור חדש, ייצוא המידע ומחיקת החשבון עדיין יבקשו את הסיסמה.';
+  }
+
+  @override
+  String get keepOpen => 'להשאיר פתוחה';
+
+  @override
+  String enterYourPasswordToKeepOpen(String appName) {
+    return 'צריך להזין את הסיסמה כדי להשאיר את $appName פתוחה.';
+  }
+
+  @override
+  String get enterYourPasswordToExport =>
+      'צריך להזין את הסיסמה כדי לייצא את המידע.';
+
+  @override
+  String get plansTitle => 'תוכניות';
+
+  @override
+  String get plansPlusName => 'פלוס';
+
+  @override
+  String get plansPlusTagline => 'יותר מקום בכל אפליקציות Zero-Trust';
+
+  @override
+  String get plansPlusSynced => '‏1 GB של נתונים מסונכרנים, במקום 50 MB';
+
+  @override
+  String get plansPlusFiles => '‏20 GB של קבצים מצורפים, במקום 500 MB';
+
+  @override
+  String get plansPlusAllApps => 'מינוי אחד לכל האפליקציות';
+
+  @override
+  String get plansPlusSameEncryption =>
+      'אותה הצפנה מקצה לקצה כמו בתוכנית החינמית';
+
+  @override
+  String plansMonthly(String price) {
+    return '$price לחודש';
+  }
+
+  @override
+  String plansYearly(String price) {
+    return '$price לשנה';
+  }
+
+  @override
+  String get plansNotAvailable => 'עדיין אי אפשר לקנות כאן את פלוס.';
+
+  @override
+  String plansYouHave(String name) {
+    return 'יש לך $name. תודה על התמיכה ב-Zero-Trust.';
+  }
+
+  @override
+  String plansGranted(String name) {
+    return '$name ניתנה לך על ידי Zero-Trust.';
+  }
+
+  @override
+  String get plansManage => 'ניהול המינוי';
+
+  @override
+  String get plansRestore => 'שחזור רכישות';
+
+  @override
+  String get plansFinePrint =>
+      'מתחדש אוטומטית. אין תקופת ניסיון. אפשר לבטל בכל עת ולהמשיך עם פלוס עד סוף התקופה ששולמה. כל מה שחינמי נשאר חינמי.';
+
+  @override
+  String get plansThanks => 'תודה! פלוס פעיל.';
+
+  @override
+  String get plansPending => 'התשלום ממתין. פלוס יופעל ברגע שהחנות תאשר אותו.';
+
+  @override
+  String get plansFailed => 'הרכישה לא הושלמה. אפשר לנסות שוב.';
+
+  @override
+  String get rememberOnThisBrowser => 'לזכור בדפדפן הזה';
+
+  @override
+  String get rememberOnThisBrowserOff => 'כבוי: הסיסמה נדרשת בכל פתיחה של הדף';
+
+  @override
+  String get rememberOnThisBrowserOn => 'פועל: נפתח בלי סיסמה בדפדפן הזה';
+
+  @override
+  String rememberOnThisBrowserQuestion(String appName) {
+    return 'לזכור את $appName בדפדפן הזה?';
+  }
+
+  @override
+  String rememberOnThisBrowserExplanation(String appName) {
+    return '$appName תיפתח בדפדפן הזה בלי סיסמה, גם אחרי סגירת הלשונית או הפעלה מחדש של המחשב. כל מי שיכול להשתמש בדפדפן הזה יוכל לפתוח את המידע שלך, לכן אין להפעיל זאת במחשב משותף או ציבורי.\n\nהמידע שלך נשאר מוצפן בדפדפן ובשרתים שלנו. שינוי סיסמה, מפתח שחזור חדש, ייצוא המידע ומחיקת החשבון עדיין דורשים את הסיסמה.';
+  }
+
+  @override
+  String get remember => 'לזכור';
+
+  @override
+  String enterYourPasswordToRemember(String appName) {
+    return 'יש להזין את הסיסמה כדי לזכור את $appName בדפדפן הזה.';
+  }
+
+  @override
+  String get rememberNotAvailable =>
+      'הדפדפן לא יכול לשמור כאן את המפתח בבטחה. יש לפתוח את האפליקציה בחיבור מאובטח (https).';
+
+  @override
+  String get neverRememberedOnThisBrowser => 'אף פעם, נשמר בדפדפן הזה';
+
+  @override
+  String get signOutAndRemoveData => 'התנתקות והסרת המידע מהדפדפן הזה';
+
+  @override
+  String get forSharedOrPublicComputers => 'למחשבים משותפים או ציבוריים';
+
+  @override
+  String get removeYourDataFromThisBrowser => 'להסיר את המידע שלך מהדפדפן הזה?';
+
+  @override
+  String get removeFromBrowserExplanation =>
+      'החשבון ינותק, והעותק המוצפן שנשמר בדפדפן הזה יימחק יחד עם ההגדרות שלך כאן. שינויים שעדיין לא סונכרנו יאבדו.\n\nהחשבון שלך וכל מה שכבר סונכרן נשארים בטוחים. אפשר להתחבר שוב בכל עת כדי לקבל אותם בחזרה.';
+
+  @override
+  String get signOutAndRemove => 'התנתקות והסרה';
 }

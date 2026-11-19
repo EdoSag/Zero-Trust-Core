@@ -72,6 +72,8 @@
   "account": "Account",
   "notSignedIn": "Not signed in",
   "oneAccountForEveryApp": "One account for every Zero-Trust app",
+  "signInOrCreateAccount": "Sign in or create an account",
+  "signInToBackUpAndSync": "Back up and sync with your Zero-Trust account",
   "changePassword": "Change password",
   "security": "Security",
   "autoLock": "Auto-lock",
@@ -86,6 +88,8 @@
   "backup": "Backup",
   "about": "About",
   "endToEndEncryptedWeCant": "End-to-end encrypted. We can't read your data.",
+  "sponsorProject": "Support the project",
+  "sponsorProjectSubtitle": "Sponsor development on GitHub. It's a thank-you and doesn't unlock anything.",
   "helpAndFeedback": "Help and feedback",
   "privacyPolicy": "Privacy policy",
   "termsOfUse": "Terms of use",
@@ -272,6 +276,7 @@
   "errVaultLocked": "Unlock the app first.",
   "errTooMany": "Too many attempts. Wait a few minutes and try again.",
   "errServerDown": "Our server isn't responding right now. Your data is safe; try again soon.",
+  "errEmailNotSent": "We couldn't send the email. The problem is on our side, not yours. Try again later.",
   "errGeneric": "Something went wrong. Check your connection and try again.",
   "enterValidEmail": "Enter a valid email address.",
   "useAtLeast12": "Use at least 12 characters.",
@@ -337,6 +342,23 @@
         "type": "String"
       },
       "limit": {
+        "type": "String"
+      }
+    }
+  },
+  "storageUsedNoLimit": "{used} used, no limit",
+  "@storageUsedNoLimit": {
+    "description": "Storage row on a plan without a storage limit",
+    "placeholders": {
+      "used": {
+        "type": "String"
+      }
+    }
+  },
+  "storageAttachmentsNoLimit": "Attachments: {used}, no limit",
+  "@storageAttachmentsNoLimit": {
+    "placeholders": {
+      "used": {
         "type": "String"
       }
     }
@@ -414,5 +436,115 @@
   "crashReportPromptTitle": "The app hit a problem",
   "crashReportPromptBody": "Send a crash report to help fix it? It holds no personal data.",
   "crashReportView": "View report",
-  "crashReportDontSend": "Don't send"
+  "crashReportDontSend": "Don't send",
+  "neverEvenAfterClosing": "Never, even after closing the app",
+  "neverStaysOpenAfterClosing": "Never, stays open even after closing",
+  "needsAScreenLock": "Needs a screen lock on your phone",
+  "keepAppOpenQuestion": "Keep {appName} open?",
+  "@keepAppOpenQuestion": {
+    "placeholders": {
+      "appName": {
+        "type": "String"
+      }
+    }
+  },
+  "keepAppOpenExplanation": "{appName} will open without your password or fingerprint, even after you close it or restart the phone. Anyone who can unlock your phone can open it, so choose this only if your phone's screen lock is yours alone.\n\nYour data stays encrypted on the phone and on our servers. Changing your password, a new recovery key, exporting your data and deleting your account still ask for your password.",
+  "@keepAppOpenExplanation": {
+    "placeholders": {
+      "appName": {
+        "type": "String"
+      }
+    }
+  },
+  "keepOpen": "Keep open",
+  "enterYourPasswordToKeepOpen": "Enter your password to keep {appName} open.",
+  "@enterYourPasswordToKeepOpen": {
+    "placeholders": {
+      "appName": {
+        "type": "String"
+      }
+    }
+  },
+  "enterYourPasswordToExport": "Enter your password to export your data.",
+  "plansTitle": "Plans",
+  "plansPlusName": "Plus",
+  "plansPlusTagline": "More room in every Zero-Trust app",
+  "plansPlusSynced": "1 GB of synced data, up from 50 MB",
+  "plansPlusFiles": "20 GB of attached files, up from 500 MB",
+  "plansPlusAllApps": "One subscription covers every app",
+  "plansPlusSameEncryption": "The same end-to-end encryption as Free",
+  "plansMonthly": "{price} a month",
+  "@plansMonthly": {
+    "placeholders": {
+      "price": {
+        "type": "String"
+      }
+    }
+  },
+  "plansYearly": "{price} a year",
+  "@plansYearly": {
+    "placeholders": {
+      "price": {
+        "type": "String"
+      }
+    }
+  },
+  "plansNotAvailable": "Plus can't be bought here yet.",
+  "plansYouHave": "You have {name}. Thank you for supporting Zero-Trust.",
+  "@plansYouHave": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "plansGranted": "{name} was given to you by Zero-Trust.",
+  "@plansGranted": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "plansManage": "Manage subscription",
+  "plansRestore": "Restore purchases",
+  "plansFinePrint": "Renews automatically. No free trial. Cancel any time and keep Plus until the end of the period you've paid for. Everything that's free stays free.",
+  "plansThanks": "Thank you! Plus is on.",
+  "plansPending": "Payment pending. Plus turns on as soon as the store confirms it.",
+  "plansFailed": "The purchase didn't go through. Please try again.",
+  "rememberOnThisBrowser": "Remember on this browser",
+  "rememberOnThisBrowserOff": "Off: your password is asked every time you open this page",
+  "rememberOnThisBrowserOn": "On: opens without your password on this browser",
+  "rememberOnThisBrowserQuestion": "Remember {appName} on this browser?",
+  "@rememberOnThisBrowserQuestion": {
+    "placeholders": {
+      "appName": {
+        "type": "String"
+      }
+    }
+  },
+  "rememberOnThisBrowserExplanation": "{appName} will open on this browser without your password, even after you close the tab or restart the computer. Anyone who can use this browser can then open your data, so never turn this on on a shared or public computer.\n\nYour data stays encrypted in the browser and on our servers. Changing your password, a new recovery key, exporting your data and deleting your account still ask for your password.",
+  "@rememberOnThisBrowserExplanation": {
+    "placeholders": {
+      "appName": {
+        "type": "String"
+      }
+    }
+  },
+  "remember": "Remember",
+  "enterYourPasswordToRemember": "Enter your password to remember {appName} on this browser.",
+  "@enterYourPasswordToRemember": {
+    "placeholders": {
+      "appName": {
+        "type": "String"
+      }
+    }
+  },
+  "rememberNotAvailable": "This browser can't keep the key safely here. Open the app over a secure (https) connection.",
+  "neverRememberedOnThisBrowser": "Never, remembered on this browser",
+  "signOutAndRemoveData": "Sign out and remove data from this browser",
+  "forSharedOrPublicComputers": "For shared or public computers",
+  "removeYourDataFromThisBrowser": "Remove your data from this browser?",
+  "removeFromBrowserExplanation": "You'll be signed out, and the encrypted copy kept in this browser will be deleted, along with your settings here. Changes that haven't synced yet will be lost.\n\nYour account and everything already synced stay safe. Sign in again any time to get it back.",
+  "signOutAndRemove": "Sign out and remove"
 }

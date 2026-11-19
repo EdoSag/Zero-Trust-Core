@@ -245,6 +245,13 @@ class ZtLocalizationsEn extends ZtLocalizations {
   String get oneAccountForEveryApp => 'One account for every Zero-Trust app';
 
   @override
+  String get signInOrCreateAccount => 'Sign in or create an account';
+
+  @override
+  String get signInToBackUpAndSync =>
+      'Back up and sync with your Zero-Trust account';
+
+  @override
   String get changePassword => 'Change password';
 
   @override
@@ -288,6 +295,13 @@ class ZtLocalizationsEn extends ZtLocalizations {
   @override
   String get endToEndEncryptedWeCant =>
       'End-to-end encrypted. We can\'t read your data.';
+
+  @override
+  String get sponsorProject => 'Support the project';
+
+  @override
+  String get sponsorProjectSubtitle =>
+      'Sponsor development on GitHub. It\'s a thank-you and doesn\'t unlock anything.';
 
   @override
   String get helpAndFeedback => 'Help and feedback';
@@ -602,6 +616,10 @@ class ZtLocalizationsEn extends ZtLocalizations {
       'Our server isn\'t responding right now. Your data is safe; try again soon.';
 
   @override
+  String get errEmailNotSent =>
+      'We couldn\'t send the email. The problem is on our side, not yours. Try again later.';
+
+  @override
   String get errGeneric =>
       'Something went wrong. Check your connection and try again.';
 
@@ -669,6 +687,16 @@ class ZtLocalizationsEn extends ZtLocalizations {
   @override
   String storageAttachments(String used, String limit) {
     return 'Attachments: $used of $limit';
+  }
+
+  @override
+  String storageUsedNoLimit(String used) {
+    return '$used used, no limit';
+  }
+
+  @override
+  String storageAttachmentsNoLimit(String used) {
+    return 'Attachments: $used, no limit';
   }
 
   @override
@@ -789,4 +817,157 @@ class ZtLocalizationsEn extends ZtLocalizations {
 
   @override
   String get crashReportDontSend => 'Don\'t send';
+
+  @override
+  String get neverEvenAfterClosing => 'Never, even after closing the app';
+
+  @override
+  String get neverStaysOpenAfterClosing =>
+      'Never, stays open even after closing';
+
+  @override
+  String get needsAScreenLock => 'Needs a screen lock on your phone';
+
+  @override
+  String keepAppOpenQuestion(String appName) {
+    return 'Keep $appName open?';
+  }
+
+  @override
+  String keepAppOpenExplanation(String appName) {
+    return '$appName will open without your password or fingerprint, even after you close it or restart the phone. Anyone who can unlock your phone can open it, so choose this only if your phone\'s screen lock is yours alone.\n\nYour data stays encrypted on the phone and on our servers. Changing your password, a new recovery key, exporting your data and deleting your account still ask for your password.';
+  }
+
+  @override
+  String get keepOpen => 'Keep open';
+
+  @override
+  String enterYourPasswordToKeepOpen(String appName) {
+    return 'Enter your password to keep $appName open.';
+  }
+
+  @override
+  String get enterYourPasswordToExport =>
+      'Enter your password to export your data.';
+
+  @override
+  String get plansTitle => 'Plans';
+
+  @override
+  String get plansPlusName => 'Plus';
+
+  @override
+  String get plansPlusTagline => 'More room in every Zero-Trust app';
+
+  @override
+  String get plansPlusSynced => '1 GB of synced data, up from 50 MB';
+
+  @override
+  String get plansPlusFiles => '20 GB of attached files, up from 500 MB';
+
+  @override
+  String get plansPlusAllApps => 'One subscription covers every app';
+
+  @override
+  String get plansPlusSameEncryption =>
+      'The same end-to-end encryption as Free';
+
+  @override
+  String plansMonthly(String price) {
+    return '$price a month';
+  }
+
+  @override
+  String plansYearly(String price) {
+    return '$price a year';
+  }
+
+  @override
+  String get plansNotAvailable => 'Plus can\'t be bought here yet.';
+
+  @override
+  String plansYouHave(String name) {
+    return 'You have $name. Thank you for supporting Zero-Trust.';
+  }
+
+  @override
+  String plansGranted(String name) {
+    return '$name was given to you by Zero-Trust.';
+  }
+
+  @override
+  String get plansManage => 'Manage subscription';
+
+  @override
+  String get plansRestore => 'Restore purchases';
+
+  @override
+  String get plansFinePrint =>
+      'Renews automatically. No free trial. Cancel any time and keep Plus until the end of the period you\'ve paid for. Everything that\'s free stays free.';
+
+  @override
+  String get plansThanks => 'Thank you! Plus is on.';
+
+  @override
+  String get plansPending =>
+      'Payment pending. Plus turns on as soon as the store confirms it.';
+
+  @override
+  String get plansFailed =>
+      'The purchase didn\'t go through. Please try again.';
+
+  @override
+  String get rememberOnThisBrowser => 'Remember on this browser';
+
+  @override
+  String get rememberOnThisBrowserOff =>
+      'Off: your password is asked every time you open this page';
+
+  @override
+  String get rememberOnThisBrowserOn =>
+      'On: opens without your password on this browser';
+
+  @override
+  String rememberOnThisBrowserQuestion(String appName) {
+    return 'Remember $appName on this browser?';
+  }
+
+  @override
+  String rememberOnThisBrowserExplanation(String appName) {
+    return '$appName will open on this browser without your password, even after you close the tab or restart the computer. Anyone who can use this browser can then open your data, so never turn this on on a shared or public computer.\n\nYour data stays encrypted in the browser and on our servers. Changing your password, a new recovery key, exporting your data and deleting your account still ask for your password.';
+  }
+
+  @override
+  String get remember => 'Remember';
+
+  @override
+  String enterYourPasswordToRemember(String appName) {
+    return 'Enter your password to remember $appName on this browser.';
+  }
+
+  @override
+  String get rememberNotAvailable =>
+      'This browser can\'t keep the key safely here. Open the app over a secure (https) connection.';
+
+  @override
+  String get neverRememberedOnThisBrowser =>
+      'Never, remembered on this browser';
+
+  @override
+  String get signOutAndRemoveData =>
+      'Sign out and remove data from this browser';
+
+  @override
+  String get forSharedOrPublicComputers => 'For shared or public computers';
+
+  @override
+  String get removeYourDataFromThisBrowser =>
+      'Remove your data from this browser?';
+
+  @override
+  String get removeFromBrowserExplanation =>
+      'You\'ll be signed out, and the encrypted copy kept in this browser will be deleted, along with your settings here. Changes that haven\'t synced yet will be lost.\n\nYour account and everything already synced stay safe. Sign in again any time to get it back.';
+
+  @override
+  String get signOutAndRemove => 'Sign out and remove';
 }

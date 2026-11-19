@@ -30,7 +30,7 @@ do $$ begin
   assert (public.zt_my_plan() ->> 'plan') = 'tplus', 'my plan';
   assert (public.zt_my_plan() ->> 'source') = 'web', 'my plan source';
   assert (public.zt_my_plan() -> 'names' ->> 'he') = 'פלוס', 'hebrew name';
-  assert (select count(*) from public.zt_plans) = 4, 'catalogue readable';
+  assert (select count(*) from public.zt_plans) = 5, 'catalogue readable';
   assert (select not offered and max_attachment_bytes = 21474836480 from public.zt_plans where id = 'plus'), 'plus seeded, hidden';
   -- Someone else's plan can't be read: it looks free.
   assert public.zt_plan_for('00000000-0000-0000-0000-0000000000f2') = 'free', 'other user looks free';
@@ -106,15 +106,62 @@ set role authenticated;
 do $$ begin
   assert (public.zt_my_plan() ->> 'plan') = 'plus', 'plus granted';
   assert (select max_items from public.zt_storage_limits_for(auth.uid())) = 1000000, 'plus limits';
+  assert public.zt_has_feature('planner'), 'plus has the Calendar Planner';
+  assert not public.zt_has_feature('drive'), 'plus has only its own features';
 end $$;
 reset role;
+select public.zt_grant_plan('00000000-0000-0000-0000-0000000000f2', 'free');
+
+-- The Unlimited plan: hidden, above every other plan, every feature (also
+-- ones nobody has named yet) and no storage limit a client could reach.
+reset role;
+do $$ begin
+  assert (select not offered and features = '{*}'
+            and rank = (select max(rank) from public.zt_plans)
+            and max_item_bytes = 9007199254740991
+            and max_items = 9007199254740991
+            and max_attachment_bytes = 9007199254740991
+          from public.zt_plans where id = 'unlimited'), 'unlimited seeded, hidden, top rank';
+end $$;
+select public.zt_grant_plan('00000000-0000-0000-0000-0000000000f2', 'unlimited', null, 'owner');
+-- A store purchase of a lower plan on the same account changes nothing.
+insert into public.zt_subscriptions (user_id, plan_id, source, status, provider_ref, current_period_end)
+values ('00000000-0000-0000-0000-0000000000f2', 'tplus', 'google_play', 'active', 'tok_owner', now() + interval '30 days');
+set role authenticated;
+do $$ begin
+  assert (public.zt_my_plan() ->> 'plan') = 'unlimited', 'unlimited wins over a bought plan';
+  assert (public.zt_my_plan() ->> 'source') = 'manual', 'unlimited is a manual grant';
+  assert (public.zt_my_plan() ->> 'current_period_end') is null, 'unlimited has no end';
+  assert (public.zt_my_plan() -> 'features' ->> 0) = '*', 'apps see the every-feature mark';
+  assert public.zt_has_feature('drive'), 'unlimited has drive';
+  assert public.zt_has_feature('vpn'), 'unlimited has vpn';
+  assert public.zt_has_feature('a_feature_added_next_year'), 'unlimited has features added later';
+  assert (select max_item_bytes = 9007199254740991 and max_items = 9007199254740991
+            and max_attachment_bytes = 9007199254740991
+          from public.zt_storage_limits_for(auth.uid())), 'unlimited limits';
+  assert (select max_blob_bytes from public.zt_storage_limits_for(auth.uid())) = 1048576, 'blob cap stays';
+  assert ((public.zt_my_storage() ->> 'max_item_bytes')::bigint) = 9007199254740991, 'storage row sees no limit';
+end $$;
+-- Still not something a client can take.
+select pg_temp.plans_expect_error($$select public.zt_grant_plan(auth.uid(), 'unlimited')$$, 'client grants unlimited');
+select pg_temp.plans_expect_error($$insert into public.zt_subscriptions (user_id, plan_id, source) values (auth.uid(), 'unlimited', 'manual')$$, 'client subscribes to unlimited');
+select pg_temp.plans_expect_error($$update public.zt_plans set features = '{*}' where id = 'free'$$, 'client gives free every feature');
+-- Other plans do not get the '*' behaviour.
+set request.jwt.claim.sub = '00000000-0000-0000-0000-0000000000f1';
+do $$ begin
+  assert not public.zt_has_feature('a_feature_added_next_year'), 'others have only their own features';
+  assert not public.zt_has_feature('*'), 'the mark itself is not a feature of other plans';
+end $$;
+set request.jwt.claim.sub = '00000000-0000-0000-0000-0000000000f2';
+reset role;
+delete from public.zt_subscriptions where provider_ref = 'tok_owner';
 select public.zt_grant_plan('00000000-0000-0000-0000-0000000000f2', 'free');
 
 -- Signed out: nothing.
 reset role;
 set role anon;
 select pg_temp.plans_expect_error($$select public.zt_my_plan()$$, 'anon reads plan');
-do $$ begin assert (select count(*) from public.zt_plans) = 4, 'anon reads catalogue'; end $$;
+do $$ begin assert (select count(*) from public.zt_plans) = 5, 'anon reads catalogue'; end $$;
 reset role;
 
 -- Deleting an account removes its subscriptions.

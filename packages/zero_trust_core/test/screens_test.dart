@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:supabase_flutter/supabase_flutter.dart' show AuthException;
 import 'package:zero_trust_core/zero_trust_core.dart';
 
 import 'support/fake_backend.dart';
@@ -94,6 +95,119 @@ void main() {
     await tester.tap(find.widgetWithText(FilledButton, 'Sign in'));
     await settle(tester);
     expect(result!.newRecoveryKey, isNotNull);
+  });
+
+  testWidgets(
+      'sign-up says the email could not be sent, not that the server is down',
+      (tester) async {
+    backend.requireConfirmation = true;
+    // What Supabase Auth answers when its mail provider rejects the send.
+    backend.failNextSignUp = const AuthException(
+        'Error sending confirmation email',
+        statusCode: '500',
+        code: 'unexpected_failure');
+    UnlockResult? result;
+    await tester.pumpWidget(app(ZtSignInScreen(onUnlocked: (r) => result = r)));
+
+    await tester.tap(find.text('Create a Zero-Trust account'));
+    await tester.pump();
+    await tester.enterText(find.widgetWithText(TextFormField, 'Email'), email);
+    await tester.enterText(
+        find.widgetWithText(TextFormField, 'Password'), password);
+    await tester.enterText(
+        find.widgetWithText(TextFormField, 'Confirm password'), password);
+    await tester.tap(find.widgetWithText(FilledButton, 'Create account'));
+    await settle(tester);
+
+    expect(result, isNull);
+    expect(find.textContaining("We couldn't send the email"), findsOneWidget);
+    expect(find.textContaining("isn't responding"), findsNothing);
+    // Still on the create form, shown under the fields and above the
+    // button, so trying again is one tap.
+    final message = tester.getRect(find.textContaining("couldn't send"));
+    final button =
+        tester.getRect(find.widgetWithText(FilledButton, 'Create account'));
+    final confirm =
+        tester.getRect(find.widgetWithText(TextFormField, 'Confirm password'));
+    expect(message.top, greaterThanOrEqualTo(confirm.bottom));
+    expect(message.bottom, lessThanOrEqualTo(button.top));
+    expect(find.text('Resend confirmation email'), findsNothing);
+
+    // The mail provider is fixed: the same tap now works.
+    await tester.tap(find.widgetWithText(FilledButton, 'Create account'));
+    await settle(tester);
+    expect(find.textContaining('We sent a confirmation link to $email'),
+        findsOneWidget);
+  });
+
+  testWidgets(
+      'settings without an account: only rows that need none, and a way in',
+      (tester) async {
+    var signIns = 0;
+    await tester.pumpWidget(app(ZtSettingsPage(
+      onSignedOut: () {},
+      accountOptional: true,
+      onSignIn: () => signIns++,
+      appSection: const [ListTile(title: Text('App row'))],
+    )));
+    await tester.pumpAndSettle();
+
+    // No account rows, nothing to lock, nothing to delete.
+    for (final gone in [
+      'Not signed in',
+      'Change password',
+      'Sign out',
+      'Auto-lock',
+      'Lock now',
+      'New recovery key',
+    ]) {
+      expect(find.text(gone), findsNothing, reason: gone);
+    }
+    await tester.scrollUntilVisible(find.text('Open-source licences'), 300);
+    await tester.drag(find.byType(ListView), const Offset(0, -2000));
+    await tester.pumpAndSettle();
+    expect(find.text('Delete account'), findsNothing);
+    expect(find.text('Danger zone'), findsNothing);
+
+    // Appearance and the app's own rows stay, under the sign-in row.
+    await tester.drag(find.byType(ListView), const Offset(0, 5000));
+    await tester.pumpAndSettle();
+    final signIn = find.text('Sign in or create an account');
+    expect(signIn, findsOneWidget);
+    expect(find.text('Back up and sync with your Zero-Trust account'),
+        findsOneWidget);
+    expect(tester.getTopLeft(signIn).dy,
+        lessThan(tester.getTopLeft(find.text('Language')).dy));
+    await tester.tap(signIn);
+    expect(signIns, 1);
+    await tester.scrollUntilVisible(find.text('App row'), 300);
+    expect(find.text('App row'), findsOneWidget);
+  });
+
+  testWidgets(
+      'settings without an account: no Account section without onSignIn',
+      (tester) async {
+    await tester.pumpWidget(
+        app(ZtSettingsPage(onSignedOut: () {}, accountOptional: true)));
+    await tester.pumpAndSettle();
+    expect(find.text('Account'), findsNothing);
+    expect(find.text('Sign in or create an account'), findsNothing);
+    // Appearance is now the first section.
+    expect(find.text('Appearance'), findsOneWidget);
+    expect(find.text('Language'), findsOneWidget);
+  });
+
+  testWidgets('settings with accountOptional: a signed-in account sees it all',
+      (tester) async {
+    await account.signUp(email: email, password: password);
+    await tester.pumpWidget(app(ZtSettingsPage(
+        onSignedOut: () {}, accountOptional: true, onSignIn: () {})));
+    await tester.pumpAndSettle();
+    expect(find.text(email), findsOneWidget);
+    expect(find.text('Change password'), findsOneWidget);
+    expect(find.text('Sign in or create an account'), findsNothing);
+    await tester.scrollUntilVisible(find.text('Delete account'), 400);
+    expect(find.text('Delete account'), findsOneWidget);
   });
 
   testWidgets('settings: auto-lock picker saves the choice', (tester) async {

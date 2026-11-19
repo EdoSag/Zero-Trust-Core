@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import 'zt_install_channel.dart';
+
 /// What makes one Zero-Trust app different from its siblings. Everything
 /// else (account, lock, settings layout, theme) comes from the core.
 class ZtAppConfig {
@@ -9,7 +11,8 @@ class ZtAppConfig {
     required this.displayName,
     this.accent,
     this.autoLockAfter = const Duration(minutes: 5),
-  });
+    ZtInstallChannel? channel,
+  }) : _channel = channel;
 
   /// Lowercase id, also the HKDF label and the `vault_items.app` value:
   /// `fitness`, `contacts`, `tasks`, `notes`.
@@ -23,6 +26,13 @@ class ZtAppConfig {
 
   /// `null` disables auto-lock.
   final Duration? autoLockAfter;
+
+  final ZtInstallChannel? _channel;
+
+  /// Where this build is distributed. Defaults to
+  /// [ZtInstallChannel.current] (the `ZT_CHANNEL` build flag); tests and
+  /// previews may pass one.
+  ZtInstallChannel get channel => _channel ?? ZtInstallChannel.current;
 }
 
 /// Apps override this in their root `ProviderScope`.

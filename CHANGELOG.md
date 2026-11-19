@@ -3,6 +3,255 @@
 Apps depend on the core by git tag (`ref: vX.Y.Z`). Upgrade notes list what
 an app must change.
 
+## 0.13.0
+
+The planning engine and the optional AI helper for ZT Calendar's Planner,
+the web kit and the web deploy workflow, the Plans screen with the billing
+backbone, optional "stay unlocked", settings for an app that works without
+an account, ZT Family's location tables, and release checks for ZT Quests,
+Family, Home, Camera and Clock. Apps move their core pin only when they
+want one of these; nothing here forces an upgrade.
+
+### Planner AI helper, off by default (database, edge function)
+
+- Migration `20261119190000_planner_ai`: `zt_ai_config` (one row, owner
+  only, `enabled` starts false) and `zt_ai_usage` (per user and month:
+  requests, tokens and cost, never text).
+- Edge function `supabase/functions/planner-ai`: checks the plan, the
+  user's monthly limit and the project's monthly budget, forwards the
+  request and records the counts. It also needs the `ANTHROPIC_API_KEY`
+  secret; the steps to switch it on are in the function's README.
+- Upgrade: nothing to do. The apps hide the helper while it is off.
+
+### Plus includes the Planner and longer Family history (database)
+
+- Migration `20261119180000_core_plus_planner_feature`: Plus gets the
+  `planner` feature (the automatic Planner in ZT Calendar; "Find a time for
+  a task" stays free).
+- Migration `20261119100000_family_history_plus`: Plus gets the `family`
+  feature. A circle's owner needs Plus to keep more than 7 days of history
+  (up to 30); a circle keeps its window if the owner's Plus ends.
+
+### Release checks know ZT Clock and ZT Camera (`zt_release_checks`)
+
+- New suite app ids `clock` and `camera`, with vectors like the other apps.
+  Nothing changes for the existing apps.
+
+### Reusable web deploy workflow
+
+- `.github/workflows/web-deploy.yml` (`workflow_call`): builds an app for
+  the web with the web kit, self-hosted fonts and a `SHA256SUMS` of every
+  file, and on a release publishes it to Cloudflare Pages. Apps add a
+  ten-line workflow that calls it, plus the repository secrets
+  `CLOUDFLARE_API_TOKEN` and `CLOUDFLARE_ACCOUNT_ID`.
+- Until an app's repository has both secrets, the publish step is skipped
+  with a warning and the run stays green, so a release that only ships
+  Android is not marked as failed. The site is still built and kept as an
+  artifact.
+- `tool/fetch_sqlite3mc_wasm.sh` stops with a clear message when the app's
+  locked `sqlite3` package is not the version the wasm file was built for.
+  A mismatch used to build fine and then never open the store in the
+  browser.
+- The web kit's content security policy allows `api.pwnedpasswords.com`,
+  so the breached password check at sign-up works in a browser (only the
+  first five characters of a hash are sent, as on the phone).
+
+### ZT Family: hourly event cap holds for requests sent together (database)
+
+- Migration `20261118130000_family_events_cap_lock`. `family_events_guard()`
+  takes a lock per member and circle before counting, so two inserts sent at
+  the same moment can no longer both pass the 1200 an hour cap.
+
+### Settings for an app that works without an account (`zero_trust_core`)
+
+- `ZtSettingsPage(accountOptional: true)`: while nobody is signed in, the
+  rows that need an account are hidden (password, sign out, sync, plan,
+  storage, auto-lock, biometrics, lock now, recovery key, export, delete
+  account) and Appearance, the app's own rows, About and the other apps
+  stay. `onSignIn` adds "Sign in or create an account" under Account.
+  Crash reports need no account, so that row stays too (alone under
+  Security) in apps that set up a reporter.
+  Made for ZT Clock, which rings alarms without an account. New strings
+  `signInOrCreateAccount` and `signInToBackUpAndSync`, English and Hebrew.
+- Upgrade: nothing to do. Both are off by default, so every other app's
+  settings screen is unchanged.
+
+### The planning engine for ZT Calendar's Planner (`zt_scheduler`, new package)
+
+- New pure Dart package `packages/zt_scheduler`: `plan()` fits tasks and
+  habits into the free time around a calendar's events and returns the
+  blocks to add, move and remove. No AI, no network, no storage: it runs
+  on the device and the same inputs always give the same plan.
+- Rules: done, locked and current blocks stay; habits go nearest their
+  ideal time; tasks go most important first, then nearest due date, in
+  whole blocks where they fit; a task short of time for its due date may
+  use more blocks in a day and go ahead of tasks with time to spare;
+  what doesn't fit is planned after the due date and reported.
+- Blocks stay where they are from one plan to the next unless they must
+  move, and a moved block keeps its id, so the app updates one event.
+  Planning again from a plan's own blocks changes nothing.
+- Tested with 74 tests: named scenarios for every rule, and randomized
+  calendars checked against the rules. New CI job `zt_scheduler`.
+- Upgrade: nothing to do in apps. Nothing uses the package yet; ZT
+  Calendar will depend on it when the Planner screens are built. See
+  `packages/zt_scheduler/README.md`.
+### Web kit, platform capabilities and the web lock policy (`zero_trust_core`)
+
+- `tool/apply_web_kit.sh` writes a web app's `index.html` (strict Content
+  Security Policy, loading screen), `manifest.json`, `zt_boot.js`,
+  `flutter_bootstrap.js`, `_headers` and the pinned `sqlite3mc.wasm` from
+  the templates in `web-kit/`.
+- Fonts: Flutter on the web fetched Noto fonts from Google Fonts for Hebrew,
+  emoji and other scripts. The kit serves them from the app's own site
+  (`fallback-fonts/`, filled by `tool/fetch_fallback_fonts.sh build/web`),
+  so a web app calls no third party at all.
+- `ZtCapabilities` / `ztCapabilitiesProvider`: what the running platform can
+  do (widgets, reminders, biometrics, on-device speech and OCR, camera
+  scanning, phone integration), so apps hide phone-only features on the web
+  and desktop.
+- Web lock policy: password on every visit by default. Settings gains, in a
+  browser only, "Remember on this browser" (opt-in; the key is kept sealed
+  by a non-extractable browser key, `WebSessionKeyStore`) and "Sign out and
+  remove data from this browser" (`ztWipeBrowserStorage`). New strings in
+  English and Hebrew. Phones and desktop apps look and behave as before.
+- `accountServiceProvider` now takes its session key store from
+  `ztPlatformSessionKeyStore()`.
+- Upgrade: nothing for phone apps. A web app runs the two scripts above and
+  gates phone-only features with `ztCapabilitiesProvider`.
+### ZT Family: release checks and location tables (`zt_release_checks`, database)
+
+- New suite app id `family` (ZT Family). Its data key, signing key and a
+  synced item were made with core and checked independently with Python
+  (hashlib, hmac, cryptography), like the other apps' vectors. Nothing
+  changes for the existing apps.
+- Migration `20261118120000_family_location_tables`. Two tables for the
+  sealed location updates of a family circle (a shared space of app
+  `family`): `family_latest` (one row per member device, what the map
+  reads) and `family_events` (history: points, arrivals, check-ins, SOS),
+  plus `family_settings` (days of history a circle keeps, 7 by default,
+  1 to 30, set by an owner with `family_set_history_days`). Ciphertext
+  only. Only the circle's members read them; everyone writes only as
+  themselves (the server sets the sender and the time, so nothing can be
+  backdated or put in someone else's name); rows must be sealed under the
+  circle's current key; events can't be edited; a member's rows go when
+  they leave, are removed or delete their account. `family_purge_history`
+  runs hourly (pg_cron) and deletes history past the window and devices
+  silent for 30 days. Both tables are in the realtime publication.
+- Upgrade: nothing to do in the existing apps. Live database: paste
+  `family-location-tables.sql` once (needs the shared spaces migration).
+
+### Release checks know ZT Home (`zt_release_checks`)
+
+- New suite app id `home` (ZT Home, the smart home app). Its data key,
+  signing key and a synced item were made with core and checked
+  independently with Python (cryptography: HKDF, AES-GCM, Ed25519), like the
+  other apps' vectors. Nothing changes for the existing apps.
+
+### Unlimited plan for the owner (`zero_trust_core`, database)
+
+- Migration `20261118090000_core_unlimited_plan`. New hidden plan
+  `unlimited`, ranked above Plus, never sold: the project owner gives it
+  by hand with `zt_grant_plan('<user id>', 'unlimited', null, 'owner')`.
+  No storage limit (every limit is 2^53 - 1) and every feature, also ones
+  added later: its `features` are `*`, which `zt_has_feature()` now treats
+  as "all of them". The 1 MiB cap per synced item stays, as on every plan.
+- Nobody can give it to themselves: plans, subscriptions and
+  `zt_grant_plan` stay closed to apps. A bought Plus on the same account
+  changes nothing, because the highest-ranked plan wins.
+- Dart: `ZtPlan.has()` is true for every feature on that plan
+  (`ZtPlan.hasEverything`, `ZtPlan.everyFeature`). `ZtStorageUsage` gains
+  `itemsUnlimited` and `attachmentsUnlimited`; the Storage row then reads
+  "2.4 MB used, no limit" without a bar. `ZtPlansScreen` hides the Plus
+  offer for an account on a plan other than Plus.
+- Upgrade: nothing to do in apps. Gate paid features with `plan.has(...)`
+  and `zt_has_feature(...)` only, never by comparing the plan id, so the
+  Unlimited plan keeps including them. Live database: paste
+  `core-unlimited-plan.sql` once (needs the plans migrations).
+
+### Sign-up says when the email could not be sent (`zero_trust_core`)
+
+- When the account server can't send a confirmation, reset or change-email
+  message (its mail provider refused or failed), sign-up and Forgot password
+  now show "We couldn't send the email. The problem is on our side, not
+  yours. Try again later." instead of "Our server isn't responding right
+  now". New string `errEmailNotSent`, English and Hebrew. No app changes
+  needed.
+
+### Billing backbone and Plans screen (`zero_trust_core`, database)
+
+- Migration `20261117090000_core_billing_backbone`. New `zt_billing_products`
+  (what each store sells, inactive until launch; Play products
+  `zt_plus:monthly` and `zt_plus:yearly` are seeded switched off) and
+  `zt_billing_events` (every store notification, stored once). Neither is
+  writable by apps.
+- `zt_apply_billing_event(...)`, callable only with the service role (store
+  webhooks and verification edge functions). It is idempotent (a repeated
+  event returns `duplicate`), ignores events older than what is already
+  stored (`stale`), refuses to move a purchase to another account
+  (`owner_mismatch`) and records the result on the event row.
+- Reconcile helpers for a nightly job: `zt_billing_due_for_check`,
+  `zt_billing_expire_lapsed` (manual grants are left alone) and
+  `zt_billing_purge_events` (13 months). Owner views `zt_billing_summary`
+  and `zt_billing_problems`.
+- `zt_subscriptions` gains `product_id` and `provider_updated_at`.
+- Dart: `ZtBillingStore` interface with `ztBillingStoreProvider` (null by
+  default, so nothing can be bought until a store is wired in) and
+  `FakeBillingStore` for tests and demos.
+- `ZtPlansScreen`: current plan, Plus benefits, prices from the store,
+  buy, pending and failed states, Manage subscription, Restore purchases,
+  and the "renews automatically, no free trial" note. English and Hebrew.
+- Upgrade: nothing to do in apps yet. Live database: paste
+  `core-billing-backbone.sql` once (needs the plans migrations).
+
+### Settings links default to zerotrust.bz (`zero_trust_core`)
+
+- `ZtSettingsPage` now shows Help and feedback, Privacy policy and Terms
+  of use whenever `onOpenUrl` is set. Without their URLs they open
+  https://zerotrust.bz/support/, /privacy/ and /terms/
+  (`ztSupportUrl`, `ztPrivacyPolicyUrl`, `ztTermsUrl`).
+### Install channel and "Support the project" (`zero_trust_core`)
+
+- New `ZtInstallChannel` (`direct`, `play`, `appStore`), set at build time
+  with `--dart-define=ZT_CHANNEL=...` and readable as
+  `ZtAppConfig.channel`. A build without the flag counts as a store build
+  (`play`, or `appStore` on Apple), so nothing that store rules forbid can
+  appear by accident.
+- Settings → About shows **Support the project** (GitHub Sponsors) only
+  in `direct` builds with `onOpenUrl` set. Google Play and the App Store
+  forbid links to other ways of paying, so store builds never show it.
+  Turn it off with `ZtSettingsPage(showSponsor: false)`.
+- Upgrade: add `--dart-define=ZT_CHANNEL=direct` to the APK build in each
+  app's release workflow (the GitHub release APK), and leave it off for the
+  Play `.aab`. No other change needed.
+
+### Release checks know ZT Quests (`zt_release_checks`)
+
+- New suite app id `quests` (ZT Quests). Its data key, signing key and a
+  synced item were made with core and checked independently with Python
+  (hashlib, hmac, cryptography), like the other apps' vectors. Nothing
+  changes for the existing apps.
+
+### Optional "stay unlocked" (`zero_trust_core`)
+
+- Settings → Auto-lock has a new last choice, **Never, even after closing
+  the app**. It keeps the key in the phone's key store
+  (`SecureSessionKeyStore`) so `ZtUnlockScreen` opens the vault on its own
+  after the app is closed. Opt-in: the default and the existing choices
+  (Immediately, 1, 5, 15 min, Never) are unchanged.
+- Turning it on explains the trade-off and asks for the fingerprint or
+  password. Only offered on phones with a screen lock; dropped if the
+  screen lock is removed. "Lock now", sign-out, account deletion and any
+  other choice remove the kept key.
+- "Export my data" now asks for the fingerprint or password
+  (`ztConfirmIdentity`). Changing the password, a new recovery key and
+  deleting the account already asked.
+- New: `SessionKeyStore`, `AccountService(sessionKeys:)`,
+  `rememberSession`, `resumeSession`, `forgetSession`,
+  `stayUnlockedAvailable`, `ztStayUnlockedProvider`.
+
+**Upgrade note:** move the core pin. Apps that build `ZtUnlockScreen` and
+`ZtSettingsPage` need no other change.
+
 ## 0.12.0
 
 Release checks every app runs in CI, Google Play's location disclosure for

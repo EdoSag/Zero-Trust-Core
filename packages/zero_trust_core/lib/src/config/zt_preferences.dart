@@ -83,3 +83,46 @@ class AutoLockController extends Notifier<Duration?> {
 
 final ztAutoLockProvider =
     NotifierProvider<AutoLockController, Duration?>(AutoLockController.new);
+
+/// The "Never, even after closing the app" Auto-lock choice: the vault
+/// stays open across app restarts (see `SessionKeyStore`). Off unless the
+/// user picks it; it goes with an auto-lock of "Never" ([ztAutoLockProvider]
+/// is null while it's on). Remembered per app install, like auto-lock.
+class StayUnlockedController extends Notifier<bool> {
+  static const _key = 'stay_unlocked';
+
+  bool _chosen = false;
+  late Future<void> _loaded;
+
+  @override
+  bool build() {
+    _loaded = _load();
+    return false;
+  }
+
+  /// The stored choice, once it has been read.
+  Future<bool> current() async {
+    await _loaded;
+    return state;
+  }
+
+  Future<void> _load() async {
+    final String? stored;
+    try {
+      stored = await ref.read(ztPreferencesStoreProvider).read(_key);
+    } on Object {
+      return; // Unreadable: stays off.
+    }
+    if (stored == null || _chosen) return;
+    state = stored == 'true';
+  }
+
+  Future<void> set(bool on) async {
+    _chosen = true;
+    state = on;
+    await ref.read(ztPreferencesStoreProvider).write(_key, '$on');
+  }
+}
+
+final ztStayUnlockedProvider =
+    NotifierProvider<StayUnlockedController, bool>(StayUnlockedController.new);

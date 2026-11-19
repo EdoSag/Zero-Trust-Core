@@ -14,6 +14,20 @@ SHA256="408a1d9bf8071bfb6e91aba005e6c8e2072c240784e1d199bbd7eb441dd5ea94"
 
 out_dir="${1:-web}"
 mkdir -p "$out_dir"
+
+# The WebAssembly file and the Dart package call into each other: a
+# different version fails when the browser loads it ("LinkError ... function
+# import requires a callable") and the app then never opens its store. Stop
+# the build instead.
+lock="$(cd "$out_dir/.." && pwd)/pubspec.lock"
+if [ -f "$lock" ]; then
+  locked="$(awk '/^  sqlite3:$/{f=1} f && /version:/{gsub(/[" ]/,"",$0); sub(/version:/,"",$0); print; exit}' "$lock")"
+  if [ -n "$locked" ] && [ "$locked" != "$VERSION" ]; then
+    echo "sqlite3 is $locked in $lock, but the pinned sqlite3mc.wasm is $VERSION." >&2
+    echo "Run: flutter pub upgrade sqlite3   (or update VERSION and SHA256 in $0)" >&2
+    exit 1
+  fi
+fi
 tmp="$(mktemp)"
 trap 'rm -f "$tmp"' EXIT
 
