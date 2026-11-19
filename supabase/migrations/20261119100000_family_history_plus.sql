@@ -29,7 +29,11 @@ begin
   if p_days is null or p_days < 1 or p_days > 30 then
     raise exception 'family_bad_history_days' using errcode = 'P0001';
   end if;
-  if p_days > 7 and not public.zt_has_feature('family') then
+  -- Over 7 days needs Plus, except keeping or shortening a window the
+  -- circle already has (an owner whose Plus ended can still shorten it).
+  if p_days > 7 and not public.zt_has_feature('family')
+     and p_days > coalesce(
+       (select s.history_days from public.family_settings s where s.space_id = p_space), 7) then
     raise exception 'family_needs_plus' using errcode = 'P0001';
   end if;
   insert into public.family_settings (space_id, history_days)

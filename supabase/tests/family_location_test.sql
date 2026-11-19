@@ -224,11 +224,19 @@ select public.family_set_history_days('00000000-0000-0000-0000-00000000f001', 30
 do $$ begin
   assert (select history_days from public.family_settings) = 30, 'Plus owner keeps 30 days';
 end $$;
-select public.family_set_history_days('00000000-0000-0000-0000-00000000f001', 3);
 reset role;
 delete from public.zt_subscriptions where user_id = '00000000-0000-0000-0000-00000000fa01';
 set role authenticated;
 select pg_temp.as_user('00000000-0000-0000-0000-00000000fa01');
+-- Plus ended: the 30 days stay, can be shortened, but not lengthened again.
+select public.family_set_history_days('00000000-0000-0000-0000-00000000f001', 14);
+do $$ begin
+  assert (select history_days from public.family_settings) = 14, 'shortened after Plus ended';
+end $$;
+select pg_temp.expect_error(
+  $$select public.family_set_history_days('00000000-0000-0000-0000-00000000f001', 20)$$,
+  'lengthened after Plus ended', 'family_needs_plus');
+select public.family_set_history_days('00000000-0000-0000-0000-00000000f001', 3);
 reset role;
 select public.family_purge_history();
 do $$ begin
