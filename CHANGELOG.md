@@ -3,7 +3,39 @@
 Apps depend on the core by git tag (`ref: vX.Y.Z`). Upgrade notes list what
 an app must change.
 
-## Unreleased
+## 0.13.0
+
+The planning engine and the optional AI helper for ZT Calendar's Planner,
+the web kit and the web deploy workflow, the Plans screen with the billing
+backbone, optional "stay unlocked", settings for an app that works without
+an account, ZT Family's location tables, and release checks for ZT Quests,
+Family, Home, Camera and Clock. Apps move their core pin only when they
+want one of these; nothing here forces an upgrade.
+
+### Planner AI helper, off by default (database, edge function)
+
+- Migration `20261119190000_planner_ai`: `zt_ai_config` (one row, owner
+  only, `enabled` starts false) and `zt_ai_usage` (per user and month:
+  requests, tokens and cost, never text).
+- Edge function `supabase/functions/planner-ai`: checks the plan, the
+  user's monthly limit and the project's monthly budget, forwards the
+  request and records the counts. It also needs the `ANTHROPIC_API_KEY`
+  secret; the steps to switch it on are in the function's README.
+- Upgrade: nothing to do. The apps hide the helper while it is off.
+
+### Plus includes the Planner and longer Family history (database)
+
+- Migration `20261119180000_core_plus_planner_feature`: Plus gets the
+  `planner` feature (the automatic Planner in ZT Calendar; "Find a time for
+  a task" stays free).
+- Migration `20261119100000_family_history_plus`: Plus gets the `family`
+  feature. A circle's owner needs Plus to keep more than 7 days of history
+  (up to 30); a circle keeps its window if the owner's Plus ends.
+
+### Release checks know ZT Clock and ZT Camera (`zt_release_checks`)
+
+- New suite app ids `clock` and `camera`, with vectors like the other apps.
+  Nothing changes for the existing apps.
 
 ### Reusable web deploy workflow
 
@@ -12,6 +44,10 @@ an app must change.
   file, and on a release publishes it to Cloudflare Pages. Apps add a
   ten-line workflow that calls it, plus the repository secrets
   `CLOUDFLARE_API_TOKEN` and `CLOUDFLARE_ACCOUNT_ID`.
+- Until an app's repository has both secrets, the publish step is skipped
+  with a warning and the run stays green, so a release that only ships
+  Android is not marked as failed. The site is still built and kept as an
+  artifact.
 - `tool/fetch_sqlite3mc_wasm.sh` stops with a clear message when the app's
   locked `sqlite3` package is not the version the wasm file was built for.
   A mismatch used to build fine and then never open the store in the
@@ -187,6 +223,7 @@ an app must change.
 - Upgrade: add `--dart-define=ZT_CHANNEL=direct` to the APK build in each
   app's release workflow (the GitHub release APK), and leave it off for the
   Play `.aab`. No other change needed.
+
 ### Release checks know ZT Quests (`zt_release_checks`)
 
 - New suite app id `quests` (ZT Quests). Its data key, signing key and a
