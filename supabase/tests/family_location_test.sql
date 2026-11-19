@@ -212,6 +212,23 @@ select public.family_set_history_days('00000000-0000-0000-0000-00000000f001', 3)
 do $$ begin
   assert (select history_days from public.family_settings) = 3, 'history window saved once';
 end $$;
+-- More than 7 days needs Plus (the `family` feature).
+select pg_temp.expect_error(
+  $$select public.family_set_history_days('00000000-0000-0000-0000-00000000f001', 30)$$,
+  'free owner keeps 30 days', 'family_needs_plus');
+reset role;
+select public.zt_grant_plan('00000000-0000-0000-0000-00000000fa01', 'plus', null, 'family test');
+set role authenticated;
+select pg_temp.as_user('00000000-0000-0000-0000-00000000fa01');
+select public.family_set_history_days('00000000-0000-0000-0000-00000000f001', 30);
+do $$ begin
+  assert (select history_days from public.family_settings) = 30, 'Plus owner keeps 30 days';
+end $$;
+select public.family_set_history_days('00000000-0000-0000-0000-00000000f001', 3);
+reset role;
+delete from public.zt_subscriptions where user_id = '00000000-0000-0000-0000-00000000fa01';
+set role authenticated;
+select pg_temp.as_user('00000000-0000-0000-0000-00000000fa01');
 reset role;
 select public.family_purge_history();
 do $$ begin
