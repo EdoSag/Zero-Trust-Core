@@ -726,6 +726,9 @@ class ZtLocalizationsHe extends ZtLocalizations {
   String get taglineContacts => 'פנקס הכתובות שלך';
 
   @override
+  String get taglineClock => 'שעונים מעוררים, טיימר, שעון עצר ושעון עולמי';
+
+  @override
   String planName(String name) {
     return 'תוכנית: $name';
   }

@@ -3,6 +3,16 @@
 Apps depend on the core by git tag (`ref: vX.Y.Z`). Upgrade notes list what
 an app must change.
 
+## Unreleased
+
+### ZT Clock in "Other Zero-Trust apps" (`zero_trust_core`)
+
+- `ZtSuite.clock` joins `ZtSuite.apps`, so the settings of every app list
+  Zero-Trust Clock under "Other Zero-Trust apps" (English and Hebrew), and
+  Clock's own sign-in, unlock and onboarding screens get its brand mark.
+- Upgrade: nothing to do. An app shows the new row once it moves its core
+  pin. ZT Clock can then drop its own `clockSuiteApp` for `ZtSuite.clock`.
+
 ## 0.13.0
 
 The planning engine and the optional AI helper for ZT Calendar's Planner,

@@ -79,7 +79,16 @@ abstract final class ZtSuite {
     androidPackage: 'dev.sagron.zerotrustcontacts',
   );
 
-  static const List<ZtSuiteApp> apps = [notes, tasks, fitness, contacts];
+  static const clock = ZtSuiteApp(
+    appId: 'clock',
+    name: 'Clock',
+    tagline: 'Alarms, timer, stopwatch and world clock',
+    icon: Icons.alarm,
+    accent: Color(0xFF6366F1), // indigo
+    androidPackage: 'dev.sagron.zerotrustclock',
+  );
+
+  static const List<ZtSuiteApp> apps = [notes, tasks, fitness, contacts, clock];
 
   static ZtSuiteApp? byId(String appId) {
     for (final app in apps) {

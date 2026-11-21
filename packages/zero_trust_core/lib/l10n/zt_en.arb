@@ -375,6 +375,7 @@
   "taglineTasks": "To-dos, reminders and lists",
   "taglineFitness": "Activity, workouts and health",
   "taglineContacts": "Your address book",
+  "taglineClock": "Alarms, timer, stopwatch and world clock",
   "planName": "Plan: {name}",
   "@planName": {
     "description": "Settings row: the account's plan, e.g. 'Plan: Free'",

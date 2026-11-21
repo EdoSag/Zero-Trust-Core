@@ -110,7 +110,7 @@ void main() {
   group('one account opens every app', () {
     // Each app has its own AccountService on the same project.
 
-    test('made in any app, it signs in to all four with the same key',
+    test('made in any app, it signs in to all the others with the same key',
         () async {
       for (final maker in ZtSuite.apps) {
         final backend = FakeBackend();
