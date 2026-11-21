@@ -6,7 +6,10 @@
 // Every value below was made by core 0.11 (quests: core 0.12, 2026-11-17;
 // camera, family and home: core 0.12, 2026-11-18; clock: core 0.12,
 // 2026-11-19; same derivation and format)
-// and checked independently with Python (hashlib, hmac, cryptography). If one
+// and checked independently with Python (hashlib, hmac, cryptography). The
+// mail values (2026-11-21) went the other way round: made with Python, after
+// the same script reproduced the values of notes, quests and clock, and
+// checked by core 0.13 here. If one
 // fails, a dependency bump or a
 // code change has changed how keys are made or data is sealed, and existing
 // accounts or synced data would no longer open. Never update the expected
@@ -40,6 +43,7 @@ const _suite = [
   'family',
   'home',
   'clock',
+  'mail',
 ];
 
 /// App key and signing public key for DEK = 00 01 .. 1f.
@@ -99,6 +103,10 @@ const _appKeys = {
   'clock': (
     'eaf4668842679514d4b5cacdee5b61aea54d700154d6197a9e6f4724484e0ac5',
     '8c1f42fb0a5100bb4c3e6cd1dcdd1149200bf4b55b385cdb67697c8a7d2b7c3a',
+  ),
+  'mail': (
+    '1e0fbbce06191e5247e7334d2774d30a81163075feee9202537d162bb257b5b7',
+    'db3a97a8ca1e046e8a6a62c6368ffb688e19a6616cff0ce682f5d4ba5005cad6',
   ),
 };
 
@@ -160,6 +168,10 @@ const _syncedItems = {
   'clock': (
     'AYEi9Lu369+nKzZqu+N4d+RDvE7TjS5AIJUgjXzTw4KO8iU5fwaHpqc0Sm5kqxowauzp+1DMBagw02gImPgULKYo',
     '8jpGWMz8LRPItaqIYwCdntevhGVxCsCNcR7l6NVf0OYk2EWe80MpjDpUkf3RYd8lcgT4Q/j2M1aXUueQPjBpCg==',
+  ),
+  'mail': (
+    'M8DQWWZF6iPCX5nknyFC0yzZJEs4QXGiJTQz3yyNCagLT3ExLyLdvuX1/UmyJENeP20BIUgTi6r6+VFCxwTDA2ny',
+    'FHh5gS50RTBipzX9BrfAdXXIjO9kzhkpDrQEpCyl97kfEr5XkiruE3AhLozuYfOwr3fbZhPjlbKiO0OYyhFSCA==',
   ),
 };
 
