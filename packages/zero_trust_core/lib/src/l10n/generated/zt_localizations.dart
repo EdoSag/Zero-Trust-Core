@@ -1717,6 +1717,96 @@ abstract class ZtLocalizations {
   /// In en, this message translates to:
   /// **'OK'**
   String get ok;
+
+  /// No description provided for @changeEmail.
+  ///
+  /// In en, this message translates to:
+  /// **'Change email'**
+  String get changeEmail;
+
+  /// No description provided for @changeEmailSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Sign in with a different address'**
+  String get changeEmailSubtitle;
+
+  /// No description provided for @changeEmailIntro.
+  ///
+  /// In en, this message translates to:
+  /// **'Your data stays encrypted with your password, as before. Only the address you sign in with changes, in every Zero-Trust app.'**
+  String get changeEmailIntro;
+
+  /// No description provided for @newEmail.
+  ///
+  /// In en, this message translates to:
+  /// **'New email'**
+  String get newEmail;
+
+  /// No description provided for @sendCode.
+  ///
+  /// In en, this message translates to:
+  /// **'Send code'**
+  String get sendCode;
+
+  /// No description provided for @enterEmailCode.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter the 6-digit code we sent to {email}.'**
+  String enterEmailCode(String email);
+
+  /// No description provided for @emailCode.
+  ///
+  /// In en, this message translates to:
+  /// **'Code'**
+  String get emailCode;
+
+  /// No description provided for @changeEmailConfirm.
+  ///
+  /// In en, this message translates to:
+  /// **'Change email'**
+  String get changeEmailConfirm;
+
+  /// No description provided for @sendNewCode.
+  ///
+  /// In en, this message translates to:
+  /// **'Send a new code'**
+  String get sendNewCode;
+
+  /// No description provided for @emailChangedTo.
+  ///
+  /// In en, this message translates to:
+  /// **'Your account now signs in with {email}.'**
+  String emailChangedTo(String email);
+
+  /// No description provided for @errEmailInvalid.
+  ///
+  /// In en, this message translates to:
+  /// **'That doesn\'t look like an email address.'**
+  String get errEmailInvalid;
+
+  /// No description provided for @errEmailSame.
+  ///
+  /// In en, this message translates to:
+  /// **'That is already your account\'s email.'**
+  String get errEmailSame;
+
+  /// No description provided for @errEmailInUse.
+  ///
+  /// In en, this message translates to:
+  /// **'That email already has a Zero-Trust account.'**
+  String get errEmailInUse;
+
+  /// No description provided for @errEmailCodeWrong.
+  ///
+  /// In en, this message translates to:
+  /// **'That code isn\'t right. Check the email and try again.'**
+  String get errEmailCodeWrong;
+
+  /// No description provided for @errEmailCodeExpired.
+  ///
+  /// In en, this message translates to:
+  /// **'The code expired. Send a new one.'**
+  String get errEmailCodeExpired;
 }
 
 class _ZtLocalizationsDelegate extends LocalizationsDelegate<ZtLocalizations> {

@@ -167,4 +167,63 @@ class GraceFakeBackend extends FakeBackend implements AccountLifecycleBackend {
 
   @override
   Future<bool> keepAccount() async => scheduled.remove(currentUserId) != null;
+
+  // Email change (Z14). Users keep their first email as their id; the
+  // sign-in address can differ after a change.
+  final Map<String, String> emailOf = {};
+  final Map<String, ({String email, String code})> pendingEmail = {};
+  final List<String> codesSent = [];
+  int emailCodeTries = 0;
+
+  @override
+  String? get currentEmail =>
+      currentUserId == null ? null : emailOf[currentUserId] ?? currentUserId;
+
+  String? _userFor(String email) {
+    for (final e in emailOf.entries) {
+      if (e.value == email) return e.key;
+    }
+    // An id whose address moved on no longer signs in.
+    return emailOf.containsKey(email) ? null : email;
+  }
+
+  @override
+  Future<void> signIn(String email, String authPassword) async {
+    final user = _userFor(email);
+    if (user == null) {
+      passwordsSeenByServer.add(authPassword);
+      throw const InvalidCredentials();
+    }
+    return super.signIn(user, authPassword);
+  }
+
+  @override
+  Future<void> startEmailChange(String newEmail) async {
+    if (!freshSession) throw Exception('recent sign-in required');
+    if (_userFor(newEmail) != null &&
+        authPasswords.containsKey(_userFor(newEmail))) {
+      throw const EmailInUse();
+    }
+    final code = '${123456 + codesSent.length}';
+    codesSent.add(code);
+    pendingEmail[currentUserId!] = (email: newEmail, code: code);
+  }
+
+  @override
+  Future<String> finishEmailChange(String code, String authSecret) async {
+    final user = currentUserId!;
+    final pending = pendingEmail[user];
+    if (pending == null || emailCodeTries >= 5)
+      throw const EmailChangeExpired();
+    if (pending.code != code) {
+      emailCodeTries++;
+      throw const EmailChangeCodeWrong();
+    }
+    // One server step: the address and the sign-in secret together.
+    emailOf[user] = pending.email;
+    passwordsSeenByServer.add(authSecret);
+    authPasswords[user] = authSecret;
+    pendingEmail.remove(user);
+    return pending.email;
+  }
 }

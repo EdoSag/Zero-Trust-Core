@@ -17,6 +17,7 @@ import '../../config/zt_preferences.dart';
 import '../../config/zt_suite.dart';
 import '../../crash/zt_crash_reporter.dart';
 import '../brand/zt_brand_mark.dart';
+import 'zt_change_email_screen.dart';
 import 'zt_crash_reports_screen.dart';
 import 'zt_data_protection_screen.dart';
 import '../../core_providers.dart';
@@ -188,6 +189,23 @@ class ZtSettingsPage extends ConsumerWidget {
               title: Text(ZtL10n.of(context).changePassword),
               onTap: () => _changePassword(context, ref),
             ),
+            if (account.canChangeEmail)
+              ListTile(
+                leading: const Icon(Icons.alternate_email),
+                title: Text(ZtL10n.of(context).changeEmail),
+                subtitle: Text(ZtL10n.of(context).changeEmailSubtitle),
+                onTap: () async {
+                  final email = await Navigator.push<String>(
+                    context,
+                    MaterialPageRoute(
+                        builder: (_) => const ZtChangeEmailScreen()),
+                  );
+                  if (email == null || !context.mounted) return;
+                  ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+                      content: Text(ZtL10n.of(context).emailChangedTo(email))));
+                  (context as Element).markNeedsBuild();
+                },
+              ),
             ListTile(
               leading: const Icon(Icons.logout),
               title: Text(ZtL10n.of(context).signOut),

@@ -1013,4 +1013,55 @@ class ZtLocalizationsEn extends ZtLocalizations {
 
   @override
   String get ok => 'OK';
+
+  @override
+  String get changeEmail => 'Change email';
+
+  @override
+  String get changeEmailSubtitle => 'Sign in with a different address';
+
+  @override
+  String get changeEmailIntro =>
+      'Your data stays encrypted with your password, as before. Only the address you sign in with changes, in every Zero-Trust app.';
+
+  @override
+  String get newEmail => 'New email';
+
+  @override
+  String get sendCode => 'Send code';
+
+  @override
+  String enterEmailCode(String email) {
+    return 'Enter the 6-digit code we sent to $email.';
+  }
+
+  @override
+  String get emailCode => 'Code';
+
+  @override
+  String get changeEmailConfirm => 'Change email';
+
+  @override
+  String get sendNewCode => 'Send a new code';
+
+  @override
+  String emailChangedTo(String email) {
+    return 'Your account now signs in with $email.';
+  }
+
+  @override
+  String get errEmailInvalid => 'That doesn\'t look like an email address.';
+
+  @override
+  String get errEmailSame => 'That is already your account\'s email.';
+
+  @override
+  String get errEmailInUse => 'That email already has a Zero-Trust account.';
+
+  @override
+  String get errEmailCodeWrong =>
+      'That code isn\'t right. Check the email and try again.';
+
+  @override
+  String get errEmailCodeExpired => 'The code expired. Send a new one.';
 }
