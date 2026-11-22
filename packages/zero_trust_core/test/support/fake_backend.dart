@@ -213,8 +213,9 @@ class GraceFakeBackend extends FakeBackend implements AccountLifecycleBackend {
   Future<String> finishEmailChange(String code, String authSecret) async {
     final user = currentUserId!;
     final pending = pendingEmail[user];
-    if (pending == null || emailCodeTries >= 5)
+    if (pending == null || emailCodeTries >= 5) {
       throw const EmailChangeExpired();
+    }
     if (pending.code != code) {
       emailCodeTries++;
       throw const EmailChangeCodeWrong();
