@@ -14,6 +14,15 @@ an app must change.
   its old data key, and that a never-upgraded one is refused without the
   raw password being sent. This turns Core CI green again.
 
+### sqlite3mc.wasm follows the app's sqlite3 (`tool/`)
+
+- `tool/fetch_sqlite3mc_wasm.sh` now fetches the `sqlite3mc.wasm` of the
+  `sqlite3` version in the app's `pubspec.lock` (3.9.1 or 3.9.2; 3.9.2 when
+  there is no lock yet), each checked against its own pinned checksum. CI
+  broke when `sqlite3` 3.9.2 came out, because the example has no committed
+  lock and the script only knew 3.9.1. An unknown version still stops the
+  build, with a message saying to add its checksum.
+
 ### One family space for the whole suite (S-10; `zero_trust_core`)
 
 - The ZT Family circle (space app `family`) is now every app's family
