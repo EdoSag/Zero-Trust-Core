@@ -375,6 +375,7 @@ class ZtSettingsPage extends ConsumerWidget {
       'tasks' => l.taglineTasks,
       'fitness' => l.taglineFitness,
       'contacts' => l.taglineContacts,
+      'clock' => l.taglineClock,
       _ => app.tagline,
     };
   }

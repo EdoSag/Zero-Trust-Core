@@ -718,6 +718,9 @@ class ZtLocalizationsEn extends ZtLocalizations {
   String get taglineContacts => 'Your address book';
 
   @override
+  String get taglineClock => 'Alarms, timer, stopwatch and world clock';
+
+  @override
   String planName(String name) {
     return 'Plan: $name';
   }

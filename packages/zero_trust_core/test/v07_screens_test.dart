@@ -178,12 +178,26 @@ void main() {
     await tester.scrollUntilVisible(find.text('Other Zero-Trust apps'), 100);
     expect(find.text('Zero-Trust Tasks'), findsOneWidget,
         reason: 'only in About: the current app is not listed');
-    for (final name in ['Notes', 'Fitness', 'Contacts']) {
+    for (final name in ['Notes', 'Fitness', 'Contacts', 'Clock']) {
       await tester.scrollUntilVisible(find.text('Zero-Trust $name'), 100);
     }
     await tester.tap(find.text('Zero-Trust Contacts'));
     expect(opened.single.toString(),
         'https://play.google.com/store/apps/details?id=dev.sagron.zerotrustcontacts');
+
+    // Clock is in the list too, last, under Contacts, with its own line.
+    final contacts = tester.getRect(find.text('Zero-Trust Contacts'));
+    final clock = tester.getRect(find.text('Zero-Trust Clock'));
+    expect(clock.top, greaterThan(contacts.bottom));
+    expect(clock.left, contacts.left);
+    final about =
+        find.text('Alarms, timer, stopwatch and world clock · same account');
+    expect(about, findsOneWidget);
+    expect(tester.getRect(about).top, greaterThanOrEqualTo(clock.bottom));
+    expect(tester.getRect(about).left, clock.left);
+    await tester.tap(find.text('Zero-Trust Clock'));
+    expect(opened.last.toString(),
+        'https://play.google.com/store/apps/details?id=dev.sagron.zerotrustclock');
 
     // No wallpaper palette in tests (as on iOS): the switch is hidden.
     expect(find.text('Use wallpaper colours'), findsNothing);

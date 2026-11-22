@@ -1244,6 +1244,12 @@ abstract class ZtLocalizations {
   /// **'Your address book'**
   String get taglineContacts;
 
+  /// No description provided for @taglineClock.
+  ///
+  /// In en, this message translates to:
+  /// **'Alarms, timer, stopwatch and world clock'**
+  String get taglineClock;
+
   /// Settings row: the account's plan, e.g. 'Plan: Free'
   ///
   /// In en, this message translates to:
