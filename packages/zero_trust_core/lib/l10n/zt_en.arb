@@ -376,6 +376,8 @@
   "taglineFitness": "Activity, workouts and health",
   "taglineContacts": "Your address book",
   "taglineClock": "Alarms, timer, stopwatch and world clock",
+  "taglineTime": "Time tracking for work and projects",
+  "taglineQuests": "Daily quests for your goals, with XP and levels",
   "planName": "Plan: {name}",
   "@planName": {
     "description": "Settings row: the account's plan, e.g. 'Plan: Free'",

@@ -721,6 +721,12 @@ class ZtLocalizationsEn extends ZtLocalizations {
   String get taglineClock => 'Alarms, timer, stopwatch and world clock';
 
   @override
+  String get taglineTime => 'Time tracking for work and projects';
+
+  @override
+  String get taglineQuests => 'Daily quests for your goals, with XP and levels';
+
+  @override
   String planName(String name) {
     return 'Plan: $name';
   }

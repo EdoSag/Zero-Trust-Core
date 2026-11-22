@@ -5,6 +5,15 @@ an app must change.
 
 ## Unreleased
 
+### ZT Time and ZT Quests in "Other Zero-Trust apps" (`zero_trust_core`)
+
+- `ZtSuite.time` and `ZtSuite.quests` join `ZtSuite.apps`, so every app's
+  settings list them under "Other Zero-Trust apps" (English and Hebrew),
+  and their own sign-in, unlock and onboarding screens get their brand mark
+  from the core.
+- Upgrade: nothing to do. ZT Quests can drop its own `questsSuiteApp` for
+  `ZtSuite.quests` once it moves its core pin.
+
 ### ZT Clock in "Other Zero-Trust apps" (`zero_trust_core`)
 
 - `ZtSuite.clock` joins `ZtSuite.apps`, so the settings of every app list
