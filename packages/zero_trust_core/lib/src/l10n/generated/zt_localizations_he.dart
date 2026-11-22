@@ -346,7 +346,7 @@ class ZtLocalizationsHe extends ZtLocalizations {
 
   @override
   String get thisPermanentlyDeletesYourAccountAnd =>
-      'הפעולה מוחקת לצמיתות את החשבון ואת המידע שלך בכל אפליקציות Zero-Trust. אי אפשר לבטל אותה.';
+      'החשבון והמידע שלך בכל אפליקציות Zero-Trust יימחקו לצמיתות אחרי 7 ימים. עד אז אפשר להתחרט.';
 
   @override
   String get delete => 'מחיקה';
@@ -729,6 +729,13 @@ class ZtLocalizationsHe extends ZtLocalizations {
   String get taglineClock => 'שעונים מעוררים, טיימר, שעון עצר ושעון עולמי';
 
   @override
+  String get taglineTime => 'מעקב זמן לעבודה ולפרויקטים';
+
+  @override
+  String get taglineQuests =>
+      'משימות יומיות למטרות שלך, עם נקודות ניסיון ורמות';
+
+  @override
   String planName(String name) {
     return 'תוכנית: $name';
   }
@@ -973,4 +980,146 @@ class ZtLocalizationsHe extends ZtLocalizations {
 
   @override
   String get signOutAndRemove => 'התנתקות והסרה';
+
+  @override
+  String get accountDeletionScheduledTitle => 'החשבון שלך מתוזמן למחיקה';
+
+  @override
+  String accountDeletionScheduledBody(String date) {
+    return 'ב-$date החשבון והמידע שלך בכל אפליקציות Zero-Trust יימחקו לצמיתות. עד אז אפשר להשאיר אותו.';
+  }
+
+  @override
+  String accountDeletionScheduledTile(String date) {
+    return 'יימחק ב-$date';
+  }
+
+  @override
+  String get keepMyAccount => 'השארת החשבון';
+
+  @override
+  String get deleteAsPlanned => 'למחוק כמתוכנן';
+
+  @override
+  String get accountKept => 'החשבון שלך לא יימחק.';
+
+  @override
+  String get accountDeletionRequestedTitle => 'מחיקת החשבון תוזמנה';
+
+  @override
+  String accountDeletionRequestedBody(String date) {
+    return 'החשבון שלך יימחק ב-$date. התחרטת? אפשר להיכנס לאחת מאפליקציות Zero-Trust לפני כן וללחוץ על השארת החשבון, או להשתמש בקישור ששלחנו לך במייל.';
+  }
+
+  @override
+  String get ok => 'אישור';
+
+  @override
+  String get changeEmail => 'שינוי כתובת המייל';
+
+  @override
+  String get changeEmailSubtitle => 'כניסה עם כתובת אחרת';
+
+  @override
+  String get changeEmailIntro =>
+      'המידע שלך נשאר מוצפן עם הסיסמה, כמו קודם. רק הכתובת שאיתה נכנסים משתנה, בכל אפליקציות Zero-Trust.';
+
+  @override
+  String get newEmail => 'מייל חדש';
+
+  @override
+  String get sendCode => 'שליחת קוד';
+
+  @override
+  String enterEmailCode(String email) {
+    return 'יש להזין את הקוד בן 6 הספרות ששלחנו אל $email.';
+  }
+
+  @override
+  String get emailCode => 'קוד';
+
+  @override
+  String get changeEmailConfirm => 'שינוי המייל';
+
+  @override
+  String get sendNewCode => 'שליחת קוד חדש';
+
+  @override
+  String emailChangedTo(String email) {
+    return 'מעכשיו נכנסים לחשבון שלך עם $email.';
+  }
+
+  @override
+  String get errEmailInvalid => 'זו לא נראית כמו כתובת מייל.';
+
+  @override
+  String get errEmailSame => 'זו כבר כתובת המייל של החשבון שלך.';
+
+  @override
+  String get errEmailInUse => 'לכתובת הזו כבר יש חשבון Zero-Trust.';
+
+  @override
+  String get errEmailCodeWrong =>
+      'הקוד לא נכון. כדאי לבדוק את המייל ולנסות שוב.';
+
+  @override
+  String get errEmailCodeExpired => 'תוקף הקוד פג. אפשר לשלוח קוד חדש.';
+
+  @override
+  String get appUpdates => 'עדכוני אפליקציה';
+
+  @override
+  String get checkingForUpdates => 'בודקים אם יש עדכון…';
+
+  @override
+  String youHaveTheLatestVersion(String version) {
+    return 'מותקנת הגרסה האחרונה ($version)';
+  }
+
+  @override
+  String updateAvailableVersion(String version) {
+    return 'גרסה $version זמינה. אפשר להקיש כדי לעדכן.';
+  }
+
+  @override
+  String get couldNotCheckForUpdates =>
+      'לא הצלחנו לבדוק אם יש עדכון. אפשר להקיש כדי לנסות שוב.';
+
+  @override
+  String get noReleaseYet => 'עדיין אין גרסה ב-GitHub';
+
+  @override
+  String get checkForUpdates => 'בדיקת עדכונים';
+
+  @override
+  String get checkForUpdatesSubtitle =>
+      'פעם ביום נשאל את GitHub מה מספר הגרסה החדשה ביותר. שום דבר עליך או על הנתונים שלך לא נשלח.';
+
+  @override
+  String get getUpdatesWithObtainium => 'קבלת עדכונים עם Obtainium';
+
+  @override
+  String get obtainiumSubtitle =>
+      'אפליקציה חינמית שמתקינה עדכונים ישירות מ-GitHub';
+
+  @override
+  String get updateAvailableTitle => 'יש עדכון';
+
+  @override
+  String updateAvailableBody(String app, String version, String installed) {
+    return '$app $version מוכנה. אצלך מותקנת $installed.';
+  }
+
+  @override
+  String get updateHowItInstalls =>
+      'הדפדפן יוריד את העדכון, ואז יש לפתוח אותו כדי להתקין. אנדרואיד יתקין אותו רק אם הוא חתום על ידי אותו מפתח כמו האפליקציה הזו.';
+
+  @override
+  String get whatsNew => 'מה חדש';
+
+  @override
+  String get downloadUpdate => 'הורדה';
+
+  @override
+  String get couldNotOpenLink => 'לא הצלחנו לפתוח את הקישור.';
 }

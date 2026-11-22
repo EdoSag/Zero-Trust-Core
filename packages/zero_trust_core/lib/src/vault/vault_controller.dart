@@ -14,12 +14,17 @@ sealed class VaultState {
   const VaultState();
 }
 
+/// The `vault_items` app id (and key label) of the account's suite notes,
+/// which every app of the account can read (see [VaultUnlocked.suiteKey]).
+const ztSuiteNotesApp = 'suite';
+
 class VaultLocked extends VaultState {
   const VaultLocked();
 }
 
 class VaultUnlocked extends VaultState {
-  const VaultUnlocked({required this.appKey, this.legacyKey, this.identity});
+  const VaultUnlocked(
+      {required this.appKey, this.legacyKey, this.identity, this.suiteKey});
 
   /// This app's data key, HKDF'd from the DEK. Encrypt all new data with it.
   final Uint8List appKey;
@@ -33,6 +38,12 @@ class VaultUnlocked extends VaultState {
   /// device), for shared spaces. Null only where a test builds the state
   /// by hand.
   final ZtIdentity? identity;
+
+  /// The key of the account's suite notes (`vault_items` app `suite`):
+  /// small notes every Zero-Trust app of the account reads, such as how to
+  /// trust the family space (S-10). Null only where a test builds the state
+  /// by hand.
+  final Uint8List? suiteKey;
 }
 
 /// Holds the unlocked key in memory, zeroes it on lock, and auto-locks
@@ -96,12 +107,16 @@ class VaultController extends Notifier<VaultState> {
   Future<void> unlock(Uint8List dek, {bool legacyDek = false}) async {
     final appKey = await KeyHierarchy.appKey(dek, _config.appId);
     final identity = await ZtIdentity.fromDek(dek);
+    final suiteKey = await KeyHierarchy.appKey(dek, ztSuiteNotesApp);
     final legacyKey = legacyDek ? Uint8List.fromList(dek) : null;
     unawaited(_rememberIfStaying(Uint8List.fromList(dek), legacyDek));
     dek.fillRange(0, dek.length, 0);
     _zero();
-    state =
-        VaultUnlocked(appKey: appKey, legacyKey: legacyKey, identity: identity);
+    state = VaultUnlocked(
+        appKey: appKey,
+        legacyKey: legacyKey,
+        identity: identity,
+        suiteKey: suiteKey);
     touch();
   }
 
@@ -114,7 +129,8 @@ class VaultController extends Notifier<VaultState> {
     final legacy = s.legacyKey;
     if (legacy == null) return;
     legacy.fillRange(0, legacy.length, 0);
-    state = VaultUnlocked(appKey: s.appKey, identity: s.identity);
+    state = VaultUnlocked(
+        appKey: s.appKey, identity: s.identity, suiteKey: s.suiteKey);
   }
 
   /// Runs [action], which shows system UI over the app (a file or photo
@@ -183,6 +199,7 @@ class VaultController extends Notifier<VaultState> {
       s.appKey.fillRange(0, s.appKey.length, 0);
       s.legacyKey?.fillRange(0, s.legacyKey!.length, 0);
       s.identity?.destroy();
+      s.suiteKey?.fillRange(0, s.suiteKey!.length, 0);
     }
   }
 }

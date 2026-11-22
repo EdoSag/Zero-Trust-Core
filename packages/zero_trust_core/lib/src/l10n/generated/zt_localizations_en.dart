@@ -351,7 +351,7 @@ class ZtLocalizationsEn extends ZtLocalizations {
 
   @override
   String get thisPermanentlyDeletesYourAccountAnd =>
-      'This permanently deletes your account and your data in every Zero-Trust app. It can\'t be undone.';
+      'Your account and your data in every Zero-Trust app will be deleted for good after 7 days. Until then you can change your mind.';
 
   @override
   String get delete => 'Delete';
@@ -721,6 +721,12 @@ class ZtLocalizationsEn extends ZtLocalizations {
   String get taglineClock => 'Alarms, timer, stopwatch and world clock';
 
   @override
+  String get taglineTime => 'Time tracking for work and projects';
+
+  @override
+  String get taglineQuests => 'Daily quests for your goals, with XP and levels';
+
+  @override
   String planName(String name) {
     return 'Plan: $name';
   }
@@ -973,4 +979,147 @@ class ZtLocalizationsEn extends ZtLocalizations {
 
   @override
   String get signOutAndRemove => 'Sign out and remove';
+
+  @override
+  String get accountDeletionScheduledTitle =>
+      'Your account is set to be deleted';
+
+  @override
+  String accountDeletionScheduledBody(String date) {
+    return 'On $date your account and your data in every Zero-Trust app will be deleted for good. Until then you can keep it.';
+  }
+
+  @override
+  String accountDeletionScheduledTile(String date) {
+    return 'Will be deleted on $date';
+  }
+
+  @override
+  String get keepMyAccount => 'Keep my account';
+
+  @override
+  String get deleteAsPlanned => 'Delete as planned';
+
+  @override
+  String get accountKept => 'Your account won\'t be deleted.';
+
+  @override
+  String get accountDeletionRequestedTitle => 'Account deletion scheduled';
+
+  @override
+  String accountDeletionRequestedBody(String date) {
+    return 'Your account will be deleted on $date. Changed your mind? Sign in to any Zero-Trust app before then and tap Keep my account, or use the link we emailed you.';
+  }
+
+  @override
+  String get ok => 'OK';
+
+  @override
+  String get changeEmail => 'Change email';
+
+  @override
+  String get changeEmailSubtitle => 'Sign in with a different address';
+
+  @override
+  String get changeEmailIntro =>
+      'Your data stays encrypted with your password, as before. Only the address you sign in with changes, in every Zero-Trust app.';
+
+  @override
+  String get newEmail => 'New email';
+
+  @override
+  String get sendCode => 'Send code';
+
+  @override
+  String enterEmailCode(String email) {
+    return 'Enter the 6-digit code we sent to $email.';
+  }
+
+  @override
+  String get emailCode => 'Code';
+
+  @override
+  String get changeEmailConfirm => 'Change email';
+
+  @override
+  String get sendNewCode => 'Send a new code';
+
+  @override
+  String emailChangedTo(String email) {
+    return 'Your account now signs in with $email.';
+  }
+
+  @override
+  String get errEmailInvalid => 'That doesn\'t look like an email address.';
+
+  @override
+  String get errEmailSame => 'That is already your account\'s email.';
+
+  @override
+  String get errEmailInUse => 'That email already has a Zero-Trust account.';
+
+  @override
+  String get errEmailCodeWrong =>
+      'That code isn\'t right. Check the email and try again.';
+
+  @override
+  String get errEmailCodeExpired => 'The code expired. Send a new one.';
+
+  @override
+  String get appUpdates => 'App updates';
+
+  @override
+  String get checkingForUpdates => 'Checking for updates…';
+
+  @override
+  String youHaveTheLatestVersion(String version) {
+    return 'You have the latest version ($version)';
+  }
+
+  @override
+  String updateAvailableVersion(String version) {
+    return 'Version $version is available. Tap to update.';
+  }
+
+  @override
+  String get couldNotCheckForUpdates =>
+      'Couldn\'t check for updates. Tap to try again.';
+
+  @override
+  String get noReleaseYet => 'No release on GitHub yet';
+
+  @override
+  String get checkForUpdates => 'Check for updates';
+
+  @override
+  String get checkForUpdatesSubtitle =>
+      'Once a day, asks GitHub for the newest version number. Nothing about you or your data is sent.';
+
+  @override
+  String get getUpdatesWithObtainium => 'Get updates with Obtainium';
+
+  @override
+  String get obtainiumSubtitle =>
+      'A free app that installs updates straight from GitHub';
+
+  @override
+  String get updateAvailableTitle => 'Update available';
+
+  @override
+  String updateAvailableBody(String app, String version, String installed) {
+    return '$app $version is ready. You have $installed.';
+  }
+
+  @override
+  String get updateHowItInstalls =>
+      'Your browser downloads the update; open it to install. Android installs it only if it is signed by the same developer as this app.';
+
+  @override
+  String get whatsNew => 'What\'s new';
+
+  @override
+  String get downloadUpdate => 'Download';
+
+  @override
+  String get couldNotOpenLink => 'Couldn\'t open the link.';
 }

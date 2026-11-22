@@ -17,12 +17,14 @@ import '../../config/zt_preferences.dart';
 import '../../config/zt_suite.dart';
 import '../../crash/zt_crash_reporter.dart';
 import '../brand/zt_brand_mark.dart';
+import 'zt_change_email_screen.dart';
 import 'zt_crash_reports_screen.dart';
 import 'zt_data_protection_screen.dart';
 import '../../core_providers.dart';
 import '../../vault/vault_controller.dart';
 import '../../account/biometric_key_store.dart';
 import '../../account/password_check.dart';
+import '../auth/zt_keep_account.dart';
 import '../auth/zt_confirm_identity.dart';
 import '../auth/zt_auth_messages.dart';
 import '../auth/zt_password_strength.dart';
@@ -33,6 +35,7 @@ import '../auth/zt_recovery_key_screen.dart';
 import 'zt_plan_tile.dart';
 import 'zt_storage_tile.dart';
 import 'zt_sync_status_tile.dart';
+import 'zt_updates_tiles.dart';
 
 /// Privacy policy every Zero-Trust app links to from Settings.
 final Uri ztPrivacyPolicyUrl = Uri.parse('https://zerotrust.bz/privacy/');
@@ -178,6 +181,7 @@ class ZtSettingsPage extends ConsumerWidget {
                   Text(account.currentEmail ?? ZtL10n.of(context).notSignedIn),
               subtitle: Text(ZtL10n.of(context).oneAccountForEveryApp),
             ),
+            ZtPendingDeletionTile(account: account),
             if (showSyncStatus) const ZtSyncStatusTile(),
             if (showPlan) ZtPlanTile(onTap: onOpenPlans),
             if (showStorageUsage) const ZtStorageTile(),
@@ -186,6 +190,23 @@ class ZtSettingsPage extends ConsumerWidget {
               title: Text(ZtL10n.of(context).changePassword),
               onTap: () => _changePassword(context, ref),
             ),
+            if (account.canChangeEmail)
+              ListTile(
+                leading: const Icon(Icons.alternate_email),
+                title: Text(ZtL10n.of(context).changeEmail),
+                subtitle: Text(ZtL10n.of(context).changeEmailSubtitle),
+                onTap: () async {
+                  final email = await Navigator.push<String>(
+                    context,
+                    MaterialPageRoute(
+                        builder: (_) => const ZtChangeEmailScreen()),
+                  );
+                  if (email == null || !context.mounted) return;
+                  ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+                      content: Text(ZtL10n.of(context).emailChangedTo(email))));
+                  (context as Element).markNeedsBuild();
+                },
+              ),
             ListTile(
               leading: const Icon(Icons.logout),
               title: Text(ZtL10n.of(context).signOut),
@@ -299,6 +320,7 @@ class ZtSettingsPage extends ConsumerWidget {
               ZtL10n.of(context).endToEndEncryptedWeCant,
             ].join(' · ')),
           ),
+          const ZtUpdatesTiles(),
           if (onOpenUrl != null) ...[
             ListTile(
               leading: const Icon(Icons.help_outline),
@@ -376,6 +398,8 @@ class ZtSettingsPage extends ConsumerWidget {
       'fitness' => l.taglineFitness,
       'contacts' => l.taglineContacts,
       'clock' => l.taglineClock,
+      'time' => l.taglineTime,
+      'quests' => l.taglineQuests,
       _ => app.tagline,
     };
   }
@@ -666,7 +690,23 @@ class ZtSettingsPage extends ConsumerWidget {
     final account = ref.read(accountServiceProvider);
     try {
       final userId = account.currentUserId;
-      await account.deleteAccount(password: password);
+      final when = await account.deleteAccount(password: password);
+      if (when != null && context.mounted) {
+        await showDialog<void>(
+          context: context,
+          builder: (context) => AlertDialog(
+            title: Text(ZtL10n.of(context).accountDeletionRequestedTitle),
+            content: Text(ZtL10n.of(context)
+                .accountDeletionRequestedBody(ztDeletionDate(when))),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(context),
+                child: Text(ZtL10n.of(context).ok),
+              ),
+            ],
+          ),
+        );
+      }
       ref.read(vaultControllerProvider.notifier).lock();
       if (userId != null) await _deleteLocalData(ref, userId);
       onSignedOut();

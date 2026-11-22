@@ -725,7 +725,7 @@ abstract class ZtLocalizations {
   /// No description provided for @thisPermanentlyDeletesYourAccountAnd.
   ///
   /// In en, this message translates to:
-  /// **'This permanently deletes your account and your data in every Zero-Trust app. It can\'t be undone.'**
+  /// **'Your account and your data in every Zero-Trust app will be deleted for good after 7 days. Until then you can change your mind.'**
   String get thisPermanentlyDeletesYourAccountAnd;
 
   /// No description provided for @delete.
@@ -1250,6 +1250,18 @@ abstract class ZtLocalizations {
   /// **'Alarms, timer, stopwatch and world clock'**
   String get taglineClock;
 
+  /// No description provided for @taglineTime.
+  ///
+  /// In en, this message translates to:
+  /// **'Time tracking for work and projects'**
+  String get taglineTime;
+
+  /// No description provided for @taglineQuests.
+  ///
+  /// In en, this message translates to:
+  /// **'Daily quests for your goals, with XP and levels'**
+  String get taglineQuests;
+
   /// Settings row: the account's plan, e.g. 'Plan: Free'
   ///
   /// In en, this message translates to:
@@ -1651,6 +1663,246 @@ abstract class ZtLocalizations {
   /// In en, this message translates to:
   /// **'Sign out and remove'**
   String get signOutAndRemove;
+
+  /// No description provided for @accountDeletionScheduledTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Your account is set to be deleted'**
+  String get accountDeletionScheduledTitle;
+
+  /// No description provided for @accountDeletionScheduledBody.
+  ///
+  /// In en, this message translates to:
+  /// **'On {date} your account and your data in every Zero-Trust app will be deleted for good. Until then you can keep it.'**
+  String accountDeletionScheduledBody(String date);
+
+  /// No description provided for @accountDeletionScheduledTile.
+  ///
+  /// In en, this message translates to:
+  /// **'Will be deleted on {date}'**
+  String accountDeletionScheduledTile(String date);
+
+  /// No description provided for @keepMyAccount.
+  ///
+  /// In en, this message translates to:
+  /// **'Keep my account'**
+  String get keepMyAccount;
+
+  /// No description provided for @deleteAsPlanned.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete as planned'**
+  String get deleteAsPlanned;
+
+  /// No description provided for @accountKept.
+  ///
+  /// In en, this message translates to:
+  /// **'Your account won\'t be deleted.'**
+  String get accountKept;
+
+  /// No description provided for @accountDeletionRequestedTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Account deletion scheduled'**
+  String get accountDeletionRequestedTitle;
+
+  /// No description provided for @accountDeletionRequestedBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Your account will be deleted on {date}. Changed your mind? Sign in to any Zero-Trust app before then and tap Keep my account, or use the link we emailed you.'**
+  String accountDeletionRequestedBody(String date);
+
+  /// No description provided for @ok.
+  ///
+  /// In en, this message translates to:
+  /// **'OK'**
+  String get ok;
+
+  /// No description provided for @changeEmail.
+  ///
+  /// In en, this message translates to:
+  /// **'Change email'**
+  String get changeEmail;
+
+  /// No description provided for @changeEmailSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Sign in with a different address'**
+  String get changeEmailSubtitle;
+
+  /// No description provided for @changeEmailIntro.
+  ///
+  /// In en, this message translates to:
+  /// **'Your data stays encrypted with your password, as before. Only the address you sign in with changes, in every Zero-Trust app.'**
+  String get changeEmailIntro;
+
+  /// No description provided for @newEmail.
+  ///
+  /// In en, this message translates to:
+  /// **'New email'**
+  String get newEmail;
+
+  /// No description provided for @sendCode.
+  ///
+  /// In en, this message translates to:
+  /// **'Send code'**
+  String get sendCode;
+
+  /// No description provided for @enterEmailCode.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter the 6-digit code we sent to {email}.'**
+  String enterEmailCode(String email);
+
+  /// No description provided for @emailCode.
+  ///
+  /// In en, this message translates to:
+  /// **'Code'**
+  String get emailCode;
+
+  /// No description provided for @changeEmailConfirm.
+  ///
+  /// In en, this message translates to:
+  /// **'Change email'**
+  String get changeEmailConfirm;
+
+  /// No description provided for @sendNewCode.
+  ///
+  /// In en, this message translates to:
+  /// **'Send a new code'**
+  String get sendNewCode;
+
+  /// No description provided for @emailChangedTo.
+  ///
+  /// In en, this message translates to:
+  /// **'Your account now signs in with {email}.'**
+  String emailChangedTo(String email);
+
+  /// No description provided for @errEmailInvalid.
+  ///
+  /// In en, this message translates to:
+  /// **'That doesn\'t look like an email address.'**
+  String get errEmailInvalid;
+
+  /// No description provided for @errEmailSame.
+  ///
+  /// In en, this message translates to:
+  /// **'That is already your account\'s email.'**
+  String get errEmailSame;
+
+  /// No description provided for @errEmailInUse.
+  ///
+  /// In en, this message translates to:
+  /// **'That email already has a Zero-Trust account.'**
+  String get errEmailInUse;
+
+  /// No description provided for @errEmailCodeWrong.
+  ///
+  /// In en, this message translates to:
+  /// **'That code isn\'t right. Check the email and try again.'**
+  String get errEmailCodeWrong;
+
+  /// No description provided for @errEmailCodeExpired.
+  ///
+  /// In en, this message translates to:
+  /// **'The code expired. Send a new one.'**
+  String get errEmailCodeExpired;
+
+  /// No description provided for @appUpdates.
+  ///
+  /// In en, this message translates to:
+  /// **'App updates'**
+  String get appUpdates;
+
+  /// No description provided for @checkingForUpdates.
+  ///
+  /// In en, this message translates to:
+  /// **'Checking for updates…'**
+  String get checkingForUpdates;
+
+  /// No description provided for @youHaveTheLatestVersion.
+  ///
+  /// In en, this message translates to:
+  /// **'You have the latest version ({version})'**
+  String youHaveTheLatestVersion(String version);
+
+  /// No description provided for @updateAvailableVersion.
+  ///
+  /// In en, this message translates to:
+  /// **'Version {version} is available. Tap to update.'**
+  String updateAvailableVersion(String version);
+
+  /// No description provided for @couldNotCheckForUpdates.
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t check for updates. Tap to try again.'**
+  String get couldNotCheckForUpdates;
+
+  /// No description provided for @noReleaseYet.
+  ///
+  /// In en, this message translates to:
+  /// **'No release on GitHub yet'**
+  String get noReleaseYet;
+
+  /// No description provided for @checkForUpdates.
+  ///
+  /// In en, this message translates to:
+  /// **'Check for updates'**
+  String get checkForUpdates;
+
+  /// No description provided for @checkForUpdatesSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Once a day, asks GitHub for the newest version number. Nothing about you or your data is sent.'**
+  String get checkForUpdatesSubtitle;
+
+  /// No description provided for @getUpdatesWithObtainium.
+  ///
+  /// In en, this message translates to:
+  /// **'Get updates with Obtainium'**
+  String get getUpdatesWithObtainium;
+
+  /// No description provided for @obtainiumSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'A free app that installs updates straight from GitHub'**
+  String get obtainiumSubtitle;
+
+  /// No description provided for @updateAvailableTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Update available'**
+  String get updateAvailableTitle;
+
+  /// No description provided for @updateAvailableBody.
+  ///
+  /// In en, this message translates to:
+  /// **'{app} {version} is ready. You have {installed}.'**
+  String updateAvailableBody(String app, String version, String installed);
+
+  /// No description provided for @updateHowItInstalls.
+  ///
+  /// In en, this message translates to:
+  /// **'Your browser downloads the update; open it to install. Android installs it only if it is signed by the same developer as this app.'**
+  String get updateHowItInstalls;
+
+  /// No description provided for @whatsNew.
+  ///
+  /// In en, this message translates to:
+  /// **'What\'s new'**
+  String get whatsNew;
+
+  /// No description provided for @downloadUpdate.
+  ///
+  /// In en, this message translates to:
+  /// **'Download'**
+  String get downloadUpdate;
+
+  /// No description provided for @couldNotOpenLink.
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t open the link.'**
+  String get couldNotOpenLink;
 }
 
 class _ZtLocalizationsDelegate extends LocalizationsDelegate<ZtLocalizations> {

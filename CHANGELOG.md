@@ -14,6 +14,142 @@ an app must change.
   lock and the script only knew 3.9.1. An unknown version still stops the
   build, with a message saying to add its checksum.
 
+### One family space for the whole suite (S-10; `zero_trust_core`)
+
+- The ZT Family circle (space app `family`) is now every app's family
+  space: `ztFamilySpacesProvider` opens and syncs it from any app,
+  `ztFamilySharedSpacesProvider` gives its `SharedSpaces`.
+- `ZtFamilySpace`: item ids `<app>/<kind>/<id>` (`itemId`, `appOf`,
+  `belongsTo`), one shared `policy` (ZT Family's: `family.circle` admin
+  only, `family.me/` owned) and `summaryKey`. `ZtFamilySummary` (`t`, `at`,
+  `due`, `done`, `list`, `kind`) is what ZT Family's hub shows.
+- Suite notes: `ZtSuiteNotes` (`vault_items` app `suite`) under the new
+  `VaultUnlocked.suiteKey`, the same in every app of an account and zeroed
+  on lock. `ZtFamilyPrivateStore` keeps the circle's trust notes there as
+  well as in the app's own store, so other apps can open a circle ZT Family
+  made, including circles made before this change.
+- `SpacesController` takes an optional source (the family circles).
+- No database change: `vault_items` already accepts app `suite`.
+- Upgrade: ZT Family needs nothing but should use `ZtFamilySpace.policy`
+  as its `ztSpacePolicyProvider`. Other apps opt in by using
+  `ztFamilySpacesProvider`.
+
+### ZT Family "share my trip" links (L-1; database)
+
+- Migration `20261123090000_family_trip_shares` (written by the Family
+  thread, copy of `/mnt/project-files/sql/family-trip-shares.sql`):
+  `family_trip_shares` holds only sealed text (the key is in the link
+  after `#`), owner-only RLS, at most 3 running shares per account and 4
+  hours each; anyone with the link reads a running share through
+  `family_trip_get(id)`; ended rows are purged every 10 minutes; rows go
+  with the account.
+- Upgrade: nothing in Core; ZT Family uses it.
+
+### In-app update check and Obtainium link (S-1; `zero_trust_core`)
+
+- Direct Android builds (`ZT_CHANNEL=direct`) tell the person when a newer
+  signed release is on GitHub: once on launch (at most daily, once per
+  version, after the deletion-grace check) and in Settings › About, with
+  "What's new" and a Download button that hands the APK to the browser and
+  Android's installer. Store builds show and check nothing.
+- Settings › About also gets a "Check for updates" switch (on by default)
+  and "Get updates with Obtainium" (adds the app's GitHub repo to
+  Obtainium). English and Hebrew.
+- New: `ZtUpdates`, `ZtReleaseSource`, `ZtRelease`, `ztIsNewerVersion`,
+  `ZtUpdatesTiles`, `ztCheckForUpdateAfterUnlock`, providers
+  `ztUpdatesProvider`, `ztInstalledVersionProvider`,
+  `ztReleaseSourceProvider`, `ztOpenExternalUrlProvider`;
+  `ZtAppConfig.releaseRepo` (defaults to `EdoSag/Zero-Trust-<App>`).
+- New dependencies: `url_launcher`, `package_info_plus`.
+- Upgrade: build release APKs with `--dart-define=ZT_CHANNEL=direct`
+  (without it the build counts as a store build and the rows stay hidden).
+  Apps whose repository name doesn't follow the display name pass
+  `releaseRepo`.
+
+### Retire the raw-password sign-in fallback (Z21; database, `zero_trust_core`)
+
+- Checked live on 2026-11-22: every pre-core account was already upgraded
+  (its old key is the data key, `legacy_dek`), so `AccountService.signIn`
+  no longer falls back to sending the raw password. A wrong password is
+  simply "incorrect email or password".
+- Migration `20261122130000_retire_legacy_sign_in`: `zt_needs_legacy_sign_in`
+  always answers false, so older app versions stop sending raw passwords
+  too, and it no longer reveals which emails had a pre-core account.
+- Kept on purpose: upgraded accounts sign in and unlock as before, the
+  vault still hands apps the legacy key (`VaultUnlocked.legacyKey`), and
+  `LegacyImporter` still imports data left on a phone by a pre-core app.
+- `AccountBackend.needsLegacySignIn` and `AccountService.legacyParams` stay
+  for compatibility but are no longer used.
+- Upgrade: nothing to do.
+
+### Change the account's email (Z14; database, edge function, `zero_trust_core`)
+
+- Settings › **Change email** (English and Hebrew): new address + current
+  password, then the 6-digit code emailed to the new address.
+- The sign-in secret depends on the email, so the server switches the
+  email and the Supabase password in one admin call (edge function
+  `change-email`); there is never a moment when neither address signs in.
+  The encryption keys are not touched, so other devices and apps keep
+  working and just sign in with the new address next time. The old address
+  gets a notice.
+- Migration `20261122110000_email_change`: `zt_email_changes` (hashed code,
+  15 minutes, 5 tries; service role only), `zt_email_in_use`, daily purge.
+- `AccountService`: `canChangeEmail`, `startEmailChange`,
+  `finishEmailChange`. A password change now wraps the data key under the
+  stored salt and derives the sign-in secret from the current email (they
+  differ only after an email change). New errors `EmailInUse`,
+  `EmailChangeCodeWrong`, `EmailChangeExpired`.
+- Shared `_shared/mail.ts` (Brevo) now sends the deletion and email-change
+  emails.
+- Upgrade: nothing to do; the setting appears with the Supabase backend.
+
+### Account deletion waits 7 days (Z22; database, edge functions, `zero_trust_core`)
+
+- Migration `20261122100000_account_deletion_grace`: `zt_account_deletions`
+  (the person sees only their own date), scheduling, "keep" by session or
+  by the email link's token (only its SHA-256 is stored), and an hourly
+  pg_cron job that asks `account-deletion` to delete accounts whose 7 days
+  are over (needs pg_net and two Vault secrets, see the function's header).
+- `delete-account` now schedules instead of deleting and emails the date
+  (EN + HE) with a "Keep my account" link to zerotrust.bz/account/keep/.
+  Asking again never postpones the date. Older apps keep working: they
+  sign out after any 2xx, as before.
+- New `account-deletion` function (deploy with `--no-verify-jwt`): "keep"
+  from the website, and the hourly purge (storage files, then the auth
+  user; shared code in `_shared/delete_user.ts`).
+- `AccountLifecycleBackend` (implemented by `SupabaseAccountBackend`):
+  optional, so apps' test fakes of `AccountBackend` need no change.
+  `AccountService.deleteAccount` returns the deletion date (null without the
+  grace period); `pendingDeletion()` and `keepAccount()` are new.
+- Screens: after delete, a dialog says the date; after sign-in or unlock,
+  an account set to be deleted gets "Keep my account / Delete as planned"
+  (in the background, never delaying the app); settings show a row with the
+  date while it is pending. English and Hebrew.
+- Upgrade: nothing to do; apps get it when they move their core pin.
+
+### Crash reports have a destination (Z15; database, edge function, `zero_trust_core`)
+
+- Migration `20261122090000_crash_reports`: `zt_crash_reports` (one counted
+  row per bug, app version, platform and day; owner only), the
+  `zt_crash_groups` view, `zt_record_crash_report` (service role only, 5,000
+  new rows a day at most) and a daily purge of rows older than 90 days.
+- Edge function `supabase/functions/crash-report` (deploy with
+  `--no-verify-jwt`): refuses anything but a scrubbed report, logs nothing.
+- `ZtHttpCrashReportSink.supabase(supabaseUrl)` posts there with no key or
+  token.
+- Upgrade: pass `sink: ZtHttpCrashReportSink.supabase(supabaseUrl)` to the
+  app's `ZtCrashReporter` (see README "Crash reports (opt-in)"). Settings
+  then offer "Ask me before sending" and "Send automatically".
+
+### ZT Time and ZT Quests in "Other Zero-Trust apps" (`zero_trust_core`)
+
+- `ZtSuite.time` and `ZtSuite.quests` join `ZtSuite.apps`, so every app's
+  settings list them under "Other Zero-Trust apps" (English and Hebrew),
+  and their own sign-in, unlock and onboarding screens get their brand mark
+  from the core.
+- Upgrade: nothing to do. ZT Quests can drop its own `questsSuiteApp` for
+  `ZtSuite.quests` once it moves its core pin.
+
 ### ZT Clock in "Other Zero-Trust apps" (`zero_trust_core`)
 
 - `ZtSuite.clock` joins `ZtSuite.apps`, so the settings of every app list
