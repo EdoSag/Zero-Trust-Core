@@ -166,7 +166,8 @@ jobs:
             -f tests/planner_ai_test.sql \
             -f tests/crash_reports_test.sql \
             -f tests/account_deletion_test.sql \
-            -f tests/email_change_test.sql
+            -f tests/email_change_test.sql \
+            -f tests/family_trip_shares_test.sql
 
   edge_functions:
     runs-on: ubuntu-latest
