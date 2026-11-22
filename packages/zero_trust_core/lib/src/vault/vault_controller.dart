@@ -94,7 +94,7 @@ class VaultController extends Notifier<VaultState> {
   /// With [legacyDek] (from `UnlockResult.legacyDek`) a copy is kept as
   /// [VaultUnlocked.legacyKey] so pre-upgrade data stays readable.
   Future<void> unlock(Uint8List dek, {bool legacyDek = false}) async {
-    final appKey = await KeyHierarchy.appKey(dek, _config.appId);
+    final appKey = await KeyHierarchy.appKey(dek, _config.dataAppId);
     final identity = await ZtIdentity.fromDek(dek);
     final legacyKey = legacyDek ? Uint8List.fromList(dek) : null;
     unawaited(_rememberIfStaying(Uint8List.fromList(dek), legacyDek));
