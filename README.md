@@ -346,7 +346,9 @@ read each report exactly as it would be sent, copy it or delete it.
 final crashes = ZtCrashReporter(
   appId: 'notes',
   appVersion: packageVersion,
-  sink: null, // a ZtCrashReportSink once there is a destination
+  // The suite's own destination: the `crash-report` edge function on the
+  // same Supabase project the app signs in to. No key or token is sent.
+  sink: ZtHttpCrashReportSink.supabase(supabaseUrl),
 );
 crashes.install(); // before runApp
 await crashes.load();
@@ -361,6 +363,15 @@ copy). With one, "Ask me before sending" and "Send automatically" appear;
 call `maybeAskToSendZtCrashReports(context, crashes)` after unlock to offer
 sending saved reports. `ZtHttpCrashReportSink` posts the JSON to any
 endpoint without an account token.
+
+Where they go: `supabase/functions/crash-report` checks each report (only
+the fields above, printable text, sizes, a day in the last 60 days) and
+calls `zt_record_crash_report`, which merges reports of the same bug, app
+version and day into one counted row of `public.zt_crash_reports`. Only the
+owner can read it; `public.zt_crash_groups` lists one row per bug. Rows are
+deleted after 90 days, and at most 5,000 new rows a day are taken (past
+that the function answers 503 and phones keep their reports). Deploy with
+`supabase functions deploy crash-report --no-verify-jwt`.
 
 ### Look and feel
 
