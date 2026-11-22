@@ -87,6 +87,8 @@ class AccountService {
   final List<KdfParams> previousParams;
 
   /// How pre-core apps stretched the password (PBKDF2-SHA256, 600k).
+  /// No longer used since the raw-password upgrade was retired; kept so
+  /// apps that pass it still compile.
   final KdfParams legacyParams;
 
   /// Creates the account. With email confirmation on (it should be, so no
@@ -117,19 +119,21 @@ class AccountService {
   Future<void> resendConfirmation(String email, {String? redirectTo}) =>
       _backend.resendConfirmation(email.trim(), redirectTo: redirectTo);
 
-  /// Signs in and unlocks. Accounts made by pre-core app versions are
-  /// upgraded on the way: their existing key becomes the DEK, so all local
-  /// and cloud data stays readable.
+  /// Signs in and unlocks.
+  ///
+  /// Accounts made by pre-core app versions were upgraded at their first
+  /// core sign-in (their old key became the DEK, `legacyDek`), and keep
+  /// working here. The raw-password fallback that did that upgrade was
+  /// retired on 2026-11-22 after checking live that no account still
+  /// needed it: the raw password is never sent to the server any more.
   Future<UnlockResult> signIn({
     required String email,
     required String password,
   }) async {
     final salt = await Kdf.saltForEmail(email);
-    PasswordCredentials? current;
     for (final p in [params, ...previousParams]) {
       final creds = await KeyHierarchy.deriveCredentials(
           password: password, salt: salt, params: p);
-      if (p == params) current = creds;
       try {
         await _backend.signIn(email, creds.authSecret);
       } on InvalidCredentials {
@@ -137,47 +141,7 @@ class AccountService {
       }
       return _afterAuth(password, salt, authParams: p, credentials: creds);
     }
-    // Derived above for [params]; reused below instead of deriving again.
-    final creds = current!;
-
-    // A pre-core account still signs in with the raw password. Send it only
-    // when the server says this email is one: on any other account a typo
-    // (or a password from another site) would otherwise reach Supabase.
-    if (!await _backend.needsLegacySignIn(email.trim())) {
-      throw const InvalidCredentials();
-    }
-    await _backend.signIn(email, password); // throws InvalidCredentials
-    final profile = await _backend.fetchProfile();
-
-    if (profile?.keys != null) {
-      // An earlier upgrade stored v2 keys but failed before switching the
-      // auth password. Finish it.
-      final unlocked = await _unlock(password, profile!.keys!);
-      await _backend.updateAuthPassword(creds.authSecret);
-      await _markAuthUpgraded();
-      return unlocked;
-    }
-
-    final legacySalt = profile?.legacySalt;
-    if (legacySalt == null) throw const KeyMismatch();
-    final keys = await KeyHierarchy.migrateLegacyAccount(
-      password: password,
-      legacySalt: legacySalt,
-      salt: salt,
-      legacyParams: legacyParams,
-      params: params,
-      credentials: creds,
-    );
-    // Keys first, auth password second: if the second step fails, the next
-    // sign-in lands in the branch above and completes it.
-    await _writeKeys(_toStored(keys.stored, legacyDek: true));
-    await _backend.updateAuthPassword(keys.authSecret);
-    await _markAuthUpgraded();
-    return UnlockResult(
-      dek: keys.dek,
-      legacyDek: true,
-      newRecoveryKey: keys.recoveryKey,
-    );
+    throw const InvalidCredentials();
   }
 
   /// Re-derive the DEK for an already signed-in session (app relaunch).

@@ -5,6 +5,22 @@ an app must change.
 
 ## Unreleased
 
+### Retire the raw-password sign-in fallback (Z21; database, `zero_trust_core`)
+
+- Checked live on 2026-11-22: every pre-core account was already upgraded
+  (its old key is the data key, `legacy_dek`), so `AccountService.signIn`
+  no longer falls back to sending the raw password. A wrong password is
+  simply "incorrect email or password".
+- Migration `20261122120000_retire_legacy_sign_in`: `zt_needs_legacy_sign_in`
+  always answers false, so older app versions stop sending raw passwords
+  too, and it no longer reveals which emails had a pre-core account.
+- Kept on purpose: upgraded accounts sign in and unlock as before, the
+  vault still hands apps the legacy key (`VaultUnlocked.legacyKey`), and
+  `LegacyImporter` still imports data left on a phone by a pre-core app.
+- `AccountBackend.needsLegacySignIn` and `AccountService.legacyParams` stay
+  for compatibility but are no longer used.
+- Upgrade: nothing to do.
+
 ### Change the account's email (Z14; database, edge function, `zero_trust_core`)
 
 - Settings › **Change email** (English and Hebrew): new address + current

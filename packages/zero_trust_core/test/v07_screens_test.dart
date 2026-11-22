@@ -131,19 +131,15 @@ void main() {
   });
 
   testWidgets(
-      'pre-core accounts sign in with old, weak or breached passwords and '
-      'keep their data key', (tester) async {
-    // A Tasks/Fitness/Contacts account from before the core: Supabase
-    // password = the raw password, data key = PBKDF2(password, salt).
+      'upgraded pre-core accounts sign in with old, weak or breached '
+      'passwords and keep their data key', (tester) async {
+    // A Tasks/Fitness/Contacts account from before the core, upgraded at its
+    // first core sign-in: data key = PBKDF2(password, old salt).
     const old = 'summer2024';
     final checker = AlwaysBreached();
     breaches = checker;
-    final legacySalt = Kdf.newSalt();
-    final todaysKey = await tester.runAsync(() =>
-        Kdf.deriveMasterKey(password: old, salt: legacySalt, params: fast));
-    backend.authPasswords[email] = old;
-    backend.profiles[email] =
-        ProfileRecord(legacySalt: ZtBase64.encode(legacySalt));
+    final todaysKey = await tester
+        .runAsync(() => backend.seedUpgradedLegacyAccount(email, old));
 
     UnlockResult? result;
     await tester.pumpWidget(app(ZtSignInScreen(onUnlocked: (r) => result = r)));
