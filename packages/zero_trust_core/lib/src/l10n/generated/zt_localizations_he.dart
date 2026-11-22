@@ -1064,4 +1064,62 @@ class ZtLocalizationsHe extends ZtLocalizations {
 
   @override
   String get errEmailCodeExpired => 'תוקף הקוד פג. אפשר לשלוח קוד חדש.';
+
+  @override
+  String get appUpdates => 'עדכוני אפליקציה';
+
+  @override
+  String get checkingForUpdates => 'בודקים אם יש עדכון…';
+
+  @override
+  String youHaveTheLatestVersion(String version) {
+    return 'מותקנת הגרסה האחרונה ($version)';
+  }
+
+  @override
+  String updateAvailableVersion(String version) {
+    return 'גרסה $version זמינה. אפשר להקיש כדי לעדכן.';
+  }
+
+  @override
+  String get couldNotCheckForUpdates =>
+      'לא הצלחנו לבדוק אם יש עדכון. אפשר להקיש כדי לנסות שוב.';
+
+  @override
+  String get noReleaseYet => 'עדיין אין גרסה ב-GitHub';
+
+  @override
+  String get checkForUpdates => 'בדיקת עדכונים';
+
+  @override
+  String get checkForUpdatesSubtitle =>
+      'פעם ביום נשאל את GitHub מה מספר הגרסה החדשה ביותר. שום דבר עליך או על הנתונים שלך לא נשלח.';
+
+  @override
+  String get getUpdatesWithObtainium => 'קבלת עדכונים עם Obtainium';
+
+  @override
+  String get obtainiumSubtitle =>
+      'אפליקציה חינמית שמתקינה עדכונים ישירות מ-GitHub';
+
+  @override
+  String get updateAvailableTitle => 'יש עדכון';
+
+  @override
+  String updateAvailableBody(String app, String version, String installed) {
+    return '$app $version מוכנה. אצלך מותקנת $installed.';
+  }
+
+  @override
+  String get updateHowItInstalls =>
+      'הדפדפן יוריד את העדכון, ואז יש לפתוח אותו כדי להתקין. אנדרואיד יתקין אותו רק אם הוא חתום על ידי אותו מפתח כמו האפליקציה הזו.';
+
+  @override
+  String get whatsNew => 'מה חדש';
+
+  @override
+  String get downloadUpdate => 'הורדה';
+
+  @override
+  String get couldNotOpenLink => 'לא הצלחנו לפתוח את הקישור.';
 }

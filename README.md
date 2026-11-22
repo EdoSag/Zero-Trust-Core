@@ -373,6 +373,24 @@ deleted after 90 days, and at most 5,000 new rows a day are taken (past
 that the function answers 503 and phones keep their reports). Deploy with
 `supabase functions deploy crash-report --no-verify-jwt`.
 
+### App updates (APKs from GitHub)
+
+Builds installed from GitHub releases (`--dart-define=ZT_CHANNEL=direct`,
+Android) check for a newer release themselves; store builds never do.
+
+- On launch, at most once a day and once per version, the sign-in and
+  unlock screens show "Update available" with the release notes. Settings ›
+  About has the same row (tap to update or check again), a switch to turn
+  the daily check off, and "Get updates with Obtainium".
+- The check is one anonymous request to
+  `api.github.com/repos/<repo>/releases/latest`; nothing about the person is
+  sent. "Download" opens the signed APK in the browser, which hands it to
+  Android's installer. Android only installs it over the app when it is
+  signed with the same key, so a swapped file can't replace the app.
+- The repository defaults to `EdoSag/<display name with dashes>`
+  ("Zero-Trust Notes" -> `EdoSag/Zero-Trust-Notes`); pass
+  `ZtAppConfig(releaseRepo: ...)` when it differs.
+
 ### Look and feel
 
 `ZtThemeBuilder` gives every app the same theme: brand indigo, the app's

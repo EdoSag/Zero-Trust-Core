@@ -1,10 +1,12 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 
 import '../../account/account_service.dart';
 import '../../l10n/zt_l10n.dart';
+import '../settings/zt_updates_tiles.dart';
 import 'zt_auth_messages.dart';
 
 /// A deletion date as people read it ("29 November 2026"), in the app's
@@ -12,18 +14,34 @@ import 'zt_auth_messages.dart';
 String ztDeletionDate(DateTime when) =>
     DateFormat.yMMMMd().format(when.toLocal());
 
-/// Call right after sign-in or unlock. When the account is set to be
-/// deleted (Z22), asks once whether to keep it, on top of whatever the app
-/// shows next. Never delays opening the app and never throws: the check
-/// runs in the background and is skipped when the server can't be reached.
+/// Call right after sign-in or unlock (the core's screens do). When the
+/// account is set to be deleted (Z22), asks once whether to keep it, on
+/// top of whatever the app shows next; then, in builds installed from
+/// GitHub, says when an update is ready (S-1). Never delays opening the
+/// app and never throws: the checks run in the background and are skipped
+/// when the server can't be reached.
 void ztCheckPendingDeletionAfterUnlock(
     BuildContext context, AccountService account) {
   final navigator = Navigator.maybeOf(context, rootNavigator: true);
   if (navigator == null) return;
+  ProviderContainer? container;
+  try {
+    container = ProviderScope.containerOf(context, listen: false);
+  } on Object {
+    // No ProviderScope above (a bare test): only the deletion check runs.
+  }
   unawaited(() async {
-    final when = await account.pendingDeletion();
-    if (when == null || !navigator.mounted) return;
-    await ztOfferToKeepAccount(navigator.context, account, when);
+    try {
+      final when = await account.pendingDeletion();
+      if (when != null && navigator.mounted) {
+        await ztOfferToKeepAccount(navigator.context, account, when);
+      }
+      if (container != null && navigator.mounted) {
+        await ztCheckForUpdateAfterUnlock(navigator, container);
+      }
+    } on Object {
+      // Best effort; the app is already open.
+    }
   }());
 }
 

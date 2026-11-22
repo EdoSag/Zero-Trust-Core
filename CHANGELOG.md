@@ -5,6 +5,27 @@ an app must change.
 
 ## Unreleased
 
+### In-app update check and Obtainium link (S-1; `zero_trust_core`)
+
+- Direct Android builds (`ZT_CHANNEL=direct`) tell the person when a newer
+  signed release is on GitHub: once on launch (at most daily, once per
+  version, after the deletion-grace check) and in Settings › About, with
+  "What's new" and a Download button that hands the APK to the browser and
+  Android's installer. Store builds show and check nothing.
+- Settings › About also gets a "Check for updates" switch (on by default)
+  and "Get updates with Obtainium" (adds the app's GitHub repo to
+  Obtainium). English and Hebrew.
+- New: `ZtUpdates`, `ZtReleaseSource`, `ZtRelease`, `ztIsNewerVersion`,
+  `ZtUpdatesTiles`, `ztCheckForUpdateAfterUnlock`, providers
+  `ztUpdatesProvider`, `ztInstalledVersionProvider`,
+  `ztReleaseSourceProvider`, `ztOpenExternalUrlProvider`;
+  `ZtAppConfig.releaseRepo` (defaults to `EdoSag/Zero-Trust-<App>`).
+- New dependencies: `url_launcher`, `package_info_plus`.
+- Upgrade: build release APKs with `--dart-define=ZT_CHANNEL=direct`
+  (without it the build counts as a store build and the rows stay hidden).
+  Apps whose repository name doesn't follow the display name pass
+  `releaseRepo`.
+
 ### Retire the raw-password sign-in fallback (Z21; database, `zero_trust_core`)
 
 - Checked live on 2026-11-22: every pre-core account was already upgraded

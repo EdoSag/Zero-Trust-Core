@@ -1807,6 +1807,102 @@ abstract class ZtLocalizations {
   /// In en, this message translates to:
   /// **'The code expired. Send a new one.'**
   String get errEmailCodeExpired;
+
+  /// No description provided for @appUpdates.
+  ///
+  /// In en, this message translates to:
+  /// **'App updates'**
+  String get appUpdates;
+
+  /// No description provided for @checkingForUpdates.
+  ///
+  /// In en, this message translates to:
+  /// **'Checking for updates…'**
+  String get checkingForUpdates;
+
+  /// No description provided for @youHaveTheLatestVersion.
+  ///
+  /// In en, this message translates to:
+  /// **'You have the latest version ({version})'**
+  String youHaveTheLatestVersion(String version);
+
+  /// No description provided for @updateAvailableVersion.
+  ///
+  /// In en, this message translates to:
+  /// **'Version {version} is available. Tap to update.'**
+  String updateAvailableVersion(String version);
+
+  /// No description provided for @couldNotCheckForUpdates.
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t check for updates. Tap to try again.'**
+  String get couldNotCheckForUpdates;
+
+  /// No description provided for @noReleaseYet.
+  ///
+  /// In en, this message translates to:
+  /// **'No release on GitHub yet'**
+  String get noReleaseYet;
+
+  /// No description provided for @checkForUpdates.
+  ///
+  /// In en, this message translates to:
+  /// **'Check for updates'**
+  String get checkForUpdates;
+
+  /// No description provided for @checkForUpdatesSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Once a day, asks GitHub for the newest version number. Nothing about you or your data is sent.'**
+  String get checkForUpdatesSubtitle;
+
+  /// No description provided for @getUpdatesWithObtainium.
+  ///
+  /// In en, this message translates to:
+  /// **'Get updates with Obtainium'**
+  String get getUpdatesWithObtainium;
+
+  /// No description provided for @obtainiumSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'A free app that installs updates straight from GitHub'**
+  String get obtainiumSubtitle;
+
+  /// No description provided for @updateAvailableTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Update available'**
+  String get updateAvailableTitle;
+
+  /// No description provided for @updateAvailableBody.
+  ///
+  /// In en, this message translates to:
+  /// **'{app} {version} is ready. You have {installed}.'**
+  String updateAvailableBody(String app, String version, String installed);
+
+  /// No description provided for @updateHowItInstalls.
+  ///
+  /// In en, this message translates to:
+  /// **'Your browser downloads the update; open it to install. Android installs it only if it is signed by the same developer as this app.'**
+  String get updateHowItInstalls;
+
+  /// No description provided for @whatsNew.
+  ///
+  /// In en, this message translates to:
+  /// **'What\'s new'**
+  String get whatsNew;
+
+  /// No description provided for @downloadUpdate.
+  ///
+  /// In en, this message translates to:
+  /// **'Download'**
+  String get downloadUpdate;
+
+  /// No description provided for @couldNotOpenLink.
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t open the link.'**
+  String get couldNotOpenLink;
 }
 
 class _ZtLocalizationsDelegate extends LocalizationsDelegate<ZtLocalizations> {
