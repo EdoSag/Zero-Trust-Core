@@ -5,6 +5,15 @@ an app must change.
 
 ## Unreleased
 
+### Release checks follow Z21 (`zt_release_checks`)
+
+- The shared release checks no longer expect a never-upgraded pre-core
+  account to sign in with its raw password (retired in Z21; re-checked live
+  on 2026-11-22: 0 such accounts, Edo's pre-core account is upgraded). They
+  now check that an upgraded pre-core account signs in to every app with
+  its old data key, and that a never-upgraded one is refused without the
+  raw password being sent. This turns Core CI green again.
+
 ### sqlite3mc.wasm follows the app's sqlite3 (`tool/`)
 
 - `tool/fetch_sqlite3mc_wasm.sh` now fetches the `sqlite3mc.wasm` of the
