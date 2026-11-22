@@ -4,6 +4,7 @@ library;
 export 'package:zt_crypto/zt_crypto.dart';
 
 export 'src/account/account_backend.dart';
+export 'src/account/account_lifecycle.dart';
 export 'src/account/password_check.dart';
 export 'src/attachments/attachment_backend.dart';
 export 'src/attachments/attachment_cache.dart';
@@ -57,6 +58,7 @@ export 'src/ui/auth/zt_recovery_key_screen.dart';
 export 'src/ui/auth/zt_reset_password_screen.dart';
 export 'src/ui/auth/zt_sign_in_screen.dart';
 export 'src/ui/auth/zt_unlock_screen.dart';
+export 'src/ui/auth/zt_keep_account.dart';
 export 'src/ui/brand/zt_brand_mark.dart';
 export 'src/ui/brand/zt_launcher_icons.dart';
 export 'src/ui/onboarding/zt_onboarding_screen.dart';

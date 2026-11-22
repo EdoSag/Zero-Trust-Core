@@ -143,3 +143,28 @@ class FakeBackend implements AccountBackend {
     _user = null;
   }
 }
+
+/// [FakeBackend] with the server's 7-day deletion grace (Z22): deleting
+/// only schedules it, and the account keeps working until then.
+class GraceFakeBackend extends FakeBackend implements AccountLifecycleBackend {
+  final Map<String, DateTime> scheduled = {};
+  DateTime now = DateTime.utc(2026, 11, 22, 12);
+
+  @override
+  Future<DateTime> requestDeletion() async {
+    if (!freshSession) throw Exception('recent sign-in required');
+    final user = currentUserId!;
+    final when = scheduled[user] ??= now.add(const Duration(days: 7));
+    await signOut();
+    return when;
+  }
+
+  @override
+  Future<DateTime?> pendingDeletion() async {
+    if (offline) throw Exception('offline');
+    return scheduled[currentUserId];
+  }
+
+  @override
+  Future<bool> keepAccount() async => scheduled.remove(currentUserId) != null;
+}

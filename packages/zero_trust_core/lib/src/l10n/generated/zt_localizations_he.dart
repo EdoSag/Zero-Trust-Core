@@ -346,7 +346,7 @@ class ZtLocalizationsHe extends ZtLocalizations {
 
   @override
   String get thisPermanentlyDeletesYourAccountAnd =>
-      'הפעולה מוחקת לצמיתות את החשבון ואת המידע שלך בכל אפליקציות Zero-Trust. אי אפשר לבטל אותה.';
+      'החשבון והמידע שלך בכל אפליקציות Zero-Trust יימחקו לצמיתות אחרי 7 ימים. עד אז אפשר להתחרט.';
 
   @override
   String get delete => 'מחיקה';
@@ -980,4 +980,37 @@ class ZtLocalizationsHe extends ZtLocalizations {
 
   @override
   String get signOutAndRemove => 'התנתקות והסרה';
+
+  @override
+  String get accountDeletionScheduledTitle => 'החשבון שלך מתוזמן למחיקה';
+
+  @override
+  String accountDeletionScheduledBody(String date) {
+    return 'ב-$date החשבון והמידע שלך בכל אפליקציות Zero-Trust יימחקו לצמיתות. עד אז אפשר להשאיר אותו.';
+  }
+
+  @override
+  String accountDeletionScheduledTile(String date) {
+    return 'יימחק ב-$date';
+  }
+
+  @override
+  String get keepMyAccount => 'השארת החשבון';
+
+  @override
+  String get deleteAsPlanned => 'למחוק כמתוכנן';
+
+  @override
+  String get accountKept => 'החשבון שלך לא יימחק.';
+
+  @override
+  String get accountDeletionRequestedTitle => 'מחיקת החשבון תוזמנה';
+
+  @override
+  String accountDeletionRequestedBody(String date) {
+    return 'החשבון שלך יימחק ב-$date. התחרטת? אפשר להיכנס לאחת מאפליקציות Zero-Trust לפני כן וללחוץ על השארת החשבון, או להשתמש בקישור ששלחנו לך במייל.';
+  }
+
+  @override
+  String get ok => 'אישור';
 }

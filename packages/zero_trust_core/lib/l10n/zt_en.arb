@@ -104,7 +104,7 @@
   "passwordChangedYourOtherDevicesWere": "Password changed. Your other devices were signed out.",
   "enterYourPasswordYourCurrentRecovery": "Enter your password. Your current recovery key will stop working.",
   "deleteAccountQuestion": "Delete account?",
-  "thisPermanentlyDeletesYourAccountAnd": "This permanently deletes your account and your data in every Zero-Trust app. It can't be undone.",
+  "thisPermanentlyDeletesYourAccountAnd": "Your account and your data in every Zero-Trust app will be deleted for good after 7 days. Until then you can change your mind.",
   "delete": "Delete",
   "useWallpaperColours": "Use wallpaper colours",
   "matchYourPhonesThemeInsteadOf": "Match your phone's theme instead of the app's",
@@ -549,5 +549,29 @@
   "forSharedOrPublicComputers": "For shared or public computers",
   "removeYourDataFromThisBrowser": "Remove your data from this browser?",
   "removeFromBrowserExplanation": "You'll be signed out, and the encrypted copy kept in this browser will be deleted, along with your settings here. Changes that haven't synced yet will be lost.\n\nYour account and everything already synced stay safe. Sign in again any time to get it back.",
-  "signOutAndRemove": "Sign out and remove"
+  "signOutAndRemove": "Sign out and remove",
+  "accountDeletionScheduledTitle": "Your account is set to be deleted",
+  "accountDeletionScheduledBody": "On {date} your account and your data in every Zero-Trust app will be deleted for good. Until then you can keep it.",
+  "@accountDeletionScheduledBody": {
+    "placeholders": {
+      "date": {"type": "String", "example": "Long date, e.g. 29 November 2026"}
+    }
+  },
+  "accountDeletionScheduledTile": "Will be deleted on {date}",
+  "@accountDeletionScheduledTile": {
+    "placeholders": {
+      "date": {"type": "String", "example": "Long date"}
+    }
+  },
+  "keepMyAccount": "Keep my account",
+  "deleteAsPlanned": "Delete as planned",
+  "accountKept": "Your account won't be deleted.",
+  "accountDeletionRequestedTitle": "Account deletion scheduled",
+  "accountDeletionRequestedBody": "Your account will be deleted on {date}. Changed your mind? Sign in to any Zero-Trust app before then and tap Keep my account, or use the link we emailed you.",
+  "@accountDeletionRequestedBody": {
+    "placeholders": {
+      "date": {"type": "String", "example": "Long date"}
+    }
+  },
+  "ok": "OK"
 }

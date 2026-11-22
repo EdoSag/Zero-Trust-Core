@@ -637,6 +637,71 @@ void main() {
     await service.deleteAccount(password: password);
     expect(backend.profiles, isEmpty);
   });
+
+  group('deletion grace (Z22)', () {
+    late GraceFakeBackend grace;
+    late AccountService s;
+    late InMemoryKeyCache cache;
+
+    setUp(() {
+      grace = GraceFakeBackend();
+      cache = InMemoryKeyCache();
+      s = AccountService(grace, params: fast, keyCache: cache);
+    });
+
+    test('deleting only schedules it, 7 days out, and signs out', () async {
+      final created = await s.signUp(email: email, password: password);
+      expect(await s.pendingDeletion(), isNull);
+      final when = await s.deleteAccount(password: password);
+      expect(when, grace.now.add(const Duration(days: 7)));
+      expect(s.currentUserId, isNull);
+      expect(await cache.read(email), isNull, reason: 'device keys forgotten');
+      // Still there: signing in again works and shows the date.
+      expect(grace.profiles, isNotEmpty);
+      final back = await s.signIn(email: email, password: password);
+      expect(back.dek, created.dek);
+      expect(await s.pendingDeletion(), when);
+    });
+
+    test('asking again never postpones it', () async {
+      await s.signUp(email: email, password: password);
+      final first = await s.deleteAccount(password: password);
+      await s.signIn(email: email, password: password);
+      grace.now = grace.now.add(const Duration(days: 3));
+      expect(await s.deleteAccount(password: password), first);
+    });
+
+    test('"Keep my account" cancels it', () async {
+      await s.signUp(email: email, password: password);
+      await s.deleteAccount(password: password);
+      await s.signIn(email: email, password: password);
+      expect(await s.keepAccount(), isTrue);
+      expect(await s.pendingDeletion(), isNull);
+      expect(await s.keepAccount(), isFalse);
+    });
+
+    test('still needs the password, checked by the server', () async {
+      await s.signUp(email: email, password: password);
+      grace.freshSession = false;
+      await expectLater(s.deleteAccount(password: 'not my password!!'),
+          throwsA(isA<InvalidCredentials>()));
+      expect(grace.scheduled, isEmpty);
+    });
+
+    test('offline: no answer rather than an error', () async {
+      await s.signUp(email: email, password: password);
+      grace.offline = true;
+      expect(await s.pendingDeletion(), isNull);
+    });
+
+    test('a backend without the grace period deletes at once', () async {
+      await service.signUp(email: email, password: password);
+      expect(await service.pendingDeletion(), isNull);
+      expect(await service.keepAccount(), isFalse);
+      expect(await service.deleteAccount(password: password), isNull);
+      expect(backend.profiles, isEmpty);
+    });
+  });
 }
 
 /// Profile reads and key writes hang (a captive portal, a dead connection)

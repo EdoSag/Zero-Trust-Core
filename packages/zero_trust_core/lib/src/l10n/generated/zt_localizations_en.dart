@@ -351,7 +351,7 @@ class ZtLocalizationsEn extends ZtLocalizations {
 
   @override
   String get thisPermanentlyDeletesYourAccountAnd =>
-      'This permanently deletes your account and your data in every Zero-Trust app. It can\'t be undone.';
+      'Your account and your data in every Zero-Trust app will be deleted for good after 7 days. Until then you can change your mind.';
 
   @override
   String get delete => 'Delete';
@@ -979,4 +979,38 @@ class ZtLocalizationsEn extends ZtLocalizations {
 
   @override
   String get signOutAndRemove => 'Sign out and remove';
+
+  @override
+  String get accountDeletionScheduledTitle =>
+      'Your account is set to be deleted';
+
+  @override
+  String accountDeletionScheduledBody(String date) {
+    return 'On $date your account and your data in every Zero-Trust app will be deleted for good. Until then you can keep it.';
+  }
+
+  @override
+  String accountDeletionScheduledTile(String date) {
+    return 'Will be deleted on $date';
+  }
+
+  @override
+  String get keepMyAccount => 'Keep my account';
+
+  @override
+  String get deleteAsPlanned => 'Delete as planned';
+
+  @override
+  String get accountKept => 'Your account won\'t be deleted.';
+
+  @override
+  String get accountDeletionRequestedTitle => 'Account deletion scheduled';
+
+  @override
+  String accountDeletionRequestedBody(String date) {
+    return 'Your account will be deleted on $date. Changed your mind? Sign in to any Zero-Trust app before then and tap Keep my account, or use the link we emailed you.';
+  }
+
+  @override
+  String get ok => 'OK';
 }
