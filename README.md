@@ -266,6 +266,42 @@ ref.watch(ztSpacesProvider)             // spaces, their stores and status
 - Invite links look like `https://zerotrust.bz/join#zt1.<app>.…`; register
   that link (or let users paste it) in the app.
 
+#### One family space for the whole suite (S-10)
+
+The ZT Family circle (a space with app `family`) is the family space of
+every app. ZT Family creates it and handles members and invites; any other
+app opens the same circle and keeps its family items there, and ZT
+Family's hub lists them together.
+
+```dart
+// Any app: the circles this account belongs to, kept in sync.
+final family = ref.watch(ztFamilySpacesProvider);
+final circle = family.entries.firstOrNull;
+
+// Save a family item: id "<app>/<kind>/<id>", app-qualified kind, and a
+// summary the hub can show without knowing the app's model.
+await ref.read(ztFamilySpacesProvider.notifier).save(
+  circle!.info.id,
+  ZtFamilySpace.itemId('calendar', 'event', event.id),
+  ZtFamilySummary(title: event.title, kind: 'calendar.event', at: event.start)
+      .addTo({'kind': 'calendar.event', ...event.toJson()}),
+);
+
+// Read only your own items back.
+final mine = (await circle.space!.store.all())
+    .where((i) => ZtFamilySpace.belongsTo(i.itemId, 'calendar'));
+```
+
+- Everyone checks the circle with `ZtFamilySpace.policy` (ZT Family's rules:
+  only admins write `family.circle`, only a member writes `family.me/<id>/…`).
+  Change it only in Core, so all apps agree.
+- How to trust the circle travels between the account's apps in its *suite
+  notes* (`vault_items` app `suite`, sealed and signed under a key every app
+  of the account derives: `VaultUnlocked.suiteKey`). ZT Family copies its
+  notes there (circles from before S-10 too, the next time it opens them);
+  another app copies them into its own synced store the first time, so it
+  opens the circle offline afterwards.
+
 #### Sharing screens (`packages/zt_sharing_ui`)
 
 The screens on top of `ztSpacesProvider`, the same in every app. A separate

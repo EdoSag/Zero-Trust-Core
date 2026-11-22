@@ -5,6 +5,26 @@ an app must change.
 
 ## Unreleased
 
+### One family space for the whole suite (S-10; `zero_trust_core`)
+
+- The ZT Family circle (space app `family`) is now every app's family
+  space: `ztFamilySpacesProvider` opens and syncs it from any app,
+  `ztFamilySharedSpacesProvider` gives its `SharedSpaces`.
+- `ZtFamilySpace`: item ids `<app>/<kind>/<id>` (`itemId`, `appOf`,
+  `belongsTo`), one shared `policy` (ZT Family's: `family.circle` admin
+  only, `family.me/` owned) and `summaryKey`. `ZtFamilySummary` (`t`, `at`,
+  `due`, `done`, `list`, `kind`) is what ZT Family's hub shows.
+- Suite notes: `ZtSuiteNotes` (`vault_items` app `suite`) under the new
+  `VaultUnlocked.suiteKey`, the same in every app of an account and zeroed
+  on lock. `ZtFamilyPrivateStore` keeps the circle's trust notes there as
+  well as in the app's own store, so other apps can open a circle ZT Family
+  made, including circles made before this change.
+- `SpacesController` takes an optional source (the family circles).
+- No database change: `vault_items` already accepts app `suite`.
+- Upgrade: ZT Family needs nothing but should use `ZtFamilySpace.policy`
+  as its `ztSpacePolicyProvider`. Other apps opt in by using
+  `ztFamilySpacesProvider`.
+
 ### ZT Family "share my trip" links (L-1; database)
 
 - Migration `20261123090000_family_trip_shares` (written by the Family
