@@ -5,6 +5,15 @@ an app must change.
 
 ## Unreleased
 
+### sqlite3mc.wasm follows the app's sqlite3 (`tool/`)
+
+- `tool/fetch_sqlite3mc_wasm.sh` now fetches the `sqlite3mc.wasm` of the
+  `sqlite3` version in the app's `pubspec.lock` (3.9.1 or 3.9.2; 3.9.2 when
+  there is no lock yet), each checked against its own pinned checksum. CI
+  broke when `sqlite3` 3.9.2 came out, because the example has no committed
+  lock and the script only knew 3.9.1. An unknown version still stops the
+  build, with a message saying to add its checksum.
+
 ### ZT Clock in "Other Zero-Trust apps" (`zero_trust_core`)
 
 - `ZtSuite.clock` joins `ZtSuite.apps`, so the settings of every app list
