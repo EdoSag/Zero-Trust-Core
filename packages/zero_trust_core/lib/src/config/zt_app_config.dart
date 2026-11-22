@@ -13,8 +13,10 @@ class ZtAppConfig {
     this.autoLockAfter = const Duration(minutes: 5),
     ZtInstallChannel? channel,
     String? dataAppId,
+    String? releaseRepo,
   })  : _channel = channel,
-        _dataAppId = dataAppId;
+        _dataAppId = dataAppId,
+        _releaseRepo = releaseRepo;
 
   /// Lowercase id: `fitness`, `contacts`, `tasks`, `notes`. Names the app
   /// (brand, crash reports, shared spaces, release checks). Unless
@@ -48,6 +50,14 @@ class ZtAppConfig {
   /// [ZtInstallChannel.current] (the `ZT_CHANNEL` build flag); tests and
   /// previews may pass one.
   ZtInstallChannel get channel => _channel ?? ZtInstallChannel.current;
+
+  final String? _releaseRepo;
+
+  /// The GitHub repository whose releases carry this app's signed APK
+  /// (`owner/name`), for the in-app update check and Obtainium. Defaults
+  /// to the suite's naming: "Zero-Trust Notes" -> `EdoSag/Zero-Trust-Notes`.
+  String get releaseRepo =>
+      _releaseRepo ?? 'EdoSag/${displayName.trim().replaceAll(' ', '-')}';
 }
 
 /// Apps override this in their root `ProviderScope`.

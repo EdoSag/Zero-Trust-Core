@@ -3,9 +3,12 @@ import 'dart:typed_data';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 import 'account_backend.dart';
+import 'account_lifecycle.dart';
+import '../l10n/zt_l10n.dart';
 
 /// [AccountBackend] over the shared `zerotrust_apps` Supabase project.
-class SupabaseAccountBackend implements AccountBackend {
+class SupabaseAccountBackend
+    implements AccountBackend, AccountLifecycleBackend {
   SupabaseAccountBackend([SupabaseClient? client])
       : _client = client ?? Supabase.instance.client;
 
@@ -130,9 +133,73 @@ class SupabaseAccountBackend implements AccountBackend {
       });
 
   @override
-  Future<void> deleteAccount() async {
-    await _client.functions.invoke('delete-account');
+  Future<void> deleteAccount() => requestDeletion();
+
+  @override
+  Future<DateTime> requestDeletion() async {
+    final response = await _client.functions.invoke('delete-account');
+    final data = response.data;
+    final when = data is Map ? data['delete_after'] : null;
     await _client.auth.signOut();
+    // A server from before the grace period deletes at once and answers
+    // without a date.
+    return (when is String ? DateTime.tryParse(when) : null) ??
+        DateTime.now().toUtc();
+  }
+
+  @override
+  Future<DateTime?> pendingDeletion() async {
+    final userId = currentUserId;
+    if (userId == null) return null;
+    final row = await _client
+        .from('zt_account_deletions')
+        .select('delete_after')
+        .eq('user_id', userId)
+        .maybeSingle();
+    final when = row?['delete_after'];
+    return when is String ? DateTime.tryParse(when) : null;
+  }
+
+  @override
+  Future<bool> keepAccount() async =>
+      await _client.rpc<bool?>('zt_cancel_account_deletion') ?? false;
+
+  @override
+  Future<void> startEmailChange(String newEmail) async {
+    try {
+      await _client.functions.invoke('change-email',
+          body: {'action': 'start', 'new_email': newEmail});
+    } on FunctionException catch (e) {
+      if (e.status == 409) throw const EmailInUse();
+      if (e.status == 400) throw ArgumentError(ZtL10n.current.errEmailInvalid);
+      rethrow;
+    }
+  }
+
+  @override
+  Future<String> finishEmailChange(String code, String authSecret) async {
+    final FunctionResponse response;
+    try {
+      response = await _client.functions.invoke('change-email',
+          body: {'action': 'finish', 'code': code, 'auth_secret': authSecret});
+    } on FunctionException catch (e) {
+      throw switch (e.status) {
+        400 => const EmailChangeCodeWrong(),
+        410 => const EmailChangeExpired(),
+        409 => const EmailInUse(),
+        _ => e,
+      };
+    }
+    // The session's token still names the old address until refreshed.
+    try {
+      await _client.auth.refreshSession();
+    } on Object {
+      // The next automatic refresh picks it up.
+    }
+    final data = response.data;
+    return data is Map && data['email'] is String
+        ? data['email'] as String
+        : currentEmail ?? '';
   }
 
   String _requireUserId() {

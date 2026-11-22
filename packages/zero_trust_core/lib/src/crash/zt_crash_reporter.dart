@@ -45,6 +45,20 @@ class ZtHttpCrashReportSink implements ZtCrashReportSink {
       {this.headers = const {}, http.Client? client})
       : _client = client ?? http.Client();
 
+  /// The suite's own destination: the `crash-report` edge function of the
+  /// Supabase project at [supabaseUrl] (the same URL the app signs in
+  /// with). It runs without JWT checks, so no key or token is sent.
+  factory ZtHttpCrashReportSink.supabase(String supabaseUrl,
+      {http.Client? client}) {
+    final base = Uri.parse(supabaseUrl);
+    return ZtHttpCrashReportSink(
+      base.replace(
+          path: '${base.path.replaceAll(RegExp(r'/+$'), '')}'
+              '/functions/v1/crash-report'),
+      client: client,
+    );
+  }
+
   final Uri endpoint;
   final Map<String, String> headers;
   final http.Client _client;

@@ -104,7 +104,7 @@
   "passwordChangedYourOtherDevicesWere": "Password changed. Your other devices were signed out.",
   "enterYourPasswordYourCurrentRecovery": "Enter your password. Your current recovery key will stop working.",
   "deleteAccountQuestion": "Delete account?",
-  "thisPermanentlyDeletesYourAccountAnd": "This permanently deletes your account and your data in every Zero-Trust app. It can't be undone.",
+  "thisPermanentlyDeletesYourAccountAnd": "Your account and your data in every Zero-Trust app will be deleted for good after 7 days. Until then you can change your mind.",
   "delete": "Delete",
   "useWallpaperColours": "Use wallpaper colours",
   "matchYourPhonesThemeInsteadOf": "Match your phone's theme instead of the app's",
@@ -376,6 +376,8 @@
   "taglineFitness": "Activity, workouts and health",
   "taglineContacts": "Your address book",
   "taglineClock": "Alarms, timer, stopwatch and world clock",
+  "taglineTime": "Time tracking for work and projects",
+  "taglineQuests": "Daily quests for your goals, with XP and levels",
   "planName": "Plan: {name}",
   "@planName": {
     "description": "Settings row: the account's plan, e.g. 'Plan: Free'",
@@ -547,5 +549,112 @@
   "forSharedOrPublicComputers": "For shared or public computers",
   "removeYourDataFromThisBrowser": "Remove your data from this browser?",
   "removeFromBrowserExplanation": "You'll be signed out, and the encrypted copy kept in this browser will be deleted, along with your settings here. Changes that haven't synced yet will be lost.\n\nYour account and everything already synced stay safe. Sign in again any time to get it back.",
-  "signOutAndRemove": "Sign out and remove"
+  "signOutAndRemove": "Sign out and remove",
+  "accountDeletionScheduledTitle": "Your account is set to be deleted",
+  "accountDeletionScheduledBody": "On {date} your account and your data in every Zero-Trust app will be deleted for good. Until then you can keep it.",
+  "@accountDeletionScheduledBody": {
+    "placeholders": {
+      "date": {
+        "type": "String",
+        "example": "Long date, e.g. 29 November 2026"
+      }
+    }
+  },
+  "accountDeletionScheduledTile": "Will be deleted on {date}",
+  "@accountDeletionScheduledTile": {
+    "placeholders": {
+      "date": {
+        "type": "String",
+        "example": "Long date"
+      }
+    }
+  },
+  "keepMyAccount": "Keep my account",
+  "deleteAsPlanned": "Delete as planned",
+  "accountKept": "Your account won't be deleted.",
+  "accountDeletionRequestedTitle": "Account deletion scheduled",
+  "accountDeletionRequestedBody": "Your account will be deleted on {date}. Changed your mind? Sign in to any Zero-Trust app before then and tap Keep my account, or use the link we emailed you.",
+  "@accountDeletionRequestedBody": {
+    "placeholders": {
+      "date": {
+        "type": "String",
+        "example": "Long date"
+      }
+    }
+  },
+  "ok": "OK",
+  "changeEmail": "Change email",
+  "changeEmailSubtitle": "Sign in with a different address",
+  "changeEmailIntro": "Your data stays encrypted with your password, as before. Only the address you sign in with changes, in every Zero-Trust app.",
+  "newEmail": "New email",
+  "sendCode": "Send code",
+  "enterEmailCode": "Enter the 6-digit code we sent to {email}.",
+  "@enterEmailCode": {
+    "placeholders": {
+      "email": {
+        "type": "String",
+        "example": "edo@example.com"
+      }
+    }
+  },
+  "emailCode": "Code",
+  "changeEmailConfirm": "Change email",
+  "sendNewCode": "Send a new code",
+  "emailChangedTo": "Your account now signs in with {email}.",
+  "@emailChangedTo": {
+    "placeholders": {
+      "email": {
+        "type": "String",
+        "example": "edo@example.com"
+      }
+    }
+  },
+  "errEmailInvalid": "That doesn't look like an email address.",
+  "errEmailSame": "That is already your account's email.",
+  "errEmailInUse": "That email already has a Zero-Trust account.",
+  "errEmailCodeWrong": "That code isn't right. Check the email and try again.",
+  "errEmailCodeExpired": "The code expired. Send a new one.",
+  "appUpdates": "App updates",
+  "checkingForUpdates": "Checking for updates…",
+  "youHaveTheLatestVersion": "You have the latest version ({version})",
+  "@youHaveTheLatestVersion": {
+    "placeholders": {
+      "version": {
+        "type": "String"
+      }
+    }
+  },
+  "updateAvailableVersion": "Version {version} is available. Tap to update.",
+  "@updateAvailableVersion": {
+    "placeholders": {
+      "version": {
+        "type": "String"
+      }
+    }
+  },
+  "couldNotCheckForUpdates": "Couldn't check for updates. Tap to try again.",
+  "noReleaseYet": "No release on GitHub yet",
+  "checkForUpdates": "Check for updates",
+  "checkForUpdatesSubtitle": "Once a day, asks GitHub for the newest version number. Nothing about you or your data is sent.",
+  "getUpdatesWithObtainium": "Get updates with Obtainium",
+  "obtainiumSubtitle": "A free app that installs updates straight from GitHub",
+  "updateAvailableTitle": "Update available",
+  "updateAvailableBody": "{app} {version} is ready. You have {installed}.",
+  "@updateAvailableBody": {
+    "placeholders": {
+      "app": {
+        "type": "String"
+      },
+      "version": {
+        "type": "String"
+      },
+      "installed": {
+        "type": "String"
+      }
+    }
+  },
+  "updateHowItInstalls": "Your browser downloads the update; open it to install. Android installs it only if it is signed by the same developer as this app.",
+  "whatsNew": "What's new",
+  "downloadUpdate": "Download",
+  "couldNotOpenLink": "Couldn't open the link."
 }
