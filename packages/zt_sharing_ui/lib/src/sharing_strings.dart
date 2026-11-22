@@ -12,10 +12,7 @@ class ZtSharingStrings {
   final bool _he;
 
   static ZtSharingStrings forLocale(Locale? locale) =>
-      switch (locale?.languageCode) {
-        'he' || 'iw' => he,
-        _ => en,
-      };
+      switch (locale?.languageCode) { 'he' || 'iw' => he, _ => en };
 
   static ZtSharingStrings of(BuildContext context) =>
       forLocale(Localizations.maybeLocaleOf(context));
@@ -25,7 +22,7 @@ class ZtSharingStrings {
   String get sharingExplain => _he
       ? 'השיתוף מוצפן מקצה לקצה: רק האנשים שמשתפים איתם יכולים לקרוא. הם יראו את השם שתכתבו כאן.'
       : 'Sharing is end-to-end encrypted: only the people you share with can '
-            'read it. They see the name you give here.';
+          'read it. They see the name you give here.';
   String get yourName => _he ? 'השם שלך' : 'Your name';
   String get yourNameHint =>
       _he ? 'איך האחרים יראו אותך' : 'How the others see you';
@@ -43,11 +40,11 @@ class ZtSharingStrings {
   String get waitingExplain => _he
       ? 'הבעלים צריכים לאשר אותך. הראו להם את הקוד הזה; הוא צריך להיות זהה לקוד בטלפון שלהם.'
       : 'The owner has to let you in. Show them this code; it must match the '
-            'one on their phone.';
+          'one on their phone.';
   String get e2e => _he
       ? 'מוצפן מקצה לקצה. כל מי שכאן יכול להוסיף ולערוך; בעלים יכולים גם להזמין ולהסיר אנשים.'
       : 'End-to-end encrypted. Everyone here can add and edit; owners can also '
-            'invite and remove people.';
+          'invite and remove people.';
   String people(int count) => _he
       ? (count == 1 ? 'אדם אחד' : '$count אנשים')
       : (count == 1 ? '1 person' : '$count people');
@@ -62,7 +59,7 @@ class ZtSharingStrings {
   String removeExplain(String title) => _he
       ? 'הגישה ל${_q(title)} תיחסם. ההצפנה עוברת למפתח חדש, כך שלא יוכלו לקרוא שום דבר שיתווסף מעכשיו.'
       : 'They lose access to ${_q(title)}. It moves to a new key, so they '
-            "can't read anything added from now on.";
+          "can't read anything added from now on.";
   String get invitePeople => _he ? 'הזמנת אנשים' : 'Invite people';
   String get leave => _he ? 'יציאה' : 'Leave';
   String leaveQ(String title) =>
@@ -77,15 +74,15 @@ class ZtSharingStrings {
   String get deleteExplain => _he
       ? 'זה יימחק לכל המשתתפים, עם כל מה שבתוכו. אי אפשר לבטל את זה.'
       : "It's deleted for every member, with everything in it. This can't be "
-            'undone.';
+          'undone.';
   String get syncNow => _he ? 'סנכרון עכשיו' : 'Sync now';
   String inviteTo(String title) =>
       _he ? 'הזמנה ל${_q(title)}' : 'Invite to ${_q(title)}';
   String inviteIntro(String app) => _he
       ? 'יוצרים הזמנה לאדם אחד. הוא סורק את קוד ה-QR, או פותח את הקישור ששלחתם, ב-$app. אחר כך משווים קוד קצר כדי לוודא שזה הוא.'
       : 'Make an invite for one person. They scan the QR code, or open the '
-            'link you send them, in $app. Then you compare a short code to be '
-            "sure it's them.";
+          'link you send them, in $app. Then you compare a short code to be '
+          "sure it's them.";
   String get inviteAsOwner => _he ? 'הזמנה כבעלים' : 'Invite as an owner';
   String get inviteAsOwnerHint => _he
       ? 'בעלים יכולים להזמין ולהסיר אנשים'
@@ -104,7 +101,7 @@ class ZtSharingStrings {
   String get inviteNextSteps => _he
       ? 'ההזמנה עובדת פעם אחת, למשך 7 ימים. כשיענו, תראו אותם כאן: משווים את הקודים ומאשרים.'
       : 'The invite works once, for 7 days. When they answer, you see them '
-            'here: compare the codes, then let them in.';
+          'here: compare the codes, then let them in.';
   String get checkForAnswers => _he ? 'בדיקת תשובות' : 'Check for answers';
   String joinRequest(String name) =>
       _he ? '$name רוצה להצטרף' : '$name wants to join';
@@ -120,7 +117,7 @@ class ZtSharingStrings {
   String get confirmJoinBody => _he
       ? 'בדקו שבטלפון שלהם מופיע אותו קוד. אם לא, ייתכן שמישהו אחר קיבל את ההזמנה.'
       : "Check that their phone shows this same code. If it doesn't, someone "
-            'else may have the invite.';
+          'else may have the invite.';
   String get codesMatch => _he ? 'הקודים זהים' : 'Codes match';
   String get codesDiffer => _he ? 'הקודים שונים' : 'Codes differ';
   String joined(String name) => _he ? '$name הצטרף/ה' : '$name joined';
@@ -128,7 +125,7 @@ class ZtSharingStrings {
   String get joinIntro => _he
       ? 'הדביקו את קישור ההזמנה שקיבלתם, או סרקו את קוד ה-QR בטלפון השני.'
       : 'Paste the invite link you were sent, or scan the QR code on the other '
-            'phone.';
+          'phone.';
   String get inviteLink => _he ? 'קישור ההזמנה' : 'Invite link';
   String get scanQr => _he ? 'סריקת קוד QR' : 'Scan QR code';
   String get inviteOtherApp => _he
@@ -139,13 +136,13 @@ class ZtSharingStrings {
   String get inviteUsed => _he
       ? 'ההזמנה כבר שומשה, בוטלה או פגה. בקשו הזמנה חדשה.'
       : 'This invite was already used, withdrawn or has expired. Ask for a new '
-            'one.';
+          'one.';
   String get join => _he ? 'הצטרפות' : 'Join';
   String get joinCodeTitle => _he ? 'השוו את הקוד הזה' : 'Compare this code';
   String get joinCodeBody => _he
       ? 'גם בטלפון של הבעלים מופיע קוד. כשהקודים זהים, הם מאשרים אותך וזה יופיע אצלך.'
       : "The owner's phone shows a code too. When they match, the owner lets "
-            'you in and it appears here.';
+          'you in and it appears here.';
   String sharedWith(String names) =>
       _he ? 'משותף עם $names' : 'Shared with $names';
   String get peopleAndSharing => _he ? 'אנשים ושיתוף' : 'People and sharing';
