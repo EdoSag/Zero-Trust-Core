@@ -7,6 +7,7 @@ import '../../config/zt_app_config.dart';
 import '../../config/zt_suite.dart';
 import '../brand/zt_brand_mark.dart';
 import '../theme/zt_theme.dart';
+import '../layout/zt_adaptive.dart';
 
 /// "How your data is protected": the plain-language version of the core's
 /// security design, the same in every app. Opened from Settings → Security
@@ -75,7 +76,7 @@ class ZtDataProtectionScreen extends ConsumerWidget {
     final theme = Theme.of(context);
     return Scaffold(
       appBar: AppBar(title: Text(ZtL10n.of(context).howYourDataIsProtected)),
-      body: ListView(
+      body: ZtReadableListView(
         padding: const EdgeInsets.fromLTRB(
             ZtSpacing.lg, ZtSpacing.sm, ZtSpacing.lg, ZtSpacing.xl),
         children: [

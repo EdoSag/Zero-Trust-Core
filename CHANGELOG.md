@@ -5,6 +5,20 @@ an app must change.
 
 ## Unreleased
 
+### Tablet and foldable layouts (S-11; `zero_trust_core`, `zt_sharing_ui`)
+
+- New: `ZtWindowClass` (Material 3 size classes), `ZtLayout`
+  (`readableWidth` 720, `formWidth` 560, `readablePadding`,
+  `verticalHinge`), `ZtReadableListView`, and `ZtTwoPane` (list and detail
+  side by side on tablets, split at the hinge on an open foldable, list
+  only on phones; right-to-left aware).
+- Every shared screen now stays readable on tablets and unfolded phones:
+  settings, change email, recovery key, forgot and reset password, data
+  protection, plans, crash reports, and the sharing pages. Phones look the
+  same as before.
+- Upgrade: nothing required. Apps adopt `ZtTwoPane` / `ZtReadableListView`
+  for their own screens.
+
 ### One family space for the whole suite (S-10; `zero_trust_core`)
 
 - The ZT Family circle (space app `family`) is now every app's family

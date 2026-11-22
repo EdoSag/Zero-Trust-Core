@@ -14,13 +14,17 @@ void _snack(BuildContext context, String text) {
   ScaffoldMessenger.maybeOf(context)
     ?..hideCurrentSnackBar()
     ..showSnackBar(
-        SnackBar(content: Text(text), duration: const Duration(seconds: 4)));
+      SnackBar(content: Text(text), duration: const Duration(seconds: 4)),
+    );
 }
 
 /// Asks for the name the others will see (pre-filled with the last one) and
 /// remembers it. Null when cancelled.
-Future<String?> ztAskSharingName(BuildContext context, WidgetRef ref,
-    {required String title}) async {
+Future<String?> ztAskSharingName(
+  BuildContext context,
+  WidgetRef ref, {
+  required String title,
+}) async {
   String current = '';
   try {
     current = await ref.read(ztSharingNameProvider).read();
@@ -77,18 +81,23 @@ class _NameDialogState extends State<_NameDialog> {
             autofocus: true,
             textCapitalization: TextCapitalization.words,
             decoration: InputDecoration(
-                labelText: s.yourName, helperText: s.yourNameHint),
+              labelText: s.yourName,
+              helperText: s.yourNameHint,
+            ),
             onSubmitted: (_) => _submit(),
           ),
         ],
       ),
       actions: [
         TextButton(
-            onPressed: () => Navigator.pop(context), child: Text(s.cancel)),
+          onPressed: () => Navigator.pop(context),
+          child: Text(s.cancel),
+        ),
         TextButton(
-            key: const Key('zt-sharing-name-ok'),
-            onPressed: _submit,
-            child: Text(s.continueLabel)),
+          key: const Key('zt-sharing-name-ok'),
+          onPressed: _submit,
+          child: Text(s.continueLabel),
+        ),
       ],
     );
   }
@@ -113,18 +122,22 @@ class ZtSpacePage extends ConsumerStatefulWidget {
   /// Opens the invite right away (just shared).
   final bool inviteNow;
 
-  static Future<void> open(BuildContext context,
-          {required String spaceId,
-          required String title,
-          String? description,
-          bool inviteNow = false}) =>
-      Navigator.of(context).push(MaterialPageRoute<void>(
-        builder: (_) => ZtSpacePage(
-            spaceId: spaceId,
-            title: title,
-            description: description,
-            inviteNow: inviteNow),
-      ));
+  static Future<void> open(
+    BuildContext context, {
+    required String spaceId,
+    required String title,
+    String? description,
+    bool inviteNow = false,
+  }) => Navigator.of(context).push(
+    MaterialPageRoute<void>(
+      builder: (_) => ZtSpacePage(
+        spaceId: spaceId,
+        title: title,
+        description: description,
+        inviteNow: inviteNow,
+      ),
+    ),
+  );
 
   @override
   ConsumerState<ZtSpacePage> createState() => _ZtSpacePageState();
@@ -158,10 +171,12 @@ class _ZtSpacePageState extends ConsumerState<ZtSpacePage> {
   }
 
   Future<void> _invite() async {
-    await Navigator.of(context).push(MaterialPageRoute<void>(
-      builder: (_) =>
-          ZtInvitePage(spaceId: widget.spaceId, title: widget.title),
-    ));
+    await Navigator.of(context).push(
+      MaterialPageRoute<void>(
+        builder: (_) =>
+            ZtInvitePage(spaceId: widget.spaceId, title: widget.title),
+      ),
+    );
     ref.invalidate(ztPendingJoinsProvider);
   }
 
@@ -187,15 +202,20 @@ class _ZtSpacePageState extends ConsumerState<ZtSpacePage> {
           children: [
             ListTile(
               leading: const Icon(Icons.admin_panel_settings_outlined),
-              title:
-                  Text(m.role == SpaceRole.admin ? s.makeMember : s.makeOwner),
+              title: Text(
+                m.role == SpaceRole.admin ? s.makeMember : s.makeOwner,
+              ),
               onTap: () => Navigator.pop(ctx, 'role'),
             ),
             ListTile(
-              leading: Icon(Icons.person_remove_outlined,
-                  color: Theme.of(ctx).colorScheme.error),
-              title: Text(s.remove,
-                  style: TextStyle(color: Theme.of(ctx).colorScheme.error)),
+              leading: Icon(
+                Icons.person_remove_outlined,
+                color: Theme.of(ctx).colorScheme.error,
+              ),
+              title: Text(
+                s.remove,
+                style: TextStyle(color: Theme.of(ctx).colorScheme.error),
+              ),
               onTap: () => Navigator.pop(ctx, 'remove'),
             ),
           ],
@@ -205,8 +225,13 @@ class _ZtSpacePageState extends ConsumerState<ZtSpacePage> {
     if (!mounted) return;
     final spaces = ref.read(ztSpacesProvider.notifier);
     if (choice == 'role') {
-      await _run(() => spaces.setRole(widget.spaceId, m.userId,
-          m.role == SpaceRole.admin ? SpaceRole.member : SpaceRole.admin));
+      await _run(
+        () => spaces.setRole(
+          widget.spaceId,
+          m.userId,
+          m.role == SpaceRole.admin ? SpaceRole.member : SpaceRole.admin,
+        ),
+      );
     } else if (choice == 'remove') {
       final ok = await showDialog<bool>(
         context: context,
@@ -215,11 +240,13 @@ class _ZtSpacePageState extends ConsumerState<ZtSpacePage> {
           content: Text(s.removeExplain(widget.title)),
           actions: [
             TextButton(
-                onPressed: () => Navigator.pop(ctx, false),
-                child: Text(s.cancel)),
+              onPressed: () => Navigator.pop(ctx, false),
+              child: Text(s.cancel),
+            ),
             TextButton(
-                onPressed: () => Navigator.pop(ctx, true),
-                child: Text(s.remove)),
+              onPressed: () => Navigator.pop(ctx, true),
+              child: Text(s.remove),
+            ),
           ],
         ),
       );
@@ -238,8 +265,9 @@ class _ZtSpacePageState extends ConsumerState<ZtSpacePage> {
         content: Text(delete ? s.deleteExplain : s.leaveExplain),
         actions: [
           TextButton(
-              onPressed: () => Navigator.pop(ctx, false),
-              child: Text(s.cancel)),
+            onPressed: () => Navigator.pop(ctx, false),
+            child: Text(s.cancel),
+          ),
           TextButton(
             key: const Key('zt-space-confirm-leave'),
             onPressed: () => Navigator.pop(ctx, true),
@@ -279,24 +307,29 @@ class _ZtSpacePageState extends ConsumerState<ZtSpacePage> {
           final code = snap.data;
           if (code == null) {
             return Scaffold(
-                appBar: AppBar(), body: Center(child: Text(s.gone)));
+              appBar: AppBar(),
+              body: Center(child: Text(s.gone)),
+            );
           }
           return Scaffold(
             key: const Key('zt-space-waiting'),
             appBar: AppBar(title: Text(s.waitingToJoin)),
-            body: ListView(padding: const EdgeInsets.all(24), children: [
-              const Icon(Icons.hourglass_top, size: 48),
-              const SizedBox(height: 16),
-              Text(s.waitingExplain, textAlign: TextAlign.center),
-              const SizedBox(height: 16),
-              Text(code,
+            body: ZtReadableListView(
+              padding: const EdgeInsets.all(24),
+              children: [
+                const Icon(Icons.hourglass_top, size: 48),
+                const SizedBox(height: 16),
+                Text(s.waitingExplain, textAlign: TextAlign.center),
+                const SizedBox(height: 16),
+                Text(
+                  code,
                   textAlign: TextAlign.center,
                   textDirection: TextDirection.ltr,
-                  style: Theme.of(context)
-                      .textTheme
-                      .displaySmall
-                      ?.copyWith(letterSpacing: 3)),
-            ]),
+                  style: Theme.of(context).textTheme.displaySmall
+                      ?.copyWith(letterSpacing: 3),
+                ),
+              ],
+            ),
           );
         },
       );
@@ -324,39 +357,46 @@ class _ZtSpacePageState extends ConsumerState<ZtSpacePage> {
             onPressed: _busy
                 ? null
                 : () => _run(() async {
-                      final spaces = ref.read(ztSpacesProvider.notifier);
-                      await spaces.refresh();
-                      await spaces.syncNow(widget.spaceId);
-                      ref.invalidate(ztPendingJoinsProvider);
-                    }),
+                    final spaces = ref.read(ztSpacesProvider.notifier);
+                    await spaces.refresh();
+                    await spaces.syncNow(widget.spaceId);
+                    ref.invalidate(ztPendingJoinsProvider);
+                  }),
           ),
         ],
       ),
-      body: ListView(
+      body: ZtReadableListView(
         padding: const EdgeInsets.symmetric(vertical: 8),
         children: [
           if (_busy) const LinearProgressIndicator(),
           if (waiting)
             Padding(
               padding: const EdgeInsets.all(24),
-              child: Column(children: [
-                const Icon(Icons.hourglass_top, size: 48),
-                const SizedBox(height: 16),
-                Text(s.waitingExplain, textAlign: TextAlign.center),
-                if (entry.joinCode != null) ...[
+              child: Column(
+                children: [
+                  const Icon(Icons.hourglass_top, size: 48),
                   const SizedBox(height: 16),
-                  Text(entry.joinCode!,
+                  Text(s.waitingExplain, textAlign: TextAlign.center),
+                  if (entry.joinCode != null) ...[
+                    const SizedBox(height: 16),
+                    Text(
+                      entry.joinCode!,
                       textDirection: TextDirection.ltr,
-                      style: theme.textTheme.displaySmall
-                          ?.copyWith(letterSpacing: 3)),
+                      style: theme.textTheme.displaySmall?.copyWith(
+                        letterSpacing: 3,
+                      ),
+                    ),
+                  ],
                 ],
-              ]),
+              ),
             )
           else ...[
             Padding(
               padding: const EdgeInsets.fromLTRB(16, 8, 16, 8),
-              child: Text(widget.description ?? s.e2e,
-                  style: theme.textTheme.bodySmall),
+              child: Text(
+                widget.description ?? s.e2e,
+                style: theme.textTheme.bodySmall,
+              ),
             ),
             for (final j in joins)
               Card(
@@ -370,15 +410,21 @@ class _ZtSpacePageState extends ConsumerState<ZtSpacePage> {
                 ),
               ),
             ListTile(
-                title: Text(s.people(members.length),
-                    style: theme.textTheme.titleSmall)),
+              title: Text(
+                s.people(members.length),
+                style: theme.textTheme.titleSmall,
+              ),
+            ),
             for (final m in members)
               ListTile(
                 key: Key('zt-member-${m.userId}'),
                 leading: CircleAvatar(
-                    child: Text(m.name.isEmpty
+                  child: Text(
+                    m.name.isEmpty
                         ? '?'
-                        : m.name.characters.first.toUpperCase())),
+                        : m.name.characters.first.toUpperCase(),
+                  ),
+                ),
                 title: Text(m.userId == me ? s.youName(m.name) : m.name),
                 subtitle: Text(m.role == SpaceRole.admin ? s.owner : s.member),
                 trailing: isAdmin && m.userId != me
@@ -411,8 +457,10 @@ class _ZtSpacePageState extends ConsumerState<ZtSpacePage> {
             ListTile(
               key: const Key('zt-space-delete'),
               leading: Icon(Icons.delete_forever_outlined, color: scheme.error),
-              title: Text(s.deleteForEveryone,
-                  style: TextStyle(color: scheme.error)),
+              title: Text(
+                s.deleteForEveryone,
+                style: TextStyle(color: scheme.error),
+              ),
               enabled: !_busy,
               onTap: () => _leaveOrDelete(delete: true),
             ),
@@ -440,9 +488,12 @@ class _ZtInvitePageState extends ConsumerState<ZtInvitePage> {
   Future<void> _create() async {
     setState(() => _busy = true);
     try {
-      final link = await ref.read(ztSpacesProvider.notifier).invite(
-          widget.spaceId,
-          role: _asOwner ? SpaceRole.admin : SpaceRole.member);
+      final link = await ref
+          .read(ztSpacesProvider.notifier)
+          .invite(
+            widget.spaceId,
+            role: _asOwner ? SpaceRole.admin : SpaceRole.member,
+          );
       if (mounted) setState(() => _link = link);
     } on Object {
       if (mounted) _snack(context, ZtSharingStrings.of(context).needsInternet);
@@ -463,7 +514,7 @@ class _ZtInvitePageState extends ConsumerState<ZtInvitePage> {
     ];
     return Scaffold(
       appBar: AppBar(title: Text(s.inviteTo(widget.title))),
-      body: ListView(
+      body: ZtReadableListView(
         padding: const EdgeInsets.all(16),
         children: [
           for (final j in joins)
@@ -501,49 +552,65 @@ class _ZtInvitePageState extends ConsumerState<ZtInvitePage> {
                 color: Colors.white,
                 padding: const EdgeInsets.all(12),
                 child: QrImageView(
-                    key: const Key('zt-invite-qr'),
-                    data: link.qrData,
-                    size: 240,
-                    semanticsLabel: s.inviteQr),
+                  key: const Key('zt-invite-qr'),
+                  data: link.qrData,
+                  size: 240,
+                  semanticsLabel: s.inviteQr,
+                ),
               ),
             ),
             const SizedBox(height: 16),
-            Row(children: [
-              Expanded(
-                child: OutlinedButton.icon(
-                  key: const Key('zt-invite-copy'),
-                  style:
-                      OutlinedButton.styleFrom(minimumSize: const Size(0, 48)),
-                  onPressed: () async {
-                    await Clipboard.setData(
-                        ClipboardData(text: link.toString()));
-                    if (context.mounted) _snack(context, s.linkCopied);
-                  },
-                  icon: const Icon(Icons.copy),
-                  label: Text(s.copyLink),
+            Row(
+              children: [
+                Expanded(
+                  child: OutlinedButton.icon(
+                    key: const Key('zt-invite-copy'),
+                    style: OutlinedButton.styleFrom(
+                      minimumSize: const Size(0, 48),
+                    ),
+                    onPressed: () async {
+                      await Clipboard.setData(
+                        ClipboardData(text: link.toString()),
+                      );
+                      if (context.mounted) _snack(context, s.linkCopied);
+                    },
+                    icon: const Icon(Icons.copy),
+                    label: Text(s.copyLink),
+                  ),
                 ),
-              ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: FilledButton.icon(
-                  key: const Key('zt-invite-send'),
-                  style: FilledButton.styleFrom(minimumSize: const Size(0, 48)),
-                  // The share sheet leaves the app; it mustn't lock the
-                  // vault behind it.
-                  onPressed: () => ref
-                      .read(vaultControllerProvider.notifier)
-                      .whileShowingSystemUi(() => SharePlus.instance.share(
-                          ShareParams(
+                const SizedBox(width: 12),
+                Expanded(
+                  child: FilledButton.icon(
+                    key: const Key('zt-invite-send'),
+                    style: FilledButton.styleFrom(
+                      minimumSize: const Size(0, 48),
+                    ),
+                    // The share sheet leaves the app; it mustn't lock the
+                    // vault behind it.
+                    onPressed: () => ref
+                        .read(vaultControllerProvider.notifier)
+                        .whileShowingSystemUi(
+                          () => SharePlus.instance.share(
+                            ShareParams(
                               text: s.inviteMessage(
-                                  widget.title, app, link.toString())))),
-                  icon: const Icon(Icons.share),
-                  label: Text(s.sendLink),
+                                widget.title,
+                                app,
+                                link.toString(),
+                              ),
+                            ),
+                          ),
+                        ),
+                    icon: const Icon(Icons.share),
+                    label: Text(s.sendLink),
+                  ),
                 ),
-              ),
-            ]),
+              ],
+            ),
             const SizedBox(height: 16),
-            Text(s.inviteNextSteps,
-                style: Theme.of(context).textTheme.bodySmall),
+            Text(
+              s.inviteNextSteps,
+              style: Theme.of(context).textTheme.bodySmall,
+            ),
             const SizedBox(height: 8),
             Align(
               alignment: AlignmentDirectional.centerStart,
@@ -562,8 +629,12 @@ class _ZtInvitePageState extends ConsumerState<ZtInvitePage> {
 
 /// The owner compares the code on the other person's phone, then lets them
 /// in (or turns the answer down when the codes differ).
-Future<void> ztConfirmJoin(BuildContext context, WidgetRef ref, PendingJoin j,
-    {required String title}) async {
+Future<void> ztConfirmJoin(
+  BuildContext context,
+  WidgetRef ref,
+  PendingJoin j, {
+  required String title,
+}) async {
   final s = ZtSharingStrings.of(context);
   final spaces = ref.read(ztSpacesProvider.notifier);
   final choice = await showDialog<String>(
@@ -578,9 +649,7 @@ Future<void> ztConfirmJoin(BuildContext context, WidgetRef ref, PendingJoin j,
           Text(
             j.verificationCode,
             textDirection: TextDirection.ltr,
-            style: Theme.of(ctx)
-                .textTheme
-                .headlineMedium
+            style: Theme.of(ctx).textTheme.headlineMedium
                 ?.copyWith(letterSpacing: 2),
           ),
           const SizedBox(height: 8),
@@ -589,13 +658,15 @@ Future<void> ztConfirmJoin(BuildContext context, WidgetRef ref, PendingJoin j,
       ),
       actions: [
         TextButton(
-            onPressed: () => Navigator.pop(ctx, 'reject'),
-            child: Text(s.codesDiffer)),
+          onPressed: () => Navigator.pop(ctx, 'reject'),
+          child: Text(s.codesDiffer),
+        ),
         TextButton(onPressed: () => Navigator.pop(ctx), child: Text(s.later)),
         TextButton(
-            key: const Key('zt-codes-match'),
-            onPressed: () => Navigator.pop(ctx, 'ok'),
-            child: Text(s.codesMatch)),
+          key: const Key('zt-codes-match'),
+          onPressed: () => Navigator.pop(ctx, 'ok'),
+          child: Text(s.codesMatch),
+        ),
       ],
     ),
   );
@@ -621,10 +692,14 @@ class ZtJoinSpacePage extends ConsumerStatefulWidget {
   const ZtJoinSpacePage({super.key, this.initialLink});
   final String? initialLink;
 
-  static Future<JoinStarted?> open(BuildContext context,
-          {String? initialLink}) =>
-      Navigator.of(context).push<JoinStarted>(MaterialPageRoute(
-          builder: (_) => ZtJoinSpacePage(initialLink: initialLink)));
+  static Future<JoinStarted?> open(
+    BuildContext context, {
+    String? initialLink,
+  }) => Navigator.of(context).push<JoinStarted>(
+    MaterialPageRoute(
+      builder: (_) => ZtJoinSpacePage(initialLink: initialLink),
+    ),
+  );
 
   @override
   ConsumerState<ZtJoinSpacePage> createState() => _ZtJoinSpacePageState();
@@ -640,9 +715,13 @@ class _ZtJoinSpacePageState extends ConsumerState<ZtJoinSpacePage> {
   @override
   void initState() {
     super.initState();
-    ref.read(ztSharingNameProvider).read().then((name) {
-      if (mounted && _name.text.isEmpty) _name.text = name;
-    }).catchError((Object _) {});
+    ref
+        .read(ztSharingNameProvider)
+        .read()
+        .then((name) {
+          if (mounted && _name.text.isEmpty) _name.text = name;
+        })
+        .catchError((Object _) {});
   }
 
   @override
@@ -698,34 +777,38 @@ class _ZtJoinSpacePageState extends ConsumerState<ZtJoinSpacePage> {
     return Scaffold(
       appBar: AppBar(title: Text(s.joinTitle)),
       body: started != null
-          ? ListView(
+          ? ZtReadableListView(
               padding: const EdgeInsets.all(24),
               children: [
                 const Icon(Icons.verified_user_outlined, size: 56),
                 const SizedBox(height: 16),
-                Text(s.joinCodeTitle,
-                    style: theme.textTheme.titleLarge,
-                    textAlign: TextAlign.center),
+                Text(
+                  s.joinCodeTitle,
+                  style: theme.textTheme.titleLarge,
+                  textAlign: TextAlign.center,
+                ),
                 const SizedBox(height: 16),
                 Text(
                   started.verificationCode,
                   key: const Key('zt-join-code'),
                   textAlign: TextAlign.center,
                   textDirection: TextDirection.ltr,
-                  style:
-                      theme.textTheme.displaySmall?.copyWith(letterSpacing: 3),
+                  style: theme.textTheme.displaySmall?.copyWith(
+                    letterSpacing: 3,
+                  ),
                 ),
                 const SizedBox(height: 16),
                 Text(s.joinCodeBody, textAlign: TextAlign.center),
                 const SizedBox(height: 24),
                 FilledButton(
-                    onPressed: () => Navigator.of(context).pop(started),
-                    child: Text(s.done)),
+                  onPressed: () => Navigator.of(context).pop(started),
+                  child: Text(s.done),
+                ),
               ],
             )
           : Form(
               key: _form,
-              child: ListView(
+              child: ZtReadableListView(
                 padding: const EdgeInsets.all(16),
                 children: [
                   Text(s.joinIntro),
@@ -752,15 +835,18 @@ class _ZtJoinSpacePageState extends ConsumerState<ZtJoinSpacePage> {
                     controller: _name,
                     textCapitalization: TextCapitalization.words,
                     decoration: InputDecoration(
-                        labelText: s.yourName, helperText: s.yourNameHint),
+                      labelText: s.yourName,
+                      helperText: s.yourNameHint,
+                    ),
                     validator: (v) =>
                         v == null || v.trim().isEmpty ? s.nameRequired : null,
                   ),
                   const SizedBox(height: 24),
                   FilledButton(
-                      key: const Key('zt-join-submit'),
-                      onPressed: _busy ? null : _join,
-                      child: Text(s.join)),
+                    key: const Key('zt-join-submit'),
+                    onPressed: _busy ? null : _join,
+                    child: Text(s.join),
+                  ),
                 ],
               ),
             ),
@@ -781,32 +867,32 @@ class _ScanPageState extends State<_ScanPage> {
 
   @override
   Widget build(BuildContext context) => Scaffold(
-        appBar: AppBar(title: Text(ZtSharingStrings.of(context).scanQr)),
-        body: QRView(
-          key: _key,
-          overlay: QrScannerOverlayShape(
-            borderColor: Theme.of(context).colorScheme.primary,
-            borderRadius: 12,
-            borderLength: 32,
-            borderWidth: 8,
-            cutOutSize: 260,
-          ),
-          onQRViewCreated: (controller) {
-            controller.scannedDataStream.listen((b) {
-              final code = b.code;
-              if (_done || code == null) return;
-              try {
-                SpaceInviteLink.parse(code);
-              } on FormatException {
-                return;
-              }
-              _done = true;
-              controller.pauseCamera();
-              if (context.mounted) Navigator.of(context).pop(code);
-            });
-          },
-        ),
-      );
+    appBar: AppBar(title: Text(ZtSharingStrings.of(context).scanQr)),
+    body: QRView(
+      key: _key,
+      overlay: QrScannerOverlayShape(
+        borderColor: Theme.of(context).colorScheme.primary,
+        borderRadius: 12,
+        borderLength: 32,
+        borderWidth: 8,
+        cutOutSize: 260,
+      ),
+      onQRViewCreated: (controller) {
+        controller.scannedDataStream.listen((b) {
+          final code = b.code;
+          if (_done || code == null) return;
+          try {
+            SpaceInviteLink.parse(code);
+          } on FormatException {
+            return;
+          }
+          _done = true;
+          controller.pauseCamera();
+          if (context.mounted) Navigator.of(context).pop(code);
+        });
+      },
+    ),
+  );
 }
 
 /// Cards for people waiting to join any space this account owns, for an

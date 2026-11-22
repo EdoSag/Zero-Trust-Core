@@ -21,9 +21,10 @@ class ZtSharingName {
 
   Future<void> save(String name) async {
     if (name == await read()) return;
-    await _ref
-        .read(ztSyncControllerProvider.notifier)
-        .save(itemId, {'kind': kind, 'name': name});
+    await _ref.read(ztSyncControllerProvider.notifier).save(itemId, {
+      'kind': kind,
+      'name': name,
+    });
   }
 }
 

@@ -435,6 +435,27 @@ colours. `ZtBrandMark(app: ZtSuite.notes)` is the app mark; `ZtSpacing` the
 spacing steps. Settings shows "How your data is protected" and, with
 `onOpenUrl`, the other Zero-Trust apps.
 
+### Tablets and foldables (S-11)
+
+Every shared screen (settings, change email, recovery key, data protection,
+plans, crash reports, sharing pages) keeps its content readable on wide
+windows: `ZtReadableListView` centres it at most 720 dp wide (forms 560 dp)
+while scrolling still works across the whole window. For an app's own
+screens:
+
+```dart
+ZtWindowClass.of(context)            // compact < 600 <= medium < 840 <= expanded
+ZtReadableListView(children: [...])  // instead of ListView for lists and forms
+
+// List and detail: side by side on a tablet, one pane each side of the
+// hinge on an open book-style foldable, list only on a phone.
+ZtTwoPane(list: notesList, detail: selected ?? const PickANote());
+if (!ZtTwoPane.showsBoth(context)) Navigator.push(...);  // phone: own page
+```
+
+`ZtTwoPane` follows the reading direction (in Hebrew the list is on the
+right) and never puts content under the hinge (`ZtLayout.verticalHinge`).
+
 ### Data from before the core
 
 Accounts upgraded from a pre-core app version unlock with

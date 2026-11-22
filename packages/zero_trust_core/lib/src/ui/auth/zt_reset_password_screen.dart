@@ -8,6 +8,7 @@ import '../../account/password_check.dart';
 import '../../core_providers.dart';
 import 'zt_auth_messages.dart';
 import 'zt_password_strength.dart';
+import '../layout/zt_adaptive.dart';
 
 /// Second half of "forgot password": opened from Supabase's reset-email deep
 /// link (which signs the user in). The recovery key unlocks the data and a
@@ -75,7 +76,8 @@ class _ZtResetPasswordScreenState extends ConsumerState<ZtResetPasswordScreen> {
       body: SafeArea(
         child: Form(
           key: _form,
-          child: ListView(
+          child: ZtReadableListView(
+            maxWidth: ZtLayout.formWidth,
             padding: const EdgeInsets.all(24),
             children: [
               Text(ZtL10n.of(context).enterTheRecoveryKeyYouSaved),

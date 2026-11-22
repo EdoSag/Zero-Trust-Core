@@ -5,6 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../core_providers.dart';
 import '../../l10n/zt_l10n.dart';
 import '../auth/zt_auth_messages.dart';
+import '../layout/zt_adaptive.dart';
 
 /// Change the account's email (Z14), in two steps: the new address and the
 /// password, then the 6-digit code emailed to the new address. Pops with
@@ -86,7 +87,8 @@ class _ZtChangeEmailScreenState extends ConsumerState<ZtChangeEmailScreen> {
     final theme = Theme.of(context);
     return Scaffold(
       appBar: AppBar(title: Text(l.changeEmail)),
-      body: ListView(
+      body: ZtReadableListView(
+        maxWidth: ZtLayout.formWidth,
         padding: const EdgeInsets.all(24),
         children: [
           Text(l.changeEmailIntro, style: theme.textTheme.bodyMedium),
