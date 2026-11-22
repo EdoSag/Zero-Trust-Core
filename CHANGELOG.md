@@ -5,6 +5,17 @@ an app must change.
 
 ## Unreleased
 
+### ZT Family "share my trip" links (L-1; database)
+
+- Migration `20261123090000_family_trip_shares` (written by the Family
+  thread, copy of `/mnt/project-files/sql/family-trip-shares.sql`):
+  `family_trip_shares` holds only sealed text (the key is in the link
+  after `#`), owner-only RLS, at most 3 running shares per account and 4
+  hours each; anyone with the link reads a running share through
+  `family_trip_get(id)`; ended rows are purged every 10 minutes; rows go
+  with the account.
+- Upgrade: nothing in Core; ZT Family uses it.
+
 ### In-app update check and Obtainium link (S-1; `zero_trust_core`)
 
 - Direct Android builds (`ZT_CHANNEL=direct`) tell the person when a newer
