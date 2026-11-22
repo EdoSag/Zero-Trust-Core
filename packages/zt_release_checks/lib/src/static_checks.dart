@@ -41,6 +41,7 @@ const suiteAppIds = {
   'home',
   'clock',
   'mail',
+  'keyboard',
 };
 
 /// Checks that need no device and no network: what went wrong in past
@@ -151,16 +152,27 @@ String? _sqliteSource(YamlMap pubspec) {
 }
 
 List<String> _internetProblems(Directory app) {
-  final manifest =
-      File(p.join(app.path, 'android/app/src/main/AndroidManifest.xml'));
+  final src = Directory(p.join(app.path, 'android/app/src'));
+  final manifest = File(p.join(src.path, 'main/AndroidManifest.xml'));
   if (!manifest.existsSync()) {
     return ['android/app/src/main/AndroidManifest.xml is missing.'];
   }
-  if (manifest.readAsStringSync().contains('android.permission.INTERNET')) {
-    return const [];
+  bool hasInternet(File f) =>
+      f.readAsStringSync().contains('android.permission.INTERNET');
+  if (hasInternet(manifest)) return const [];
+  // An app with an edition that must stay offline (ZT Keyboard Offline)
+  // keeps the permission out of main and gives it to the edition that signs
+  // in, in that edition's own manifest. Debug and profile do not count:
+  // they are not what is released.
+  const notReleased = {'main', 'debug', 'profile', 'test', 'androidTest'};
+  for (final dir in src.listSync().whereType<Directory>()) {
+    if (notReleased.contains(p.basename(dir.path))) continue;
+    final edition = File(p.join(dir.path, 'AndroidManifest.xml'));
+    if (edition.existsSync() && hasInternet(edition)) return const [];
   }
   return [
-    'The main AndroidManifest.xml has no INTERNET permission. Debug builds '
+    'No release AndroidManifest.xml (main, or an edition under '
+        'android/app/src) has the INTERNET permission. Debug builds '
         'add it, release builds do not, so the released app cannot reach '
         'the server (Notes, 2026-11-09).',
   ];
