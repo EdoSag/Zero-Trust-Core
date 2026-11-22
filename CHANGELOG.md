@@ -5,6 +5,30 @@ an app must change.
 
 ## Unreleased
 
+### Account deletion waits 7 days (Z22; database, edge functions, `zero_trust_core`)
+
+- Migration `20261122100000_account_deletion_grace`: `zt_account_deletions`
+  (the person sees only their own date), scheduling, "keep" by session or
+  by the email link's token (only its SHA-256 is stored), and an hourly
+  pg_cron job that asks `account-deletion` to delete accounts whose 7 days
+  are over (needs pg_net and two Vault secrets, see the function's header).
+- `delete-account` now schedules instead of deleting and emails the date
+  (EN + HE) with a "Keep my account" link to zerotrust.bz/account/keep/.
+  Asking again never postpones the date. Older apps keep working: they
+  sign out after any 2xx, as before.
+- New `account-deletion` function (deploy with `--no-verify-jwt`): "keep"
+  from the website, and the hourly purge (storage files, then the auth
+  user; shared code in `_shared/delete_user.ts`).
+- `AccountLifecycleBackend` (implemented by `SupabaseAccountBackend`):
+  optional, so apps' test fakes of `AccountBackend` need no change.
+  `AccountService.deleteAccount` returns the deletion date (null without the
+  grace period); `pendingDeletion()` and `keepAccount()` are new.
+- Screens: after delete, a dialog says the date; after sign-in or unlock,
+  an account set to be deleted gets "Keep my account / Delete as planned"
+  (in the background, never delaying the app); settings show a row with the
+  date while it is pending. English and Hebrew.
+- Upgrade: nothing to do; apps get it when they move their core pin.
+
 ### Crash reports have a destination (Z15; database, edge function, `zero_trust_core`)
 
 - Migration `20261122090000_crash_reports`: `zt_crash_reports` (one counted

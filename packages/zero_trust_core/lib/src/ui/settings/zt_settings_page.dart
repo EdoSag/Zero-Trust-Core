@@ -23,6 +23,7 @@ import '../../core_providers.dart';
 import '../../vault/vault_controller.dart';
 import '../../account/biometric_key_store.dart';
 import '../../account/password_check.dart';
+import '../auth/zt_keep_account.dart';
 import '../auth/zt_confirm_identity.dart';
 import '../auth/zt_auth_messages.dart';
 import '../auth/zt_password_strength.dart';
@@ -178,6 +179,7 @@ class ZtSettingsPage extends ConsumerWidget {
                   Text(account.currentEmail ?? ZtL10n.of(context).notSignedIn),
               subtitle: Text(ZtL10n.of(context).oneAccountForEveryApp),
             ),
+            ZtPendingDeletionTile(account: account),
             if (showSyncStatus) const ZtSyncStatusTile(),
             if (showPlan) ZtPlanTile(onTap: onOpenPlans),
             if (showStorageUsage) const ZtStorageTile(),
@@ -668,7 +670,23 @@ class ZtSettingsPage extends ConsumerWidget {
     final account = ref.read(accountServiceProvider);
     try {
       final userId = account.currentUserId;
-      await account.deleteAccount(password: password);
+      final when = await account.deleteAccount(password: password);
+      if (when != null && context.mounted) {
+        await showDialog<void>(
+          context: context,
+          builder: (context) => AlertDialog(
+            title: Text(ZtL10n.of(context).accountDeletionRequestedTitle),
+            content: Text(ZtL10n.of(context)
+                .accountDeletionRequestedBody(ztDeletionDate(when))),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(context),
+                child: Text(ZtL10n.of(context).ok),
+              ),
+            ],
+          ),
+        );
+      }
       ref.read(vaultControllerProvider.notifier).lock();
       if (userId != null) await _deleteLocalData(ref, userId);
       onSignedOut();

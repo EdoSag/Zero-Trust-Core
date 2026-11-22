@@ -4,6 +4,7 @@ import 'dart:typed_data';
 import 'package:zt_crypto/zt_crypto.dart';
 
 import 'account_backend.dart';
+import 'account_lifecycle.dart';
 import 'biometric_key_store.dart';
 import 'key_cache.dart';
 import 'session_key_store.dart';
@@ -479,17 +480,51 @@ class AccountService {
   /// Deletes the account in every app. [password] is checked with the
   /// server first, which also gives the fresh sign-in the server requires,
   /// so an unattended unlocked phone or a stolen session can't do this.
-  Future<void> deleteAccount({required String password}) async {
+  ///
+  /// With a backend that has a grace period ([AccountLifecycleBackend]) the
+  /// account is only scheduled for deletion; the returned time says when.
+  /// Either way this device signs out and forgets its keys.
+  Future<DateTime?> deleteAccount({required String password}) async {
     final userId = _backend.currentUserId;
     await _reauthenticate(password);
-    await _backend.deleteAccount();
+    final lifecycle = _lifecycle;
+    DateTime? when;
+    if (lifecycle != null) {
+      when = await lifecycle.requestDeletion();
+    } else {
+      await _backend.deleteAccount();
+    }
     if (userId != null) {
       await _cache.clear(userId);
       await _biometrics?.clear(userId);
       _forgets++;
       await _inOrder(() async => _sessionKeys?.clear(userId));
     }
+    return when;
   }
+
+  AccountLifecycleBackend? get _lifecycle {
+    final backend = _backend;
+    return backend is AccountLifecycleBackend
+        ? backend as AccountLifecycleBackend
+        : null;
+  }
+
+  /// When the signed-in account is set to be deleted, or null (also when
+  /// the server can't be reached: this only decides whether to offer
+  /// "Keep my account").
+  Future<DateTime?> pendingDeletion() async {
+    final lifecycle = _lifecycle;
+    if (lifecycle == null || _backend.currentUserId == null) return null;
+    try {
+      return await lifecycle.pendingDeletion().timeout(onlineTimeout);
+    } on Object {
+      return null;
+    }
+  }
+
+  /// Cancels a scheduled deletion of the signed-in account.
+  Future<bool> keepAccount() async => await _lifecycle?.keepAccount() ?? false;
 
   Future<UnlockResult> _afterAuth(
     String password,

@@ -725,7 +725,7 @@ abstract class ZtLocalizations {
   /// No description provided for @thisPermanentlyDeletesYourAccountAnd.
   ///
   /// In en, this message translates to:
-  /// **'This permanently deletes your account and your data in every Zero-Trust app. It can\'t be undone.'**
+  /// **'Your account and your data in every Zero-Trust app will be deleted for good after 7 days. Until then you can change your mind.'**
   String get thisPermanentlyDeletesYourAccountAnd;
 
   /// No description provided for @delete.
@@ -1663,6 +1663,60 @@ abstract class ZtLocalizations {
   /// In en, this message translates to:
   /// **'Sign out and remove'**
   String get signOutAndRemove;
+
+  /// No description provided for @accountDeletionScheduledTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Your account is set to be deleted'**
+  String get accountDeletionScheduledTitle;
+
+  /// No description provided for @accountDeletionScheduledBody.
+  ///
+  /// In en, this message translates to:
+  /// **'On {date} your account and your data in every Zero-Trust app will be deleted for good. Until then you can keep it.'**
+  String accountDeletionScheduledBody(String date);
+
+  /// No description provided for @accountDeletionScheduledTile.
+  ///
+  /// In en, this message translates to:
+  /// **'Will be deleted on {date}'**
+  String accountDeletionScheduledTile(String date);
+
+  /// No description provided for @keepMyAccount.
+  ///
+  /// In en, this message translates to:
+  /// **'Keep my account'**
+  String get keepMyAccount;
+
+  /// No description provided for @deleteAsPlanned.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete as planned'**
+  String get deleteAsPlanned;
+
+  /// No description provided for @accountKept.
+  ///
+  /// In en, this message translates to:
+  /// **'Your account won\'t be deleted.'**
+  String get accountKept;
+
+  /// No description provided for @accountDeletionRequestedTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Account deletion scheduled'**
+  String get accountDeletionRequestedTitle;
+
+  /// No description provided for @accountDeletionRequestedBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Your account will be deleted on {date}. Changed your mind? Sign in to any Zero-Trust app before then and tap Keep my account, or use the link we emailed you.'**
+  String accountDeletionRequestedBody(String date);
+
+  /// No description provided for @ok.
+  ///
+  /// In en, this message translates to:
+  /// **'OK'**
+  String get ok;
 }
 
 class _ZtLocalizationsDelegate extends LocalizationsDelegate<ZtLocalizations> {

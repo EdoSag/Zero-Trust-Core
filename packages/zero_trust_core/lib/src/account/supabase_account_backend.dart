@@ -3,9 +3,11 @@ import 'dart:typed_data';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 import 'account_backend.dart';
+import 'account_lifecycle.dart';
 
 /// [AccountBackend] over the shared `zerotrust_apps` Supabase project.
-class SupabaseAccountBackend implements AccountBackend {
+class SupabaseAccountBackend
+    implements AccountBackend, AccountLifecycleBackend {
   SupabaseAccountBackend([SupabaseClient? client])
       : _client = client ?? Supabase.instance.client;
 
@@ -130,10 +132,36 @@ class SupabaseAccountBackend implements AccountBackend {
       });
 
   @override
-  Future<void> deleteAccount() async {
-    await _client.functions.invoke('delete-account');
+  Future<void> deleteAccount() => requestDeletion();
+
+  @override
+  Future<DateTime> requestDeletion() async {
+    final response = await _client.functions.invoke('delete-account');
+    final data = response.data;
+    final when = data is Map ? data['delete_after'] : null;
     await _client.auth.signOut();
+    // A server from before the grace period deletes at once and answers
+    // without a date.
+    return (when is String ? DateTime.tryParse(when) : null) ??
+        DateTime.now().toUtc();
   }
+
+  @override
+  Future<DateTime?> pendingDeletion() async {
+    final userId = currentUserId;
+    if (userId == null) return null;
+    final row = await _client
+        .from('zt_account_deletions')
+        .select('delete_after')
+        .eq('user_id', userId)
+        .maybeSingle();
+    final when = row?['delete_after'];
+    return when is String ? DateTime.tryParse(when) : null;
+  }
+
+  @override
+  Future<bool> keepAccount() async =>
+      await _client.rpc<bool?>('zt_cancel_account_deletion') ?? false;
 
   String _requireUserId() {
     final id = currentUserId;

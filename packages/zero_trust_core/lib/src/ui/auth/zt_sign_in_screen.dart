@@ -11,6 +11,7 @@ import '../../core_providers.dart';
 import '../../config/zt_suite.dart';
 import '../brand/zt_brand_mark.dart';
 import 'zt_auth_messages.dart';
+import 'zt_keep_account.dart';
 import 'zt_password_strength.dart';
 
 /// Sign in or create a Zero-Trust account. Identical in every app.
@@ -95,7 +96,10 @@ class _ZtSignInScreenState extends ConsumerState<ZtSignInScreen> {
               redirectTo: widget.emailRedirectTo)
           : await account.signIn(email: email, password: password);
       if (widget.offerBiometrics) await _offerBiometrics(result);
-      if (mounted) widget.onUnlocked(result);
+      if (mounted) {
+        ztCheckPendingDeletionAfterUnlock(context, account);
+        widget.onUnlocked(result);
+      }
     } on EmailConfirmationSent catch (e) {
       if (mounted) {
         setState(() {

@@ -104,7 +104,7 @@
   "passwordChangedYourOtherDevicesWere": "הסיסמה שונתה. בוצעה התנתקות במכשירים האחרים שלך.",
   "enterYourPasswordYourCurrentRecovery": "צריך להזין את הסיסמה. מפתח השחזור הנוכחי יפסיק לעבוד.",
   "deleteAccountQuestion": "למחוק את החשבון?",
-  "thisPermanentlyDeletesYourAccountAnd": "הפעולה מוחקת לצמיתות את החשבון ואת המידע שלך בכל אפליקציות Zero-Trust. אי אפשר לבטל אותה.",
+  "thisPermanentlyDeletesYourAccountAnd": "החשבון והמידע שלך בכל אפליקציות Zero-Trust יימחקו לצמיתות אחרי 7 ימים. עד אז אפשר להתחרט.",
   "delete": "מחיקה",
   "useWallpaperColours": "שימוש בצבעי הטפט",
   "matchYourPhonesThemeInsteadOf": "התאמה לערכת הצבעים של הטלפון במקום של האפליקציה",
@@ -260,5 +260,14 @@
   "forSharedOrPublicComputers": "למחשבים משותפים או ציבוריים",
   "removeYourDataFromThisBrowser": "להסיר את המידע שלך מהדפדפן הזה?",
   "removeFromBrowserExplanation": "החשבון ינותק, והעותק המוצפן שנשמר בדפדפן הזה יימחק יחד עם ההגדרות שלך כאן. שינויים שעדיין לא סונכרנו יאבדו.\n\nהחשבון שלך וכל מה שכבר סונכרן נשארים בטוחים. אפשר להתחבר שוב בכל עת כדי לקבל אותם בחזרה.",
-  "signOutAndRemove": "התנתקות והסרה"
+  "signOutAndRemove": "התנתקות והסרה",
+  "accountDeletionScheduledTitle": "החשבון שלך מתוזמן למחיקה",
+  "accountDeletionScheduledBody": "ב-{date} החשבון והמידע שלך בכל אפליקציות Zero-Trust יימחקו לצמיתות. עד אז אפשר להשאיר אותו.",
+  "accountDeletionScheduledTile": "יימחק ב-{date}",
+  "keepMyAccount": "השארת החשבון",
+  "deleteAsPlanned": "למחוק כמתוכנן",
+  "accountKept": "החשבון שלך לא יימחק.",
+  "accountDeletionRequestedTitle": "מחיקת החשבון תוזמנה",
+  "accountDeletionRequestedBody": "החשבון שלך יימחק ב-{date}. התחרטת? אפשר להיכנס לאחת מאפליקציות Zero-Trust לפני כן וללחוץ על השארת החשבון, או להשתמש בקישור ששלחנו לך במייל.",
+  "ok": "אישור"
 }

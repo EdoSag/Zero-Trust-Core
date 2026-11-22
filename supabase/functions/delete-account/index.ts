@@ -1,7 +1,16 @@
-// Deletes the calling user's account. Every row referencing auth.users
-// cascades (profiles, vault_items, legacy encrypted_* tables); storage
-// objects under {user_id}/ are removed first.
+// Asks to delete the calling user's account (Z22). Nothing is deleted
+// now: the account is scheduled for deletion in 7 days and an email (EN +
+// HE) says when, with a "Keep my account" link. The account-deletion
+// function deletes it for good once the 7 days are over.
+//
+// Answers 200 {"delete_after": "<ISO time>"}. Older app versions only check
+// for a 2xx and then sign out, which is still right.
 import { createClient } from "jsr:@supabase/supabase-js@2";
+import { hashToken, newToken } from "../_shared/delete_user.ts";
+import { DELETION_HTML, DELETION_SUBJECT } from "../_shared/deletion_email.ts";
+
+const GRACE_DAYS = 7;
+const KEEP_URL = Deno.env.get("ZT_KEEP_ACCOUNT_URL") ?? "https://zerotrust.bz/account/keep/";
 
 Deno.serve(async (req) => {
   const jwt = req.headers.get("Authorization")?.replace("Bearer ", "");
@@ -15,7 +24,7 @@ Deno.serve(async (req) => {
   if (error || !user) return new Response("Unauthorized", { status: 401 });
 
   // Require a password sign-in in the last few minutes, so a stolen or
-  // long-lived session can't delete the account. The token is verified
+  // long-lived session can't ask for the deletion. The token is verified
   // above; its `amr` claim records when each sign-in method was used, and
   // unlike `iat` it isn't moved by token refreshes.
   const RECENT_SECONDS = 10 * 60;
@@ -34,42 +43,50 @@ Deno.serve(async (req) => {
     return new Response("Sign in again to delete your account", { status: 403 });
   }
 
-  // Remove every object under {user_id}/ in every bucket. Each round lists
-  // the first page, recurses into folders (entries with a null id) and
-  // removes the files, until the prefix is empty, so folders of any size
-  // are covered. Any storage error aborts before the auth user is deleted,
-  // so a retry can finish the cleanup instead of orphaning files.
-  const PAGE = 1000;
-  const MAX_ROUNDS = 10_000;
-  const removeUnder = async (bucket: string, prefix: string): Promise<void> => {
-    for (let round = 0; round < MAX_ROUNDS; round++) {
-      const { data: entries, error } = await admin.storage.from(bucket)
-        .list(prefix, { limit: PAGE });
-      if (error) throw error;
-      if (!entries || entries.length === 0) return;
-      const files: string[] = [];
-      for (const entry of entries) {
-        const path = `${prefix}/${entry.name}`;
-        if (entry.id === null) await removeUnder(bucket, path);
-        else files.push(path);
-      }
-      if (files.length) {
-        const { error: removeError } = await admin.storage.from(bucket).remove(files);
-        if (removeError) throw removeError;
-      }
-    }
-    throw new Error(`Could not empty ${bucket}/${prefix}`);
-  };
-
-  try {
-    const { data: buckets, error: bucketsError } = await admin.storage.listBuckets();
-    if (bucketsError) throw bucketsError;
-    for (const bucket of buckets ?? []) await removeUnder(bucket.id, user.id);
-  } catch (e) {
-    return new Response(`Storage cleanup failed: ${(e as Error).message}`, { status: 500 });
+  const token = newToken();
+  const { data: deleteAfter, error: scheduleError } = await admin.rpc(
+    "zt_schedule_account_deletion",
+    { p_user: user.id, p_token_hash: await hashToken(token), p_days: GRACE_DAYS },
+  );
+  if (scheduleError || typeof deleteAfter !== "string") {
+    return new Response("Could not schedule the deletion", { status: 500 });
   }
 
-  const { error: deleteError } = await admin.auth.admin.deleteUser(user.id);
-  if (deleteError) return new Response(deleteError.message, { status: 500 });
-  return new Response(null, { status: 204 });
+  // Best effort: the deletion is scheduled either way, and every app shows
+  // it with a "Keep my account" button after sign-in.
+  if (user.email) {
+    try {
+      await sendDeletionEmail(user.email, new Date(deleteAfter), `${KEEP_URL}#${token}`);
+    } catch (_) {
+      // Not logged: the address must not end up in function logs.
+    }
+  }
+  return Response.json({ delete_after: deleteAfter });
 });
+
+/** Sends through Brevo's API (the same account as the auth emails' SMTP).
+ * Needs the function secret BREVO_API_KEY; ZT_MAIL_FROM must be a sender
+ * verified in Brevo. */
+async function sendDeletionEmail(to: string, when: Date, undoUrl: string): Promise<void> {
+  const apiKey = Deno.env.get("BREVO_API_KEY");
+  if (!apiKey) return;
+  const fmt = (locale: string) =>
+    new Intl.DateTimeFormat(locale, { dateStyle: "long", timeZone: "UTC" }).format(when);
+  const html = DELETION_HTML
+    .replaceAll("{{DATE_EN}}", fmt("en-GB"))
+    .replaceAll("{{DATE_HE}}", fmt("he-IL"))
+    .replaceAll("{{UNDO_URL}}", undoUrl);
+  const res = await fetch("https://api.brevo.com/v3/smtp/email", {
+    method: "POST",
+    headers: { "api-key": apiKey, "content-type": "application/json", accept: "application/json" },
+    body: JSON.stringify({
+      sender: { name: "Zero-Trust", email: Deno.env.get("ZT_MAIL_FROM") ?? "no-reply@zerotrust.bz" },
+      to: [{ email: to }],
+      subject: DELETION_SUBJECT,
+      htmlContent: html,
+      // Account email: no open or click tracking.
+      headers: { "X-Mailin-Track": "0", "X-Mailin-Track-Clicks": "0", "X-Mailin-Track-Opens": "0" },
+    }),
+  });
+  if (!res.ok) throw new Error(`Brevo ${res.status}`);
+}
