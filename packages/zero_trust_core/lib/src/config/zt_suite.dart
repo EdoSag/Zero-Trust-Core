@@ -88,7 +88,33 @@ abstract final class ZtSuite {
     androidPackage: 'dev.sagron.zerotrustclock',
   );
 
-  static const List<ZtSuiteApp> apps = [notes, tasks, fitness, contacts, clock];
+  static const time = ZtSuiteApp(
+    appId: 'time',
+    name: 'Time',
+    tagline: 'Time tracking for work and projects',
+    icon: Icons.timer_outlined,
+    accent: Color(0xFF3B82F6), // blue
+    androidPackage: 'dev.sagron.zerotrusttime',
+  );
+
+  static const quests = ZtSuiteApp(
+    appId: 'quests',
+    name: 'Quests',
+    tagline: 'Daily quests for your goals, with XP and levels',
+    icon: Icons.emoji_events_outlined,
+    accent: Color(0xFF7C3AED), // violet
+    androidPackage: 'dev.sagron.zerotrustquests',
+  );
+
+  static const List<ZtSuiteApp> apps = [
+    notes,
+    tasks,
+    fitness,
+    contacts,
+    clock,
+    time,
+    quests,
+  ];
 
   static ZtSuiteApp? byId(String appId) {
     for (final app in apps) {

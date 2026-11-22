@@ -729,6 +729,13 @@ class ZtLocalizationsHe extends ZtLocalizations {
   String get taglineClock => 'שעונים מעוררים, טיימר, שעון עצר ושעון עולמי';
 
   @override
+  String get taglineTime => 'מעקב זמן לעבודה ולפרויקטים';
+
+  @override
+  String get taglineQuests =>
+      'משימות יומיות למטרות שלך, עם נקודות ניסיון ורמות';
+
+  @override
   String planName(String name) {
     return 'תוכנית: $name';
   }

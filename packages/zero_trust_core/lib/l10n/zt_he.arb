@@ -192,6 +192,8 @@
   "taglineFitness": "פעילות, אימונים ובריאות",
   "taglineContacts": "פנקס הכתובות שלך",
   "taglineClock": "שעונים מעוררים, טיימר, שעון עצר ושעון עולמי",
+  "taglineTime": "מעקב זמן לעבודה ולפרויקטים",
+  "taglineQuests": "משימות יומיות למטרות שלך, עם נקודות ניסיון ורמות",
   "planName": "תוכנית: {name}",
   "planFree": "חינם",
   "planRenews": "מתחדשת ב-{date}",

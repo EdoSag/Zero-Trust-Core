@@ -1250,6 +1250,18 @@ abstract class ZtLocalizations {
   /// **'Alarms, timer, stopwatch and world clock'**
   String get taglineClock;
 
+  /// No description provided for @taglineTime.
+  ///
+  /// In en, this message translates to:
+  /// **'Time tracking for work and projects'**
+  String get taglineTime;
+
+  /// No description provided for @taglineQuests.
+  ///
+  /// In en, this message translates to:
+  /// **'Daily quests for your goals, with XP and levels'**
+  String get taglineQuests;
+
   /// Settings row: the account's plan, e.g. 'Plan: Free'
   ///
   /// In en, this message translates to:
