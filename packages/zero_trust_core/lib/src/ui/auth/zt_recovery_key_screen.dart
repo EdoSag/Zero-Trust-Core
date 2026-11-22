@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../../l10n/zt_l10n.dart';
 import 'package:flutter/services.dart';
 import 'package:zt_crypto/zt_crypto.dart';
+import '../layout/zt_adaptive.dart';
 
 /// Shown exactly once, after sign-up or an account upgrade. The user cannot
 /// continue until they confirm they saved the key.
@@ -43,7 +44,8 @@ class _ZtRecoveryKeyScreenState extends State<ZtRecoveryKeyScreen> {
           title: Text(ZtL10n.of(context).saveYourRecoveryKey),
           automaticallyImplyLeading: false),
       body: SafeArea(
-        child: ListView(
+        child: ZtReadableListView(
+          maxWidth: ZtLayout.formWidth,
           padding: const EdgeInsets.all(24),
           children: [
             Text(

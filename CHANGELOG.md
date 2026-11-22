@@ -14,6 +14,20 @@ an app must change.
   its old data key, and that a never-upgraded one is refused without the
   raw password being sent. This turns Core CI green again.
 
+### Tablet and foldable layouts (S-11; `zero_trust_core`, `zt_sharing_ui`)
+
+- New: `ZtWindowClass` (Material 3 size classes), `ZtLayout`
+  (`readableWidth` 720, `formWidth` 560, `readablePadding`,
+  `verticalHinge`), `ZtReadableListView`, and `ZtTwoPane` (list and detail
+  side by side on tablets, split at the hinge on an open foldable, list
+  only on phones; right-to-left aware).
+- Every shared screen now stays readable on tablets and unfolded phones:
+  settings, change email, recovery key, forgot and reset password, data
+  protection, plans, crash reports, and the sharing pages. Phones look the
+  same as before.
+- Upgrade: nothing required. Apps adopt `ZtTwoPane` / `ZtReadableListView`
+  for their own screens.
+
 ### sqlite3mc.wasm follows the app's sqlite3 (`tool/`)
 
 - `tool/fetch_sqlite3mc_wasm.sh` now fetches the `sqlite3mc.wasm` of the

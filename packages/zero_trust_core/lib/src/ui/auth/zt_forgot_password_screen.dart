@@ -5,6 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../core_providers.dart';
 import 'zt_auth_messages.dart';
+import '../layout/zt_adaptive.dart';
 
 /// First half of "forgot password": emails a link that opens the app's
 /// `ZtResetPasswordScreen`. [redirectTo] is the app's deep link.
@@ -59,7 +60,8 @@ class _ZtForgotPasswordScreenState
       body: SafeArea(
         child: Form(
           key: _form,
-          child: ListView(
+          child: ZtReadableListView(
+            maxWidth: ZtLayout.formWidth,
             padding: const EdgeInsets.all(24),
             children: _sent
                 ? [

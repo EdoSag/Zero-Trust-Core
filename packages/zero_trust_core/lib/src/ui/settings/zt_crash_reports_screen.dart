@@ -5,6 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../crash/zt_crash_report.dart';
 import '../../crash/zt_crash_reporter.dart';
 import '../../l10n/zt_l10n.dart';
+import '../layout/zt_adaptive.dart';
 
 String _modeLabel(ZtLocalizations l, ZtCrashReportMode mode, bool canSend) =>
     switch (mode) {
@@ -60,7 +61,7 @@ class ZtCrashReportsScreen extends StatelessWidget {
         ];
         return Scaffold(
           appBar: AppBar(title: Text(l.crashReports)),
-          body: ListView(
+          body: ZtReadableListView(
             padding: const EdgeInsets.only(bottom: 24),
             children: [
               Padding(
