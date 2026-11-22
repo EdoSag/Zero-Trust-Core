@@ -12,13 +12,28 @@ class ZtAppConfig {
     this.accent,
     this.autoLockAfter = const Duration(minutes: 5),
     ZtInstallChannel? channel,
+    String? dataAppId,
     String? releaseRepo,
   })  : _channel = channel,
+        _dataAppId = dataAppId,
         _releaseRepo = releaseRepo;
 
-  /// Lowercase id, also the HKDF label and the `vault_items.app` value:
-  /// `fitness`, `contacts`, `tasks`, `notes`.
+  /// Lowercase id: `fitness`, `contacts`, `tasks`, `notes`. Names the app
+  /// (brand, crash reports, shared spaces, release checks). Unless
+  /// [dataAppId] says otherwise it is also the HKDF label and the
+  /// `vault_items.app` value.
   final String appId;
+
+  final String? _dataAppId;
+
+  /// Whose synced items, local store and attachments this app opens: its
+  /// own ([appId], the default) or a sibling's. A companion app sets it to
+  /// read and write the same data as the app it extends, with the same
+  /// keys, for example ZT Gallery with `dataAppId: 'camera'` for the photos
+  /// ZT Camera backs up. Every other app leaves it out, so nothing changes
+  /// for them. Changing it later makes the app's existing data unreadable,
+  /// like changing [appId].
+  String get dataAppId => _dataAppId ?? appId;
 
   /// Store name, for example "Zero-Trust Notes".
   final String displayName;

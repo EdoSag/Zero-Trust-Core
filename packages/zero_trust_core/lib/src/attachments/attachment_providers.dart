@@ -27,7 +27,7 @@ final _unlockedProvider = Provider<Object?>((ref) => ref.watch(
 /// [InMemoryAttachmentCache].
 final ztAttachmentCacheProvider = FutureProvider<AttachmentCache>((ref) async {
   if (ref.watch(_unlockedProvider) == null) throw const VaultIsLocked();
-  final appId = ref.watch(ztAppConfigProvider.select((c) => c.appId));
+  final appId = ref.watch(ztAppConfigProvider.select((c) => c.dataAppId));
   final userId = ref.watch(accountServiceProvider).currentUserId;
   if (userId == null) throw StateError('Not signed in');
   // The web has no folders: the sealed files and the waiting uploads and
@@ -46,7 +46,7 @@ final ztAttachmentCacheProvider = FutureProvider<AttachmentCache>((ref) async {
 /// uploads and deletes are retried after every successful sync.
 final ztAttachmentsProvider = FutureProvider<ZtAttachments>((ref) async {
   if (ref.watch(_unlockedProvider) == null) throw const VaultIsLocked();
-  final appId = ref.watch(ztAppConfigProvider.select((c) => c.appId));
+  final appId = ref.watch(ztAppConfigProvider.select((c) => c.dataAppId));
   final userId = ref.watch(accountServiceProvider).currentUserId;
   if (userId == null) throw StateError('Not signed in');
   final attachments = ZtAttachments(

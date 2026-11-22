@@ -663,7 +663,7 @@ class ZtSettingsPage extends ConsumerWidget {
   /// file is encrypted under keys that no longer exist anywhere.
   static Future<void> _deleteLocalData(WidgetRef ref, String userId) async {
     try {
-      final appId = ref.read(ztAppConfigProvider).appId;
+      final appId = ref.read(ztAppConfigProvider).dataAppId;
       await ZtLocalStore.deleteFiles(
           await ZtLocalStore.pathFor(appId: appId, userId: userId));
       if (kIsWeb) {

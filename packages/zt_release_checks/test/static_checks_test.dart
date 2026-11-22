@@ -143,6 +143,19 @@ void main() {
     expect(_failures(_goodApp(), appId: 'keyboard').keys, ['app id']);
   });
 
+  test('a companion app passes for the data it opens (dataAppId)', () {
+    final app = _goodApp();
+    File(p.join(app.path, 'lib/main.dart')).writeAsStringSync('''
+const config = ZtAppConfig(
+  appId: 'gallery',
+  dataAppId: 'camera',
+  displayName: 'Zero-Trust Gallery',
+);
+''');
+    expect(_failures(app, appId: 'camera'), isEmpty);
+    expect(_failures(app, appId: 'notes').keys, ['app id']);
+  });
+
   group('database uses', () {
     test('finds tables and functions, skips storage buckets', () {
       final app = _goodApp();
