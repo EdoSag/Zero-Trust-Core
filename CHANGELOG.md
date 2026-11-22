@@ -11,7 +11,7 @@ an app must change.
   (its old key is the data key, `legacy_dek`), so `AccountService.signIn`
   no longer falls back to sending the raw password. A wrong password is
   simply "incorrect email or password".
-- Migration `20261122120000_retire_legacy_sign_in`: `zt_needs_legacy_sign_in`
+- Migration `20261122130000_retire_legacy_sign_in`: `zt_needs_legacy_sign_in`
   always answers false, so older app versions stop sending raw passwords
   too, and it no longer reveals which emails had a pre-core account.
 - Kept on purpose: upgraded accounts sign in and unlock as before, the
