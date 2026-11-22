@@ -12,7 +12,9 @@ class ZtAppConfig {
     this.accent,
     this.autoLockAfter = const Duration(minutes: 5),
     ZtInstallChannel? channel,
-  }) : _channel = channel;
+    String? releaseRepo,
+  })  : _channel = channel,
+        _releaseRepo = releaseRepo;
 
   /// Lowercase id, also the HKDF label and the `vault_items.app` value:
   /// `fitness`, `contacts`, `tasks`, `notes`.
@@ -33,6 +35,14 @@ class ZtAppConfig {
   /// [ZtInstallChannel.current] (the `ZT_CHANNEL` build flag); tests and
   /// previews may pass one.
   ZtInstallChannel get channel => _channel ?? ZtInstallChannel.current;
+
+  final String? _releaseRepo;
+
+  /// The GitHub repository whose releases carry this app's signed APK
+  /// (`owner/name`), for the in-app update check and Obtainium. Defaults
+  /// to the suite's naming: "Zero-Trust Notes" -> `EdoSag/Zero-Trust-Notes`.
+  String get releaseRepo =>
+      _releaseRepo ?? 'EdoSag/${displayName.trim().replaceAll(' ', '-')}';
 }
 
 /// Apps override this in their root `ProviderScope`.

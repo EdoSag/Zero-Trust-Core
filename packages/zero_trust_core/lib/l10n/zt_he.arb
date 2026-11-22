@@ -284,5 +284,21 @@
   "errEmailSame": "זו כבר כתובת המייל של החשבון שלך.",
   "errEmailInUse": "לכתובת הזו כבר יש חשבון Zero-Trust.",
   "errEmailCodeWrong": "הקוד לא נכון. כדאי לבדוק את המייל ולנסות שוב.",
-  "errEmailCodeExpired": "תוקף הקוד פג. אפשר לשלוח קוד חדש."
+  "errEmailCodeExpired": "תוקף הקוד פג. אפשר לשלוח קוד חדש.",
+  "appUpdates": "עדכוני אפליקציה",
+  "checkingForUpdates": "בודקים אם יש עדכון…",
+  "youHaveTheLatestVersion": "מותקנת הגרסה האחרונה ({version})",
+  "updateAvailableVersion": "גרסה {version} זמינה. אפשר להקיש כדי לעדכן.",
+  "couldNotCheckForUpdates": "לא הצלחנו לבדוק אם יש עדכון. אפשר להקיש כדי לנסות שוב.",
+  "noReleaseYet": "עדיין אין גרסה ב-GitHub",
+  "checkForUpdates": "בדיקת עדכונים",
+  "checkForUpdatesSubtitle": "פעם ביום נשאל את GitHub מה מספר הגרסה החדשה ביותר. שום דבר עליך או על הנתונים שלך לא נשלח.",
+  "getUpdatesWithObtainium": "קבלת עדכונים עם Obtainium",
+  "obtainiumSubtitle": "אפליקציה חינמית שמתקינה עדכונים ישירות מ-GitHub",
+  "updateAvailableTitle": "יש עדכון",
+  "updateAvailableBody": "{app} {version} מוכנה. אצלך מותקנת {installed}.",
+  "updateHowItInstalls": "הדפדפן יוריד את העדכון, ואז יש לפתוח אותו כדי להתקין. אנדרואיד יתקין אותו רק אם הוא חתום על ידי אותו מפתח כמו האפליקציה הזו.",
+  "whatsNew": "מה חדש",
+  "downloadUpdate": "הורדה",
+  "couldNotOpenLink": "לא הצלחנו לפתוח את הקישור."
 }

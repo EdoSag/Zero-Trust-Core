@@ -35,6 +35,7 @@ import '../auth/zt_recovery_key_screen.dart';
 import 'zt_plan_tile.dart';
 import 'zt_storage_tile.dart';
 import 'zt_sync_status_tile.dart';
+import 'zt_updates_tiles.dart';
 
 /// Privacy policy every Zero-Trust app links to from Settings.
 final Uri ztPrivacyPolicyUrl = Uri.parse('https://zerotrust.bz/privacy/');
@@ -319,6 +320,7 @@ class ZtSettingsPage extends ConsumerWidget {
               ZtL10n.of(context).endToEndEncryptedWeCant,
             ].join(' · ')),
           ),
+          const ZtUpdatesTiles(),
           if (onOpenUrl != null) ...[
             ListTile(
               leading: const Icon(Icons.help_outline),

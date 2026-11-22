@@ -1064,4 +1064,62 @@ class ZtLocalizationsEn extends ZtLocalizations {
 
   @override
   String get errEmailCodeExpired => 'The code expired. Send a new one.';
+
+  @override
+  String get appUpdates => 'App updates';
+
+  @override
+  String get checkingForUpdates => 'Checking for updates…';
+
+  @override
+  String youHaveTheLatestVersion(String version) {
+    return 'You have the latest version ($version)';
+  }
+
+  @override
+  String updateAvailableVersion(String version) {
+    return 'Version $version is available. Tap to update.';
+  }
+
+  @override
+  String get couldNotCheckForUpdates =>
+      'Couldn\'t check for updates. Tap to try again.';
+
+  @override
+  String get noReleaseYet => 'No release on GitHub yet';
+
+  @override
+  String get checkForUpdates => 'Check for updates';
+
+  @override
+  String get checkForUpdatesSubtitle =>
+      'Once a day, asks GitHub for the newest version number. Nothing about you or your data is sent.';
+
+  @override
+  String get getUpdatesWithObtainium => 'Get updates with Obtainium';
+
+  @override
+  String get obtainiumSubtitle =>
+      'A free app that installs updates straight from GitHub';
+
+  @override
+  String get updateAvailableTitle => 'Update available';
+
+  @override
+  String updateAvailableBody(String app, String version, String installed) {
+    return '$app $version is ready. You have $installed.';
+  }
+
+  @override
+  String get updateHowItInstalls =>
+      'Your browser downloads the update; open it to install. Android installs it only if it is signed by the same developer as this app.';
+
+  @override
+  String get whatsNew => 'What\'s new';
+
+  @override
+  String get downloadUpdate => 'Download';
+
+  @override
+  String get couldNotOpenLink => 'Couldn\'t open the link.';
 }

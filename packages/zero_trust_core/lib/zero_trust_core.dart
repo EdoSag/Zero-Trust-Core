@@ -70,5 +70,7 @@ export 'src/ui/settings/zt_settings_page.dart';
 export 'src/ui/settings/zt_change_email_screen.dart';
 export 'src/ui/settings/zt_storage_tile.dart';
 export 'src/ui/settings/zt_sync_status_tile.dart';
+export 'src/ui/settings/zt_updates_tiles.dart';
 export 'src/ui/theme/zt_theme.dart';
+export 'src/update/zt_update.dart';
 export 'src/vault/vault_controller.dart';
