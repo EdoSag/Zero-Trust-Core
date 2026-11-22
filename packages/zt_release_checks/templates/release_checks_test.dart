@@ -350,33 +350,62 @@ void main() {
       ('URL-safe, as Tasks and Contacts wrote it', ZtBase64.encode),
       ('standard base64, as Notes wrote it', base64.encode),
     ]) {
-      test('a pre-core account ($name) signs in and keeps its old data key',
-          () async {
+      test(
+          'a pre-core account ($name), upgraded at its first core sign-in, '
+          'signs in here and keeps its old data key', () async {
+        // Since Z21 the raw-password upgrade is retired (checked live on
+        // 2026-11-22: every pre-core account was already upgraded). What
+        // must keep working is the upgraded account: old key = data key.
         final legacySalt = Kdf.newSalt();
+        final keys = await KeyHierarchy.migrateLegacyAccount(
+          password: _password,
+          legacySalt: encode(legacySalt),
+          salt: await Kdf.saltForEmail(_email),
+          legacyParams: _fast,
+          params: _fast,
+        );
         final oldKey = await Kdf.deriveMasterKey(
             password: _password, salt: legacySalt, params: _fast);
+        expect(keys.dek, oldKey);
         final backend = _MemoryBackend()
-          ..authPasswords[_email] = _password
-          ..profiles[_email] = ProfileRecord(legacySalt: encode(legacySalt));
+          ..authPasswords[_email] = keys.authSecret
+          ..profiles[_email] = ProfileRecord(
+            legacySalt: encode(legacySalt),
+            authUpgraded: true,
+            keys: StoredKeys(
+              kdfSalt: keys.stored.kdfSalt,
+              kdfParams: keys.stored.kdfParams.toJson(),
+              wrappedDek: keys.stored.wrappedDek,
+              recoveryWrappedDek: keys.stored.recoveryWrappedDek,
+              legacyDek: true,
+            ),
+          );
 
-        final first =
-            await AccountService(backend, params: _fast, legacyParams: _fast)
-                .signIn(email: _email, password: _password);
-        expect(first.dek, oldKey);
-        expect(first.legacyDek, isTrue);
-        expect(first.newRecoveryKey, isNotNull);
-        expect(backend.authPasswords[_email], isNot(_password),
-            reason: 'the server must stop seeing the real password');
-
-        // Every other app, after this one upgraded the account.
-        await backend.signOut();
-        final again =
-            await AccountService(backend, params: _fast, legacyParams: _fast)
-                .signIn(email: _email, password: _password);
-        expect(again.dek, oldKey);
-        expect(again.legacyDek, isTrue);
+        for (var i = 0; i < 2; i++) {
+          final here = await AccountService(backend, params: _fast)
+              .signIn(email: _email, password: _password);
+          expect(here.dek, oldKey);
+          expect(here.legacyDek, isTrue);
+          expect(here.newRecoveryKey, isNull);
+          await backend.signOut();
+        }
+        expect(backend.passwordsSeenByServer, isNot(contains(_password)),
+            reason: 'the server never sees the real password');
       });
     }
+
+    test('a never-upgraded pre-core account is refused, raw password unsent',
+        () async {
+      final backend = _MemoryBackend()
+        ..authPasswords[_email] = _password
+        ..profiles[_email] =
+            ProfileRecord(legacySalt: ZtBase64.encode(Kdf.newSalt()));
+      await expectLater(
+          AccountService(backend, params: _fast)
+              .signIn(email: _email, password: _password),
+          throwsA(isA<InvalidCredentials>()));
+      expect(backend.passwordsSeenByServer, isNot(contains(_password)));
+    });
 
     test('a wrong password never reaches the server', () async {
       final backend = _MemoryBackend();

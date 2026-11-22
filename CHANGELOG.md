@@ -5,6 +5,15 @@ an app must change.
 
 ## Unreleased
 
+### Release checks follow Z21 (`zt_release_checks`)
+
+- The shared release checks no longer expect a never-upgraded pre-core
+  account to sign in with its raw password (retired in Z21; re-checked live
+  on 2026-11-22: 0 such accounts, Edo's pre-core account is upgraded). They
+  now check that an upgraded pre-core account signs in to every app with
+  its old data key, and that a never-upgraded one is refused without the
+  raw password being sent. This turns Core CI green again.
+
 ### Tablet and foldable layouts (S-11; `zero_trust_core`, `zt_sharing_ui`)
 
 - New: `ZtWindowClass` (Material 3 size classes), `ZtLayout`
