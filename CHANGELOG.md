@@ -5,6 +5,20 @@ an app must change.
 
 ## Unreleased
 
+### Crash reports have a destination (Z15; database, edge function, `zero_trust_core`)
+
+- Migration `20261122090000_crash_reports`: `zt_crash_reports` (one counted
+  row per bug, app version, platform and day; owner only), the
+  `zt_crash_groups` view, `zt_record_crash_report` (service role only, 5,000
+  new rows a day at most) and a daily purge of rows older than 90 days.
+- Edge function `supabase/functions/crash-report` (deploy with
+  `--no-verify-jwt`): refuses anything but a scrubbed report, logs nothing.
+- `ZtHttpCrashReportSink.supabase(supabaseUrl)` posts there with no key or
+  token.
+- Upgrade: pass `sink: ZtHttpCrashReportSink.supabase(supabaseUrl)` to the
+  app's `ZtCrashReporter` (see README "Crash reports (opt-in)"). Settings
+  then offer "Ask me before sending" and "Send automatically".
+
 ### ZT Time and ZT Quests in "Other Zero-Trust apps" (`zero_trust_core`)
 
 - `ZtSuite.time` and `ZtSuite.quests` join `ZtSuite.apps`, so every app's

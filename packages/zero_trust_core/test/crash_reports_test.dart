@@ -355,6 +355,29 @@ void main() {
     expect(() => refusing.send(report), throwsA(anything));
   });
 
+  test('supabase sink posts to the crash-report function, no key at all',
+      () async {
+    late http.Request seen;
+    final sink = ZtHttpCrashReportSink.supabase(
+      'https://abc.supabase.co/',
+      client: MockClient((request) async {
+        seen = request;
+        return http.Response('', 204);
+      }),
+    );
+    expect(sink.endpoint.toString(),
+        'https://abc.supabase.co/functions/v1/crash-report');
+    await sink.send(build(StateError('x')));
+    expect(seen.url, sink.endpoint);
+    expect(seen.headers.keys.map((k) => k.toLowerCase()),
+        isNot(anyOf(contains('authorization'), contains('apikey'))));
+
+    // The daily cap answers 503: the report stays on the phone.
+    final full = ZtHttpCrashReportSink.supabase('https://abc.supabase.co',
+        client: MockClient((_) async => http.Response('', 503)));
+    expect(() => full.send(build(StateError('x'))), throwsA(anything));
+  });
+
   group('screens', () {
     late InMemoryPreferencesStore prefs;
     late FakeSink sink;
