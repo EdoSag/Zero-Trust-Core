@@ -67,6 +67,7 @@ export 'src/ui/settings/zt_data_protection_screen.dart';
 export 'src/ui/settings/zt_plan_tile.dart';
 export 'src/ui/settings/zt_plans_screen.dart';
 export 'src/ui/settings/zt_settings_page.dart';
+export 'src/ui/settings/zt_change_email_screen.dart';
 export 'src/ui/settings/zt_storage_tile.dart';
 export 'src/ui/settings/zt_sync_status_tile.dart';
 export 'src/ui/theme/zt_theme.dart';

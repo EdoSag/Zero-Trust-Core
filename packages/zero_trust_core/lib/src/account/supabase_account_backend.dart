@@ -4,6 +4,7 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 
 import 'account_backend.dart';
 import 'account_lifecycle.dart';
+import '../l10n/zt_l10n.dart';
 
 /// [AccountBackend] over the shared `zerotrust_apps` Supabase project.
 class SupabaseAccountBackend
@@ -162,6 +163,44 @@ class SupabaseAccountBackend
   @override
   Future<bool> keepAccount() async =>
       await _client.rpc<bool?>('zt_cancel_account_deletion') ?? false;
+
+  @override
+  Future<void> startEmailChange(String newEmail) async {
+    try {
+      await _client.functions.invoke('change-email',
+          body: {'action': 'start', 'new_email': newEmail});
+    } on FunctionException catch (e) {
+      if (e.status == 409) throw const EmailInUse();
+      if (e.status == 400) throw ArgumentError(ZtL10n.current.errEmailInvalid);
+      rethrow;
+    }
+  }
+
+  @override
+  Future<String> finishEmailChange(String code, String authSecret) async {
+    final FunctionResponse response;
+    try {
+      response = await _client.functions.invoke('change-email',
+          body: {'action': 'finish', 'code': code, 'auth_secret': authSecret});
+    } on FunctionException catch (e) {
+      throw switch (e.status) {
+        400 => const EmailChangeCodeWrong(),
+        410 => const EmailChangeExpired(),
+        409 => const EmailInUse(),
+        _ => e,
+      };
+    }
+    // The session's token still names the old address until refreshed.
+    try {
+      await _client.auth.refreshSession();
+    } on Object {
+      // The next automatic refresh picks it up.
+    }
+    final data = response.data;
+    return data is Map && data['email'] is String
+        ? data['email'] as String
+        : currentEmail ?? '';
+  }
 
   String _requireUserId() {
     final id = currentUserId;

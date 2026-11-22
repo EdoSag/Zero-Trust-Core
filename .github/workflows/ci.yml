@@ -165,7 +165,8 @@ jobs:
             -f tests/family_location_test.sql \
             -f tests/planner_ai_test.sql \
             -f tests/crash_reports_test.sql \
-            -f tests/account_deletion_test.sql
+            -f tests/account_deletion_test.sql \
+            -f tests/email_change_test.sql
 
   edge_functions:
     runs-on: ubuntu-latest
@@ -175,7 +176,7 @@ jobs:
       - uses: denoland/setup-deno@v2
         with: { deno-version: v2.x }
       - run: deno lint
-      - run: deno check delete-account/index.ts account-deletion/index.ts
+      - run: deno check delete-account/index.ts account-deletion/index.ts change-email/index.ts
       - run: deno check planner-ai/index.ts planner-ai/eval/run.ts
       - run: deno check crash-report/index.ts
-      - run: deno test --allow-read planner-ai/ crash-report/ _shared/
+      - run: deno test --allow-read planner-ai/ crash-report/ _shared/ change-email/

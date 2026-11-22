@@ -5,6 +5,7 @@ import 'package:supabase_flutter/supabase_flutter.dart'
 import 'package:zt_crypto/zt_crypto.dart' show AttachmentCorrupt;
 
 import '../../account/account_backend.dart';
+import '../../account/account_lifecycle.dart';
 import '../../account/account_service.dart';
 import '../../account/biometric_key_store.dart';
 import '../../account/password_check.dart';
@@ -30,6 +31,9 @@ String ztErrorMessage(Object error) {
     EmailNotConfirmed() => l.errEmailNotConfirmed,
     EmailConfirmationSent(:final email) => l.errConfirmationSent(email),
     KeyMismatch() => l.errKeyMismatch,
+    EmailInUse() => l.errEmailInUse,
+    EmailChangeCodeWrong() => l.errEmailCodeWrong,
+    EmailChangeExpired() => l.errEmailCodeExpired,
     BiometricKeyInvalidated() => l.errBiometricChanged,
     ArgumentError(:final message) => '$message',
     StateError(:final message) => message,

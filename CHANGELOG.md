@@ -5,6 +5,27 @@ an app must change.
 
 ## Unreleased
 
+### Change the account's email (Z14; database, edge function, `zero_trust_core`)
+
+- Settings › **Change email** (English and Hebrew): new address + current
+  password, then the 6-digit code emailed to the new address.
+- The sign-in secret depends on the email, so the server switches the
+  email and the Supabase password in one admin call (edge function
+  `change-email`); there is never a moment when neither address signs in.
+  The encryption keys are not touched, so other devices and apps keep
+  working and just sign in with the new address next time. The old address
+  gets a notice.
+- Migration `20261122110000_email_change`: `zt_email_changes` (hashed code,
+  15 minutes, 5 tries; service role only), `zt_email_in_use`, daily purge.
+- `AccountService`: `canChangeEmail`, `startEmailChange`,
+  `finishEmailChange`. A password change now wraps the data key under the
+  stored salt and derives the sign-in secret from the current email (they
+  differ only after an email change). New errors `EmailInUse`,
+  `EmailChangeCodeWrong`, `EmailChangeExpired`.
+- Shared `_shared/mail.ts` (Brevo) now sends the deletion and email-change
+  emails.
+- Upgrade: nothing to do; the setting appears with the Supabase backend.
+
 ### Account deletion waits 7 days (Z22; database, edge functions, `zero_trust_core`)
 
 - Migration `20261122100000_account_deletion_grace`: `zt_account_deletions`

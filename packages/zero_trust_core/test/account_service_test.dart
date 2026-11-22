@@ -694,6 +694,84 @@ void main() {
       expect(await s.pendingDeletion(), isNull);
     });
 
+    test('email change: new address signs in, same keys, old one stops',
+        () async {
+      final created = await s.signUp(email: email, password: password);
+      await s.startEmailChange(
+          password: password, newEmail: ' new@example.com ');
+      expect(grace.codesSent, hasLength(1));
+      await expectLater(
+          s.finishEmailChange(
+              password: password, newEmail: 'new@example.com', code: '000000'),
+          throwsA(isA<EmailChangeCodeWrong>()));
+      expect(s.currentEmail, email, reason: 'nothing changed yet');
+      expect(
+          await s.finishEmailChange(
+              password: password,
+              newEmail: 'new@example.com',
+              code: grace.codesSent.single),
+          'new@example.com');
+      expect(s.currentEmail, 'new@example.com');
+      expect(grace.passwordsSeenByServer, isNot(contains(password)));
+
+      await s.signOut();
+      await expectLater(s.signIn(email: email, password: password),
+          throwsA(isA<InvalidCredentials>()));
+      final back = await s.signIn(email: 'new@example.com', password: password);
+      expect(back.dek, created.dek, reason: 'the data key never changed');
+
+      // Later password changes and re-authentication keep working.
+      await s.changePassword(
+          currentPassword: password, newPassword: 'another long password');
+      await s.signOut();
+      final again = await s.signIn(
+          email: 'new@example.com', password: 'another long password');
+      expect(again.dek, created.dek);
+      expect(await s.unlock('another long password'), isA<UnlockResult>());
+      await s.deleteAccount(password: 'another long password');
+      expect(grace.scheduled, isNotEmpty);
+    });
+
+    test('email change needs the right password and a new address', () async {
+      await s.signUp(email: email, password: password);
+      await expectLater(
+          s.startEmailChange(
+              password: 'not my password!!', newEmail: 'n@x.com'),
+          throwsA(isA<KeyMismatch>()));
+      await expectLater(
+          s.startEmailChange(password: password, newEmail: 'EDO@example.com'),
+          throwsA(isA<ArgumentError>()));
+      expect(grace.codesSent, isEmpty);
+    });
+
+    test('email change to an address that has an account is refused', () async {
+      await s.signUp(email: 'other@example.com', password: password);
+      await s.signOut();
+      await s.signUp(email: email, password: password);
+      await expectLater(
+          s.startEmailChange(password: password, newEmail: 'other@example.com'),
+          throwsA(isA<EmailInUse>()));
+    });
+
+    test('forgot password after an email change still works', () async {
+      final created = await s.signUp(email: email, password: password);
+      final recovery = await created.newRecoveryKey!.format();
+      await s.startEmailChange(password: password, newEmail: 'new@example.com');
+      await s.finishEmailChange(
+          password: password,
+          newEmail: 'new@example.com',
+          code: grace.codesSent.single);
+      final reset = await s.recover(
+          recoveryKey: recovery, newPassword: 'fresh password here');
+      expect(reset.dek, created.dek);
+      await s.signOut();
+      expect(
+          (await s.signIn(
+                  email: 'new@example.com', password: 'fresh password here'))
+              .dek,
+          created.dek);
+    });
+
     test('a backend without the grace period deletes at once', () async {
       await service.signUp(email: email, password: password);
       expect(await service.pendingDeletion(), isNull);

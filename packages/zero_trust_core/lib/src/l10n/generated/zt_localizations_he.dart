@@ -1013,4 +1013,55 @@ class ZtLocalizationsHe extends ZtLocalizations {
 
   @override
   String get ok => 'אישור';
+
+  @override
+  String get changeEmail => 'שינוי כתובת המייל';
+
+  @override
+  String get changeEmailSubtitle => 'כניסה עם כתובת אחרת';
+
+  @override
+  String get changeEmailIntro =>
+      'המידע שלך נשאר מוצפן עם הסיסמה, כמו קודם. רק הכתובת שאיתה נכנסים משתנה, בכל אפליקציות Zero-Trust.';
+
+  @override
+  String get newEmail => 'מייל חדש';
+
+  @override
+  String get sendCode => 'שליחת קוד';
+
+  @override
+  String enterEmailCode(String email) {
+    return 'יש להזין את הקוד בן 6 הספרות ששלחנו אל $email.';
+  }
+
+  @override
+  String get emailCode => 'קוד';
+
+  @override
+  String get changeEmailConfirm => 'שינוי המייל';
+
+  @override
+  String get sendNewCode => 'שליחת קוד חדש';
+
+  @override
+  String emailChangedTo(String email) {
+    return 'מעכשיו נכנסים לחשבון שלך עם $email.';
+  }
+
+  @override
+  String get errEmailInvalid => 'זו לא נראית כמו כתובת מייל.';
+
+  @override
+  String get errEmailSame => 'זו כבר כתובת המייל של החשבון שלך.';
+
+  @override
+  String get errEmailInUse => 'לכתובת הזו כבר יש חשבון Zero-Trust.';
+
+  @override
+  String get errEmailCodeWrong =>
+      'הקוד לא נכון. כדאי לבדוק את המייל ולנסות שוב.';
+
+  @override
+  String get errEmailCodeExpired => 'תוקף הקוד פג. אפשר לשלוח קוד חדש.';
 }

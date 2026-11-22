@@ -269,5 +269,20 @@
   "accountKept": "החשבון שלך לא יימחק.",
   "accountDeletionRequestedTitle": "מחיקת החשבון תוזמנה",
   "accountDeletionRequestedBody": "החשבון שלך יימחק ב-{date}. התחרטת? אפשר להיכנס לאחת מאפליקציות Zero-Trust לפני כן וללחוץ על השארת החשבון, או להשתמש בקישור ששלחנו לך במייל.",
-  "ok": "אישור"
+  "ok": "אישור",
+  "changeEmail": "שינוי כתובת המייל",
+  "changeEmailSubtitle": "כניסה עם כתובת אחרת",
+  "changeEmailIntro": "המידע שלך נשאר מוצפן עם הסיסמה, כמו קודם. רק הכתובת שאיתה נכנסים משתנה, בכל אפליקציות Zero-Trust.",
+  "newEmail": "מייל חדש",
+  "sendCode": "שליחת קוד",
+  "enterEmailCode": "יש להזין את הקוד בן 6 הספרות ששלחנו אל {email}.",
+  "emailCode": "קוד",
+  "changeEmailConfirm": "שינוי המייל",
+  "sendNewCode": "שליחת קוד חדש",
+  "emailChangedTo": "מעכשיו נכנסים לחשבון שלך עם {email}.",
+  "errEmailInvalid": "זו לא נראית כמו כתובת מייל.",
+  "errEmailSame": "זו כבר כתובת המייל של החשבון שלך.",
+  "errEmailInUse": "לכתובת הזו כבר יש חשבון Zero-Trust.",
+  "errEmailCodeWrong": "הקוד לא נכון. כדאי לבדוק את המייל ולנסות שוב.",
+  "errEmailCodeExpired": "תוקף הקוד פג. אפשר לשלוח קוד חדש."
 }

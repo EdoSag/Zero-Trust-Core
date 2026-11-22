@@ -5,6 +5,7 @@ import 'package:zt_crypto/zt_crypto.dart';
 
 import 'account_backend.dart';
 import 'account_lifecycle.dart';
+import '../l10n/zt_l10n.dart';
 import 'biometric_key_store.dart';
 import 'key_cache.dart';
 import 'session_key_store.dart';
@@ -526,6 +527,53 @@ class AccountService {
   /// Cancels a scheduled deletion of the signed-in account.
   Future<bool> keepAccount() async => await _lifecycle?.keepAccount() ?? false;
 
+  /// The server can change the account's email (Z14).
+  bool get canChangeEmail => _lifecycle != null;
+
+  /// First step of changing the email: checks [password] on this device and
+  /// with the server (a fresh sign-in, which the server requires), then has
+  /// a 6-digit code emailed to [newEmail].
+  Future<void> startEmailChange({
+    required String password,
+    required String newEmail,
+  }) async {
+    final lifecycle = _lifecycle;
+    if (lifecycle == null) throw StateError('Email change is not available');
+    final email = newEmail.trim();
+    if (email.toLowerCase() == currentEmail?.toLowerCase()) {
+      throw ArgumentError(ZtL10n.current.errEmailSame);
+    }
+    final keys = await _fetchKeys();
+    if (keys == null) throw const KeyMismatch();
+    final unlocked = await _unlock(password, keys);
+    unlocked.dek.fillRange(0, unlocked.dek.length, 0);
+    await _reauthenticate(password);
+    await lifecycle.startEmailChange(email);
+  }
+
+  /// Second step: with the emailed [code], the server switches the email
+  /// and the sign-in secret together, so there is never a moment when
+  /// neither address signs in. The encryption keys don't change, so every
+  /// app and device keeps working; other devices just sign in with the new
+  /// address next time.
+  Future<String> finishEmailChange({
+    required String password,
+    required String newEmail,
+    required String code,
+  }) async {
+    final lifecycle = _lifecycle;
+    if (lifecycle == null) throw StateError('Email change is not available');
+    final creds = await KeyHierarchy.deriveCredentials(
+        password: password,
+        salt: await Kdf.saltForEmail(newEmail.trim()),
+        params: params);
+    try {
+      return await lifecycle.finishEmailChange(code.trim(), creds.authSecret);
+    } finally {
+      creds.kek.fillRange(0, creds.kek.length, 0);
+    }
+  }
+
   Future<UnlockResult> _afterAuth(
     String password,
     Uint8List salt, {
@@ -606,19 +654,28 @@ class AccountService {
     if (email == null) throw StateError('Not signed in');
     final keys = await _fetchKeys();
     if (keys == null) throw const KeyMismatch();
+    // The data key stays wrapped under the stored salt; the sign-in secret
+    // follows the account's email. They are the same salt unless the email
+    // was changed (Z14), and then the secret needs a second derivation.
+    final emailSalt = await Kdf.saltForEmail(email);
     final rewrapped = await KeyHierarchy.rewrapForNewPassword(
       dek: dek,
       newPassword: newPassword,
       stored: _wrapped(keys),
-      salt: await Kdf.saltForEmail(email),
+      salt: keys.kdfSalt,
       params: params,
     );
+    final authSecret = _sameBytes(keys.kdfSalt, emailSalt)
+        ? rewrapped.authSecret
+        : (await KeyHierarchy.deriveCredentials(
+                password: newPassword, salt: emailSalt, params: params))
+            .authSecret;
     final pending = keys.copyWith(
       pendingWrappedDek: rewrapped.stored.wrappedDek,
       pendingKdfParams: params.toJson(),
     );
     await _writeKeys(pending);
-    await _backend.updateAuthPassword(rewrapped.authSecret);
+    await _backend.updateAuthPassword(authSecret);
     await _writeKeys(_promote(pending));
   }
 

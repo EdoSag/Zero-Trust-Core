@@ -573,5 +573,30 @@
       "date": {"type": "String", "example": "Long date"}
     }
   },
-  "ok": "OK"
+  "ok": "OK",
+  "changeEmail": "Change email",
+  "changeEmailSubtitle": "Sign in with a different address",
+  "changeEmailIntro": "Your data stays encrypted with your password, as before. Only the address you sign in with changes, in every Zero-Trust app.",
+  "newEmail": "New email",
+  "sendCode": "Send code",
+  "enterEmailCode": "Enter the 6-digit code we sent to {email}.",
+  "@enterEmailCode": {
+    "placeholders": {
+      "email": {"type": "String", "example": "edo@example.com"}
+    }
+  },
+  "emailCode": "Code",
+  "changeEmailConfirm": "Change email",
+  "sendNewCode": "Send a new code",
+  "emailChangedTo": "Your account now signs in with {email}.",
+  "@emailChangedTo": {
+    "placeholders": {
+      "email": {"type": "String", "example": "edo@example.com"}
+    }
+  },
+  "errEmailInvalid": "That doesn't look like an email address.",
+  "errEmailSame": "That is already your account's email.",
+  "errEmailInUse": "That email already has a Zero-Trust account.",
+  "errEmailCodeWrong": "That code isn't right. Check the email and try again.",
+  "errEmailCodeExpired": "The code expired. Send a new one."
 }
