@@ -1,3 +1,5 @@
+import 'dart:typed_data';
+
 import 'package:zero_trust_core/zero_trust_core.dart';
 
 const fast = KdfParams(iterations: 1000);
@@ -45,15 +47,46 @@ class FakeBackend implements AccountBackend {
     freshSession = true;
   }
 
-  /// Mirrors `zt_needs_legacy_sign_in`: a pre-core salt, and the auth
-  /// password not yet switched.
+  /// An account made by a pre-core app version, as its first core sign-in
+  /// left it: the old PBKDF2 key is the data key (`legacy_dek`) and the
+  /// auth password is the derived secret. [upgraded] false is an upgrade
+  /// that switched the password but didn't record it. Returns the old key.
+  Future<Uint8List> seedUpgradedLegacyAccount(
+    String email,
+    String password, {
+    KdfParams params = fast,
+    bool upgraded = true,
+    String Function(List<int>) encodeSalt = ZtBase64.encode,
+  }) async {
+    final legacySalt = Kdf.newSalt();
+    final keys = await KeyHierarchy.migrateLegacyAccount(
+      password: password,
+      legacySalt: encodeSalt(legacySalt),
+      salt: await Kdf.saltForEmail(email),
+      legacyParams: params,
+      params: params,
+    );
+    authPasswords[email] = keys.authSecret;
+    profiles[email] = ProfileRecord(
+      legacySalt: encodeSalt(legacySalt),
+      authUpgraded: upgraded,
+      keys: StoredKeys(
+        kdfSalt: Uint8List.fromList(keys.stored.kdfSalt),
+        kdfParams: keys.stored.kdfParams.toJson(),
+        wrappedDek: keys.stored.wrappedDek,
+        recoveryWrappedDek: keys.stored.recoveryWrappedDek,
+        legacyDek: true,
+      ),
+    );
+    return Uint8List.fromList(keys.dek);
+  }
+
+  /// Mirrors `zt_needs_legacy_sign_in`, retired (Z21): always false.
+  int legacyLookups = 0;
   @override
   Future<bool> needsLegacySignIn(String email) async {
-    final p = profiles[email];
-    return p != null &&
-        p.legacySalt != null &&
-        !p.authUpgraded &&
-        (p.keys == null || p.keys!.legacyDek);
+    legacyLookups++;
+    return false;
   }
 
   @override

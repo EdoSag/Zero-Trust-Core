@@ -121,8 +121,12 @@ abstract interface class AccountBackend {
   Future<void> signIn(String email, String authPassword);
 
   /// Whether [email] belongs to a pre-core account whose Supabase password
-  /// is still the raw password. Only then may the raw password be sent.
-  /// False for unknown emails, so it reveals nothing about v2 accounts.
+  /// is still the raw password. False for unknown emails, so it reveals
+  /// nothing about v2 accounts.
+  ///
+  /// No longer called: the raw-password upgrade was retired on 2026-11-22
+  /// and the server function now always answers false. Kept so backends
+  /// written against earlier versions still compile.
   Future<bool> needsLegacySignIn(String email);
 
   /// Records that the Supabase password is now the derived auth secret.

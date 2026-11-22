@@ -56,55 +56,38 @@ void main() {
     expect(backend.passwordsSeenByServer, isNot(contains(password)));
   });
 
-  test('after an upgrade, a typo never sends the raw password', () async {
-    final legacySalt = Kdf.newSalt();
+  test('a pre-core account never has its raw password sent (Z21)', () async {
+    // Retired fallback: a never-upgraded pre-core account (raw Supabase
+    // password) is refused like any wrong password. Live check 2026-11-22:
+    // no such account exists.
     backend.authPasswords[email] = password;
     backend.profiles[email] =
-        ProfileRecord(legacySalt: ZtBase64.encode(legacySalt));
-    await service.signIn(email: email, password: password);
-    expect(backend.profiles[email]!.authUpgraded, isTrue);
-    await service.signOut();
-    backend.passwordsSeenByServer.clear();
+        ProfileRecord(legacySalt: ZtBase64.encode(Kdf.newSalt()));
+    await expectLater(service.signIn(email: email, password: password),
+        throwsA(isA<InvalidCredentials>()));
+    expect(backend.passwordsSeenByServer, isNot(contains(password)));
+    expect(backend.legacyLookups, 0, reason: 'the server is not even asked');
+  });
 
+  test('an upgraded pre-core account signs in with its old data key', () async {
+    final oldKey = await backend.seedUpgradedLegacyAccount(email, password);
+    final result = await service.signIn(email: email, password: password);
+    expect(result.dek, oldKey);
+    expect(result.legacyDek, isTrue);
+    expect(result.newRecoveryKey, isNull);
+    expect(backend.passwordsSeenByServer, isNot(contains(password)));
+
+    backend.passwordsSeenByServer.clear();
+    await service.signOut();
     await expectLater(service.signIn(email: email, password: 'a typo password'),
         throwsA(isA<InvalidCredentials>()));
     expect(backend.passwordsSeenByServer, isNot(contains('a typo password')));
   });
 
   test('an unrecorded upgrade is recorded at the next sign-in', () async {
-    final legacySalt = Kdf.newSalt();
-    backend.authPasswords[email] = password;
-    backend.profiles[email] =
-        ProfileRecord(legacySalt: ZtBase64.encode(legacySalt));
-    await service.signIn(email: email, password: password);
-    final p = backend.profiles[email]!;
-    backend.profiles[email] =
-        ProfileRecord(legacySalt: p.legacySalt, keys: p.keys); // mark lost
-    await service.signOut();
-
+    await backend.seedUpgradedLegacyAccount(email, password, upgraded: false);
     await service.signIn(email: email, password: password);
     expect(backend.profiles[email]!.authUpgraded, isTrue);
-  });
-
-  test('legacy account is upgraded and keeps its existing data key', () async {
-    // What today's apps did: Supabase password = raw password, data key =
-    // PBKDF2(password, profiles.salt), salt written unpadded (Contacts/Tasks).
-    final legacySalt = Kdf.newSalt();
-    final todaysKey = await Kdf.deriveMasterKey(
-        password: password, salt: legacySalt, params: fast);
-    backend.authPasswords[email] = password;
-    backend.profiles[email] =
-        ProfileRecord(legacySalt: ZtBase64.encode(legacySalt));
-
-    final upgraded = await service.signIn(email: email, password: password);
-    expect(upgraded.dek, todaysKey);
-    expect(upgraded.legacyDek, isTrue);
-    expect(upgraded.newRecoveryKey, isNotNull);
-    expect(backend.authPasswords[email], isNot(password));
-
-    await service.signOut();
-    final next = await service.signIn(email: email, password: password);
-    expect(next.dek, todaysKey);
   });
 
   group('one account opens every app', () {
@@ -132,20 +115,9 @@ void main() {
       }
     });
 
-    test(
-        'a pre-core account upgraded by one app opens the others with its '
-        'old data key', () async {
-      final legacySalt = Kdf.newSalt();
-      final oldKey = await Kdf.deriveMasterKey(
-          password: password, salt: legacySalt, params: fast);
-      backend.authPasswords[email] = password;
-      backend.profiles[email] =
-          ProfileRecord(legacySalt: ZtBase64.encode(legacySalt));
-
-      final first =
-          await AccountService(backend, params: fast, legacyParams: fast)
-              .signIn(email: email, password: password);
-      expect(first.legacyDek, isTrue);
+    test('an upgraded pre-core account opens every app with its old data key',
+        () async {
+      final oldKey = await backend.seedUpgradedLegacyAccount(email, password);
       for (final _ in ZtSuite.apps) {
         final other =
             await AccountService(backend, params: fast, legacyParams: fast)
@@ -156,37 +128,25 @@ void main() {
     });
   });
 
-  test('legacy salt written by Notes (standard base64) also upgrades',
+  test('an upgraded account whose old salt was standard base64 (Notes)',
       () async {
-    final legacySalt = Kdf.newSalt();
-    backend.authPasswords[email] = password;
-    backend.profiles[email] =
-        ProfileRecord(legacySalt: base64.encode(legacySalt));
-    final upgraded = await service.signIn(email: email, password: password);
-    expect(
-        upgraded.dek,
-        await Kdf.deriveMasterKey(
-            password: password, salt: legacySalt, params: fast));
+    final oldKey = await backend.seedUpgradedLegacyAccount(email, password,
+        encodeSalt: base64.encode);
+    final result = await service.signIn(email: email, password: password);
+    expect(result.dek, oldKey);
   });
 
-  test('an upgrade interrupted before the auth switch completes next time',
+  test('change password on an upgraded account keeps the old data key',
       () async {
-    final legacySalt = Kdf.newSalt();
-    backend.authPasswords[email] = password;
-    backend.profiles[email] =
-        ProfileRecord(legacySalt: ZtBase64.encode(legacySalt));
-    backend.failNextPasswordUpdate = true;
-
-    await expectLater(
-        service.signIn(email: email, password: password), throwsException);
-    expect(backend.authPasswords[email], password); // still legacy auth
-
-    final retry = await service.signIn(email: email, password: password);
-    expect(
-        retry.dek,
-        await Kdf.deriveMasterKey(
-            password: password, salt: legacySalt, params: fast));
-    expect(backend.authPasswords[email], isNot(password));
+    final oldKey = await backend.seedUpgradedLegacyAccount(email, password);
+    await service.signIn(email: email, password: password);
+    await service.changePassword(
+        currentPassword: password, newPassword: 'a brand new password');
+    await service.signOut();
+    final next =
+        await service.signIn(email: email, password: 'a brand new password');
+    expect(next.dek, oldKey);
+    expect(next.legacyDek, isTrue);
   });
 
   test('change password keeps the DEK; old password stops working', () async {
@@ -301,14 +261,7 @@ void main() {
 
   test('upgraded account: the vault exposes the legacy key for old data',
       () async {
-    final legacySalt = Kdf.newSalt();
-    final todaysKey = await Kdf.deriveMasterKey(
-        password: password, salt: legacySalt, params: fast);
-    backend.authPasswords[email] = password;
-    backend.profiles[email] =
-        ProfileRecord(legacySalt: ZtBase64.encode(legacySalt));
-    await service.signIn(email: email, password: password);
-    await service.signOut();
+    final todaysKey = await backend.seedUpgradedLegacyAccount(email, password);
     final again = await service.signIn(email: email, password: password);
     expect(again.legacyDek, isTrue);
 
@@ -584,9 +537,7 @@ void main() {
     });
 
     test('keeps the legacy flag for upgraded accounts', () async {
-      backend.authPasswords[email] = password;
-      backend.profiles[email] =
-          ProfileRecord(legacySalt: ZtBase64.encode(Kdf.newSalt()));
+      await backend.seedUpgradedLegacyAccount(email, password);
       await s.signIn(email: email, password: password);
       await s.enableBiometrics(password);
       expect((await s.unlockWithBiometrics())!.legacyDek, isTrue);
