@@ -42,6 +42,7 @@ const suiteAppIds = {
   'clock',
   'mail',
   'keyboard',
+  'authenticator',
 };
 
 /// Checks that need no device and no network: what went wrong in past
