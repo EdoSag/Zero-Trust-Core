@@ -42,6 +42,7 @@ const suiteAppIds = {
   'clock',
   'mail',
   'keyboard',
+  'authenticator',
 };
 
 /// Checks that need no device and no network: what went wrong in past
@@ -88,11 +89,13 @@ List<CheckResult> runStaticChecks(Directory app, {required String appId}) {
 
 YamlMap _yaml(File f) => loadYaml(f.readAsStringSync()) as YamlMap;
 
+/// A companion app (ZT Gallery) runs the checks for the data it opens, so
+/// `dataAppId: 'camera'` counts as well as `appId: 'camera'`.
 bool _libMentionsAppId(Directory app, String appId) {
   final lib = Directory(p.join(app.path, 'lib'));
   if (!lib.existsSync()) return false;
   final pattern = RegExp(
-      "ZtAppConfig\\s*\\([^;]*?appId:\\s*['\"]${RegExp.escape(appId)}['\"]",
+      "ZtAppConfig\\s*\\([^;]*?(?:appId|dataAppId):\\s*['\"]${RegExp.escape(appId)}['\"]",
       dotAll: true);
   for (final f in lib.listSync(recursive: true).whereType<File>()) {
     if (f.path.endsWith('.dart') && pattern.hasMatch(f.readAsStringSync())) {

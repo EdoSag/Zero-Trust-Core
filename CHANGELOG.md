@@ -19,6 +19,15 @@ an app must change.
 - Upgrade: nothing required. Apps adopt `ZtTwoPane` / `ZtReadableListView`
   for their own screens.
 
+### sqlite3mc.wasm follows the app's sqlite3 (`tool/`)
+
+- `tool/fetch_sqlite3mc_wasm.sh` now fetches the `sqlite3mc.wasm` of the
+  `sqlite3` version in the app's `pubspec.lock` (3.9.1 or 3.9.2; 3.9.2 when
+  there is no lock yet), each checked against its own pinned checksum. CI
+  broke when `sqlite3` 3.9.2 came out, because the example has no committed
+  lock and the script only knew 3.9.1. An unknown version still stops the
+  build, with a message saying to add its checksum.
+
 ### One family space for the whole suite (S-10; `zero_trust_core`)
 
 - The ZT Family circle (space app `family`) is now every app's family
@@ -162,6 +171,23 @@ an app must change.
   Clock's own sign-in, unlock and onboarding screens get its brand mark.
 - Upgrade: nothing to do. An app shows the new row once it moves its core
   pin. ZT Clock can then drop its own `clockSuiteApp` for `ZtSuite.clock`.
+
+### Companion apps and shared album files (`zero_trust_core`, database)
+
+- `ZtAppConfig.dataAppId` (optional, defaults to `appId`): whose synced
+  items, local store and attachments the app opens. ZT Gallery sets
+  `appId: 'gallery', dataAppId: 'camera'` to show and add to the photos ZT
+  Camera backs up, with the same keys. Shared spaces, crash reports and the
+  brand still use `appId`. The release checks accept `dataAppId:` for the
+  app id they run with (Gallery runs them as `camera`).
+- Database `20261122120000_space_files_and_app_folders.sql`: zt-attachments
+  now accepts any app folder (it accepted only notes, tasks, fitness and
+  contacts, so ZT Camera's backup was refused), and files of a shared space
+  under `<uploader id>/space_<space id hex>/`, readable by every member of
+  that space and by nobody else. Live: run
+  `sql/space-files-and-app-folders.sql` once.
+- Upgrade: nothing to do. Apps that leave `dataAppId` out behave exactly as
+  before.
 
 ## 0.13.0
 
