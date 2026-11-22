@@ -41,6 +41,8 @@ export 'src/sharing/space_backend.dart';
 export 'src/sharing/space_codec.dart';
 export 'src/sharing/space_invite_link.dart';
 export 'src/sharing/supabase_space_backend.dart';
+export 'src/sharing/zt_family_space.dart';
+export 'src/sharing/zt_suite_notes.dart';
 export 'src/storage/zt_storage_usage.dart';
 export 'src/sync/item_sync_engine.dart';
 export 'src/sync/legacy_importer.dart';

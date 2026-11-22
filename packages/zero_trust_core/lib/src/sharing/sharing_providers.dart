@@ -17,6 +17,8 @@ import 'space_backend.dart';
 import 'space_codec.dart';
 import 'space_invite_link.dart';
 import 'supabase_space_backend.dart';
+import 'zt_family_space.dart';
+import 'zt_suite_notes.dart';
 
 /// Which items of the app's shared spaces only admins may write. Apps
 /// override it (Meds: children, medications and treatments).
@@ -165,9 +167,23 @@ class _SyncedPrivateStore implements SpacePrivateStore {
   }
 }
 
-/// The app's [SharedSpaces] while the vault is unlocked; closed (keys
-/// zeroed) when it locks.
-final ztSharedSpacesProvider = FutureProvider<SharedSpaces>((ref) async {
+/// The account's suite notes while the vault is unlocked (null where the
+/// vault has no suite key).
+final ztSuiteNotesProvider = FutureProvider<ZtSuiteNotes?>((ref) async {
+  final suiteKey = ref.watch(vaultControllerProvider
+      .select((s) => s is VaultUnlocked ? s.suiteKey : null));
+  if (suiteKey == null) return null;
+  final notes = await ZtSuiteNotes.open(
+    suiteKey: suiteKey,
+    backend: ref.watch(ztSyncBackendProvider),
+    deviceId: await ref.watch(ztDeviceIdProvider.future),
+  );
+  ref.onDispose(notes.close);
+  return notes;
+});
+
+Future<SharedSpaces> _sharedSpaces(Ref ref,
+    {required String app, required bool family}) async {
   final identity = ref.watch(vaultControllerProvider
       .select((s) => s is VaultUnlocked ? s.identity : null));
   if (identity == null) throw const VaultIsLocked();
@@ -175,19 +191,46 @@ final ztSharedSpacesProvider = FutureProvider<SharedSpaces>((ref) async {
   if (userId == null) throw StateError('Not signed in');
   final opener = ref.watch(ztSpaceStoreOpenerProvider);
   final deviceId = await ref.watch(ztDeviceIdProvider.future);
+  final ownApp = ref.watch(ztAppConfigProvider.select((c) => c.appId));
+  final SpacePrivateStore privateStore = family
+      ? ZtFamilyPrivateStore(
+          own: _SyncedPrivateStore(ref),
+          suite: await ref.watch(ztSuiteNotesProvider.future),
+          publish: ownApp == ZtFamilySpace.app,
+        )
+      : _SyncedPrivateStore(ref);
   final spaces = SharedSpaces(
-    app: ref.watch(ztAppConfigProvider.select((c) => c.appId)),
+    app: app,
     myUserId: userId,
     identity: identity,
     backend: ref.watch(ztSpaceBackendProvider),
-    privateStore: _SyncedPrivateStore(ref),
+    privateStore: privateStore,
     openStore: opener.open,
     deleteStore: opener.delete,
     deviceId: deviceId,
-    policy: ref.watch(ztSpacePolicyProvider),
+    policy: family && ownApp != ZtFamilySpace.app
+        ? ZtFamilySpace.policy
+        : ref.watch(ztSpacePolicyProvider),
   );
   ref.onDispose(spaces.close);
   return spaces;
+}
+
+/// The app's [SharedSpaces] while the vault is unlocked; closed (keys
+/// zeroed) when it locks. In ZT Family these are the family circles, whose
+/// notes also go to the suite notes so the other apps can open them (S-10).
+final ztSharedSpacesProvider = FutureProvider<SharedSpaces>((ref) {
+  final app = ref.watch(ztAppConfigProvider.select((c) => c.appId));
+  return _sharedSpaces(ref, app: app, family: app == ZtFamilySpace.app);
+});
+
+/// The family circles (S-10) as [SharedSpaces], from any app: the same
+/// circles ZT Family manages, checked with [ZtFamilySpace.policy]. In ZT
+/// Family itself this is [ztSharedSpacesProvider].
+final ztFamilySharedSpacesProvider = FutureProvider<SharedSpaces>((ref) {
+  final app = ref.watch(ztAppConfigProvider.select((c) => c.appId));
+  if (app == ZtFamilySpace.app) return ref.watch(ztSharedSpacesProvider.future);
+  return _sharedSpaces(ref, app: ZtFamilySpace.app, family: true);
 });
 
 /// One space as the app shows it.
@@ -243,6 +286,11 @@ class SpacesState {
 /// members write, and when memberships or keys change. Its state lists the
 /// spaces with their sync status. Apps act on spaces through it.
 class SpacesController extends Notifier<SpacesState> {
+  /// [source] defaults to the app's own spaces ([ztSharedSpacesProvider]);
+  /// [ztFamilySpacesProvider] passes the family circles.
+  SpacesController([this._source]);
+
+  final FutureProvider<SharedSpaces>? _source;
   SharedSpaces? _spaces;
   final Map<String, SyncScheduler> _schedulers = {};
   Future<void>? _refreshing;
@@ -250,7 +298,7 @@ class SpacesController extends Notifier<SpacesState> {
 
   @override
   SpacesState build() {
-    final spacesState = ref.watch(ztSharedSpacesProvider);
+    final spacesState = ref.watch(_source ?? ztSharedSpacesProvider);
     _spaces = switch (spacesState) {
       AsyncData(:final value) => value,
       _ => null,
@@ -435,3 +483,10 @@ class SpacesController extends Notifier<SpacesState> {
 
 final ztSpacesProvider =
     NotifierProvider<SpacesController, SpacesState>(SpacesController.new);
+
+/// The family circles (S-10), kept in sync from any app while the vault is
+/// unlocked. Save an app's items with [ZtFamilySpace.itemId] and a
+/// [ZtFamilySummary]; members and invites stay in ZT Family. In ZT Family
+/// use [ztSpacesProvider].
+final ztFamilySpacesProvider = NotifierProvider<SpacesController, SpacesState>(
+    () => SpacesController(ztFamilySharedSpacesProvider));
