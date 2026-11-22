@@ -1122,4 +1122,134 @@ class ZtLocalizationsEn extends ZtLocalizations {
 
   @override
   String get couldNotOpenLink => 'Couldn\'t open the link.';
+
+  @override
+  String get backUpEverything => 'Back up everything';
+
+  @override
+  String get backUpEverythingSubtitle =>
+      'One encrypted file with your data from every Zero-Trust app';
+
+  @override
+  String get restoreFromBackup => 'Restore from a backup';
+
+  @override
+  String get restoreFromBackupSubtitle =>
+      'Into this account, on any phone. Newer changes are kept.';
+
+  @override
+  String get backUp => 'Back up';
+
+  @override
+  String get chooseBackupPassword => 'Choose a backup password';
+
+  @override
+  String get backupPasswordExplained =>
+      'The backup file is encrypted with this password. You need it to restore, and nobody can recover it for you. Your account password works too.';
+
+  @override
+  String get backupPassword => 'Backup password';
+
+  @override
+  String get repeatBackupPassword => 'Repeat the backup password';
+
+  @override
+  String get enterYourPasswordToBackUp =>
+      'Enter your account password to read your data from every app.';
+
+  @override
+  String backingUp(String app) {
+    return 'Backing up $app…';
+  }
+
+  @override
+  String backupSaved(int items, int apps) {
+    String _temp0 = intl.Intl.pluralLogic(
+      items,
+      locale: localeName,
+      other: '$items items',
+      one: '1 item',
+    );
+    String _temp1 = intl.Intl.pluralLogic(
+      apps,
+      locale: localeName,
+      other: '$apps apps',
+      one: '1 app',
+    );
+    return 'Backup saved: $_temp0 from $_temp1.';
+  }
+
+  @override
+  String backupFilesMissing(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count attached files couldn\'t be read and aren\'t in it.',
+      one: '1 attached file couldn\'t be read and isn\'t in it.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get enterBackupPassword => 'Enter the backup password';
+
+  @override
+  String get openBackup => 'Open';
+
+  @override
+  String get wrongBackupPassword => 'Wrong backup password.';
+
+  @override
+  String get notABackupFile => 'This isn\'t a Zero-Trust backup file.';
+
+  @override
+  String get backupFromNewerVersion =>
+      'This backup is from a newer version. Update the app first.';
+
+  @override
+  String get backupDamaged => 'The backup file is damaged or incomplete.';
+
+  @override
+  String get restoreBackupQuestion => 'Restore this backup?';
+
+  @override
+  String restoreBackupSummary(String date, int items, String apps) {
+    String _temp0 = intl.Intl.pluralLogic(
+      items,
+      locale: localeName,
+      other: '$items items',
+      one: '1 item',
+    );
+    return 'Backup from $date: $_temp0 from $apps. Anything you changed or deleted since then stays as it is.';
+  }
+
+  @override
+  String get restore => 'Restore';
+
+  @override
+  String get enterYourPasswordToRestore =>
+      'Enter your account password to restore into this account.';
+
+  @override
+  String restoring(String app) {
+    return 'Restoring $app…';
+  }
+
+  @override
+  String backupRestored(int restored, int skipped) {
+    String _temp0 = intl.Intl.pluralLogic(
+      restored,
+      locale: localeName,
+      other: '$restored items',
+      one: '1 item',
+    );
+    String _temp1 = intl.Intl.pluralLogic(
+      skipped,
+      locale: localeName,
+      other: '$skipped were already up to date.',
+      one: '1 was already up to date.',
+      zero: '',
+    );
+    return 'Restored $_temp0. $_temp1';
+  }
 }

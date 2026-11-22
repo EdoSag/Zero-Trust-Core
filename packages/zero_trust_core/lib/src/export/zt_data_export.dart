@@ -83,7 +83,7 @@ class ZtDataExporter {
         'updatedAt': item.updatedAt.toUtc().toIso8601String(),
         'data': data,
       });
-      _findRefs(json, refs);
+      findAttachmentRefs(json, refs);
     }
 
     final archive = Archive();
@@ -149,7 +149,10 @@ class ZtDataExporter {
     );
   }
 
-  static void _findRefs(Object? value, Map<String, ZtAttachmentRef> into) {
+  /// Adds every [ZtAttachmentRef] found in [value] (an item's JSON) to
+  /// [into], by id.
+  static void findAttachmentRefs(
+      Object? value, Map<String, ZtAttachmentRef> into) {
     if (value is Map) {
       final id = value['id'];
       if (id is String &&
@@ -164,11 +167,11 @@ class ZtDataExporter {
         }
       }
       for (final v in value.values) {
-        _findRefs(v, into);
+        findAttachmentRefs(v, into);
       }
     } else if (value is List) {
       for (final v in value) {
-        _findRefs(v, into);
+        findAttachmentRefs(v, into);
       }
     }
   }

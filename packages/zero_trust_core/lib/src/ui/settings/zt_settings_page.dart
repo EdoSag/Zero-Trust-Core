@@ -8,6 +8,7 @@ import '../../l10n/zt_l10n.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../config/zt_app_config.dart';
+import '../../backup/zt_backup_tiles.dart';
 import '../../export/zt_data_export.dart';
 import '../../export/zt_export_data_tile.dart';
 import '../../attachments/attachment_cache.dart';
@@ -159,6 +160,7 @@ class ZtSettingsPage extends ConsumerWidget {
     final theme = Theme.of(context);
     // An app that works without an account, and nobody is signed in.
     final signedOut = accountOptional && account.currentEmail == null;
+    final fullBackup = !signedOut && ref.watch(ztBackupFilesProvider) != null;
 
     return Scaffold(
       appBar: AppBar(title: Text(ZtL10n.of(context).settings)),
@@ -302,10 +304,12 @@ class ZtSettingsPage extends ConsumerWidget {
           ),
           const _DynamicColorTile(),
           if (backupSection.isNotEmpty ||
+              fullBackup ||
               (onDataExported != null && !signedOut)) ...[
             _Header(ZtL10n.of(context).backup),
             if (onDataExported != null && !signedOut)
               ZtExportDataTile(onExported: onDataExported!),
+            if (fullBackup) const ZtBackupTiles(),
             ...backupSection,
           ],
           if (appSection.isNotEmpty) ...[

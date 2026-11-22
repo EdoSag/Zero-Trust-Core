@@ -1903,6 +1903,156 @@ abstract class ZtLocalizations {
   /// In en, this message translates to:
   /// **'Couldn\'t open the link.'**
   String get couldNotOpenLink;
+
+  /// No description provided for @backUpEverything.
+  ///
+  /// In en, this message translates to:
+  /// **'Back up everything'**
+  String get backUpEverything;
+
+  /// No description provided for @backUpEverythingSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'One encrypted file with your data from every Zero-Trust app'**
+  String get backUpEverythingSubtitle;
+
+  /// No description provided for @restoreFromBackup.
+  ///
+  /// In en, this message translates to:
+  /// **'Restore from a backup'**
+  String get restoreFromBackup;
+
+  /// No description provided for @restoreFromBackupSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Into this account, on any phone. Newer changes are kept.'**
+  String get restoreFromBackupSubtitle;
+
+  /// No description provided for @backUp.
+  ///
+  /// In en, this message translates to:
+  /// **'Back up'**
+  String get backUp;
+
+  /// No description provided for @chooseBackupPassword.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose a backup password'**
+  String get chooseBackupPassword;
+
+  /// No description provided for @backupPasswordExplained.
+  ///
+  /// In en, this message translates to:
+  /// **'The backup file is encrypted with this password. You need it to restore, and nobody can recover it for you. Your account password works too.'**
+  String get backupPasswordExplained;
+
+  /// No description provided for @backupPassword.
+  ///
+  /// In en, this message translates to:
+  /// **'Backup password'**
+  String get backupPassword;
+
+  /// No description provided for @repeatBackupPassword.
+  ///
+  /// In en, this message translates to:
+  /// **'Repeat the backup password'**
+  String get repeatBackupPassword;
+
+  /// No description provided for @enterYourPasswordToBackUp.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter your account password to read your data from every app.'**
+  String get enterYourPasswordToBackUp;
+
+  /// No description provided for @backingUp.
+  ///
+  /// In en, this message translates to:
+  /// **'Backing up {app}…'**
+  String backingUp(String app);
+
+  /// No description provided for @backupSaved.
+  ///
+  /// In en, this message translates to:
+  /// **'Backup saved: {items, plural, =1{1 item} other{{items} items}} from {apps, plural, =1{1 app} other{{apps} apps}}.'**
+  String backupSaved(int items, int apps);
+
+  /// No description provided for @backupFilesMissing.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 attached file couldn\'t be read and isn\'t in it.} other{{count} attached files couldn\'t be read and aren\'t in it.}}'**
+  String backupFilesMissing(int count);
+
+  /// No description provided for @enterBackupPassword.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter the backup password'**
+  String get enterBackupPassword;
+
+  /// No description provided for @openBackup.
+  ///
+  /// In en, this message translates to:
+  /// **'Open'**
+  String get openBackup;
+
+  /// No description provided for @wrongBackupPassword.
+  ///
+  /// In en, this message translates to:
+  /// **'Wrong backup password.'**
+  String get wrongBackupPassword;
+
+  /// No description provided for @notABackupFile.
+  ///
+  /// In en, this message translates to:
+  /// **'This isn\'t a Zero-Trust backup file.'**
+  String get notABackupFile;
+
+  /// No description provided for @backupFromNewerVersion.
+  ///
+  /// In en, this message translates to:
+  /// **'This backup is from a newer version. Update the app first.'**
+  String get backupFromNewerVersion;
+
+  /// No description provided for @backupDamaged.
+  ///
+  /// In en, this message translates to:
+  /// **'The backup file is damaged or incomplete.'**
+  String get backupDamaged;
+
+  /// No description provided for @restoreBackupQuestion.
+  ///
+  /// In en, this message translates to:
+  /// **'Restore this backup?'**
+  String get restoreBackupQuestion;
+
+  /// No description provided for @restoreBackupSummary.
+  ///
+  /// In en, this message translates to:
+  /// **'Backup from {date}: {items, plural, =1{1 item} other{{items} items}} from {apps}. Anything you changed or deleted since then stays as it is.'**
+  String restoreBackupSummary(String date, int items, String apps);
+
+  /// No description provided for @restore.
+  ///
+  /// In en, this message translates to:
+  /// **'Restore'**
+  String get restore;
+
+  /// No description provided for @enterYourPasswordToRestore.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter your account password to restore into this account.'**
+  String get enterYourPasswordToRestore;
+
+  /// No description provided for @restoring.
+  ///
+  /// In en, this message translates to:
+  /// **'Restoring {app}…'**
+  String restoring(String app);
+
+  /// No description provided for @backupRestored.
+  ///
+  /// In en, this message translates to:
+  /// **'Restored {restored, plural, =1{1 item} other{{restored} items}}. {skipped, plural, =0{} =1{1 was already up to date.} other{{skipped} were already up to date.}}'**
+  String backupRestored(int restored, int skipped);
 }
 
 class _ZtLocalizationsDelegate extends LocalizationsDelegate<ZtLocalizations> {

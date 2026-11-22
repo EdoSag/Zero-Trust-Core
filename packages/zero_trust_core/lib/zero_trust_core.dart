@@ -27,6 +27,8 @@ export 'src/config/zt_suite.dart';
 export 'src/core_providers.dart';
 export 'src/crash/zt_crash_report.dart';
 export 'src/crash/zt_crash_reporter.dart';
+export 'src/backup/zt_backup.dart';
+export 'src/backup/zt_backup_tiles.dart';
 export 'src/export/zt_data_export.dart';
 export 'src/export/zt_export_data_tile.dart';
 export 'src/l10n/zt_l10n.dart';
