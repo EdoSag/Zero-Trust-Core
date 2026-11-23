@@ -5,6 +5,45 @@ an app must change.
 
 ## Unreleased
 
+### Sync no longer freezes the app after a large import (`zero_trust_core`)
+
+- Every sync re-reads the last 30 seconds before the newest row it has
+  seen. After an import that uploads hundreds of items at once, that window
+  holds the whole import, so every later sync downloaded it again, and the
+  engine checked the signature of and decrypted each row before noticing it
+  already had it. On a phone that blocked the screen for many seconds on
+  every open, resume and edit ("isn't responding"). A row the device
+  already holds, or has a newer version of, is now skipped before any
+  crypto.
+- Fixed: a pull of more than 500 changed rows read the newest 500 twice and
+  never reached the older ones (`order` sorts newest first unless told
+  otherwise). Pulls now page oldest first, for the account's own items and
+  for shared spaces.
+- `bytea` blobs are read and written without making a string per byte.
+- The screen keeps drawing and taking taps during an import and a large
+  sync. Sealing, signing, checking and decrypting run on the UI isolate, and
+  so does the local store; a few hundred items in a row used to run in one
+  piece. `ItemSyncEngine` now lets the event loop run every 8 ms of such
+  work: while it reads a pull, while it seals and records a push, and while
+  an app saves or deletes items one after another (new `Breather`).
+- `ZtCollection.watch` reads and decodes only the items that changed, not
+  the whole collection on every change. Saving 850 events one by one used
+  to decode about 360,000 items along the way.
+- `ZtLocalStore.changes` announces a long run of writes (24 or more with
+  less than 50 ms between them) in batches about 120 ms apart instead of
+  once per item, so an app's own listener that reloads a list isn't run
+  hundreds of times in a row. Single writes are announced at once, as
+  before.
+- A row skipped because the device already holds it still moves the edit
+  clock (found in review): after a restart with the device's clock set
+  back, the next edit could be stamped older than the version it replaces
+  and lose to it.
+
+Upgrade notes: nothing to change in apps. No database change. Under
+`flutter test` the pauses and the batching are off (the fake clock never
+fires their timers), so tests behave as before; pass `Breather(enabled:
+true)` or `ZtLocalStore.open(mergeBursts: true)` to test them.
+
 ### ZT Family: hourly event cap holds for requests sent together (database)
 
 - Migration `20261118130000_family_events_cap_lock`. `family_events_guard()`

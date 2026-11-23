@@ -4,6 +4,8 @@ import 'dart:typed_data';
 
 import 'package:supabase_flutter/supabase_flutter.dart';
 
+import '../sync/bytea.dart';
+import '../sync/keyset_pull.dart';
 import '../sync/sync_backend.dart';
 import 'space_backend.dart';
 
@@ -264,27 +266,12 @@ class _SupabaseSpaceItems implements SyncBackend {
   @override
   Future<List<RemoteItem>> pull(String app, {DateTime? since}) =>
       SupabaseSpaceBackend._guard(() async {
-        final out = <RemoteItem>[];
-        String? afterAt = since?.toUtc().toIso8601String();
-        String? afterId;
-        while (true) {
-          var query =
-              _client.from(_table).select(_columns).eq('space_id', _spaceId);
-          if (afterAt != null && afterId == null) {
-            query = query.gt('synced_at', afterAt);
-          } else if (afterAt != null) {
-            query = query.or('synced_at.gt."$afterAt",'
-                'and(synced_at.eq."$afterAt",item_id.gt."$afterId")');
-          }
-          final rows =
-              await query.order('synced_at').order('item_id').limit(_pageSize);
-          out.addAll(rows.map(_fromRow));
-          if (rows.length < _pageSize) return out;
-          afterAt = DateTime.parse(rows.last['synced_at'] as String)
-              .toUtc()
-              .toIso8601String();
-          afterId = rows.last['item_id'] as String;
-        }
+        final rows = await ztPullRows(
+          () => _client.from(_table).select(_columns).eq('space_id', _spaceId),
+          since: since,
+          pageSize: _pageSize,
+        );
+        return rows.map(_fromRow).toList();
       });
 
   @override
@@ -369,14 +356,7 @@ class _SupabaseSpaceItems implements SyncBackend {
       );
 }
 
-String _toBytea(Uint8List bytes) =>
-    '\\x${bytes.map((b) => b.toRadixString(16).padLeft(2, '0')).join()}';
+String _toBytea(Uint8List bytes) => ztByteaEncode(bytes);
 
-Uint8List? _fromBytea(String? value) {
-  if (value == null) return null;
-  final hex = value.startsWith('\\x') ? value.substring(2) : value;
-  return Uint8List.fromList([
-    for (var i = 0; i < hex.length; i += 2)
-      int.parse(hex.substring(i, i + 2), radix: 16),
-  ]);
-}
+Uint8List? _fromBytea(String? value) =>
+    value == null ? null : ztByteaDecode(value);
