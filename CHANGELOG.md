@@ -27,6 +27,30 @@ branch, to `ref: v1.0.0`:
   live. Edge functions `delete-account`, `account-deletion`, `change-email`
   and `crash-report` must be deployed for Z14, Z15 and Z22 to work.
 
+### Sign in once per phone (S-2)
+
+- New: when another Zero-Trust app on the phone is signed in, the sign-in
+  screen offers **Sign in with ZT Notes** and the lock screen **Unlock with
+  ZT Notes**. That app asks its user (fingerprint or password) and hands
+  over the account's key and, to sign in, a one-time token, so the asking
+  app gets a session of its own without the password. Only apps signed
+  with the same key take part, and everything that travels between them is
+  sealed with a secret only the asking app has. Old accounts keep their
+  pre-core key (`legacyDek`).
+- The core now has an Android part (`android/`, plain Java), registered by
+  Flutter like any plugin. Its manifest adds `<queries>` for the suite's
+  packages.
+- New `AccountService.handoffGrant`, `signInWithHandoff` and
+  `unlockWithHandoff`; optional backend interface `AccountHandoffBackend`
+  (the Supabase backend implements it; test fakes don't need to).
+- New edge function `sign-in-handoff` (with the session): a one-time
+  magic-link token for the signed-in account, made without sending email.
+  Deploy with `supabase functions deploy sign-in-handoff`.
+- Upgrade: wrap the app's first screen in `ZtSignInHandoffScope`, inside
+  the `MaterialApp` (`home: const ZtSignInHandoffScope(child: AppGate())`),
+  so it can answer other apps. Without it the app can still ask, but never
+  answers.
+
 ### Every app in the suite list (`ZtSuite`)
 
 - `ZtSuite.apps` now has all 17 apps, in the website's order: Calendar,

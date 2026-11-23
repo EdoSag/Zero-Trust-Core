@@ -2125,6 +2125,102 @@ abstract class ZtLocalizations {
   /// In en, this message translates to:
   /// **'Restored {restored, plural, =1{1 item} other{{restored} items}}. {skipped, plural, =0{} =1{1 was already up to date.} other{{skipped} were already up to date.}}'**
   String backupRestored(int restored, int skipped);
+
+  /// No description provided for @handoffSignInWith.
+  ///
+  /// In en, this message translates to:
+  /// **'Sign in with {app}'**
+  String handoffSignInWith(String app);
+
+  /// No description provided for @handoffSignInWithAnother.
+  ///
+  /// In en, this message translates to:
+  /// **'Sign in with another ZT app'**
+  String get handoffSignInWithAnother;
+
+  /// No description provided for @handoffUnlockWith.
+  ///
+  /// In en, this message translates to:
+  /// **'Unlock with {app}'**
+  String handoffUnlockWith(String app);
+
+  /// No description provided for @handoffUnlockWithAnother.
+  ///
+  /// In en, this message translates to:
+  /// **'Unlock with another ZT app'**
+  String get handoffUnlockWithAnother;
+
+  /// No description provided for @handoffPickApp.
+  ///
+  /// In en, this message translates to:
+  /// **'Use the account from'**
+  String get handoffPickApp;
+
+  /// No description provided for @handoffWaiting.
+  ///
+  /// In en, this message translates to:
+  /// **'Confirm in {app}…'**
+  String handoffWaiting(String app);
+
+  /// No description provided for @handoffAskSignIn.
+  ///
+  /// In en, this message translates to:
+  /// **'Sign in to {app}?'**
+  String handoffAskSignIn(String app);
+
+  /// No description provided for @handoffAskUnlock.
+  ///
+  /// In en, this message translates to:
+  /// **'Unlock {app}?'**
+  String handoffAskUnlock(String app);
+
+  /// No description provided for @handoffAskBody.
+  ///
+  /// In en, this message translates to:
+  /// **'{app} will open with your Zero-Trust account ({email}) on this phone, without the password. Only Zero-Trust apps can ask for this.'**
+  String handoffAskBody(String app, String email);
+
+  /// No description provided for @handoffConfirm.
+  ///
+  /// In en, this message translates to:
+  /// **'Confirm it\'s you to share your account with {app}.'**
+  String handoffConfirm(String app);
+
+  /// No description provided for @handoffAllow.
+  ///
+  /// In en, this message translates to:
+  /// **'Allow'**
+  String get handoffAllow;
+
+  /// No description provided for @handoffDeclined.
+  ///
+  /// In en, this message translates to:
+  /// **'{app} didn\'t share the account.'**
+  String handoffDeclined(String app);
+
+  /// No description provided for @handoffSignedOut.
+  ///
+  /// In en, this message translates to:
+  /// **'{app} isn\'t signed in. Sign in there first, or use your password here.'**
+  String handoffSignedOut(String app);
+
+  /// No description provided for @handoffFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'{app} couldn\'t share the account. Try again, or use your password.'**
+  String handoffFailed(String app);
+
+  /// No description provided for @handoffNoAnswer.
+  ///
+  /// In en, this message translates to:
+  /// **'No answer came from {app}. Try again.'**
+  String handoffNoAnswer(String app);
+
+  /// No description provided for @handoffWrongAccount.
+  ///
+  /// In en, this message translates to:
+  /// **'That app is signed in to a different account.'**
+  String get handoffWrongAccount;
 }
 
 class _ZtLocalizationsDelegate extends LocalizationsDelegate<ZtLocalizations> {

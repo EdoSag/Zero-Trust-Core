@@ -1297,4 +1297,74 @@ class ZtLocalizationsHe extends ZtLocalizations {
     );
     return '$_temp0 $_temp1';
   }
+
+  @override
+  String handoffSignInWith(String app) {
+    return 'התחברות עם $app';
+  }
+
+  @override
+  String get handoffSignInWithAnother => 'התחברות דרך אפליקציית ZT אחרת';
+
+  @override
+  String handoffUnlockWith(String app) {
+    return 'ביטול נעילה עם $app';
+  }
+
+  @override
+  String get handoffUnlockWithAnother => 'ביטול נעילה דרך אפליקציית ZT אחרת';
+
+  @override
+  String get handoffPickApp => 'להשתמש בחשבון מתוך';
+
+  @override
+  String handoffWaiting(String app) {
+    return 'יש לאשר ב-$app…';
+  }
+
+  @override
+  String handoffAskSignIn(String app) {
+    return 'להתחבר ל-$app?';
+  }
+
+  @override
+  String handoffAskUnlock(String app) {
+    return 'לבטל את הנעילה של $app?';
+  }
+
+  @override
+  String handoffAskBody(String app, String email) {
+    return '$app תיפתח בטלפון הזה עם חשבון ה-Zero-Trust שלך ($email), בלי סיסמה. רק אפליקציות Zero-Trust יכולות לבקש את זה.';
+  }
+
+  @override
+  String handoffConfirm(String app) {
+    return 'יש לאשר שזה באמת את/ה כדי לשתף את החשבון עם $app.';
+  }
+
+  @override
+  String get handoffAllow => 'אישור';
+
+  @override
+  String handoffDeclined(String app) {
+    return '$app לא שיתפה את החשבון.';
+  }
+
+  @override
+  String handoffSignedOut(String app) {
+    return '$app לא מחוברת. אפשר להתחבר בה קודם, או להזין כאן את הסיסמה.';
+  }
+
+  @override
+  String handoffFailed(String app) {
+    return '$app לא הצליחה לשתף את החשבון. אפשר לנסות שוב, או להזין את הסיסמה.';
+  }
+
+  @override
+  String handoffNoAnswer(String app) {
+    return 'לא התקבלה תשובה מ-$app. אפשר לנסות שוב.';
+  }
+
+  @override
+  String get handoffWrongAccount => 'האפליקציה הזאת מחוברת לחשבון אחר.';
 }

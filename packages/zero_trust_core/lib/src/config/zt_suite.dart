@@ -230,4 +230,12 @@ abstract final class ZtSuite {
     }
     return null;
   }
+
+  /// The app with this Android application id, or null.
+  static ZtSuiteApp? byPackage(String androidPackage) {
+    for (final app in apps) {
+      if (app.androidPackage == androidPackage) return app;
+    }
+    return null;
+  }
 }

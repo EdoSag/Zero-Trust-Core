@@ -5,12 +5,14 @@ import 'package:supabase_flutter/supabase_flutter.dart'
 import 'package:zt_crypto/zt_crypto.dart' show AttachmentCorrupt;
 
 import '../../account/account_backend.dart';
+import '../../account/account_handoff.dart';
 import '../../account/account_lifecycle.dart';
 import '../../account/account_service.dart';
 import '../../account/biometric_key_store.dart';
 import '../../account/password_check.dart';
 import '../../attachments/attachment_backend.dart';
 import '../../attachments/zt_attachments.dart';
+import '../../handoff/zt_sign_in_handoff.dart';
 import '../../platform/zt_database.dart';
 import '../../sync/sync_providers.dart';
 import '../../sync/zt_collection.dart';
@@ -35,6 +37,12 @@ String ztErrorMessage(Object error) {
     EmailChangeCodeWrong() => l.errEmailCodeWrong,
     EmailChangeExpired() => l.errEmailCodeExpired,
     BiometricKeyInvalidated() => l.errBiometricChanged,
+    ZtHandoffWrongAccount() => l.handoffWrongAccount,
+    ZtHandoffRefused(:final app, :final reason) => switch (reason) {
+        ZtHandoffRefusal.declined => l.handoffDeclined(app.label),
+        ZtHandoffRefusal.signedOut => l.handoffSignedOut(app.label),
+        ZtHandoffRefusal.failed => l.handoffFailed(app.label),
+      },
     ArgumentError(:final message) => '$message',
     StateError(:final message) => message,
     FormatException() => l.errRecoveryKeyInvalid,

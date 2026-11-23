@@ -45,3 +45,10 @@ hooks:
 
 flutter:
   generate: true
+  # "Sign in once per phone" (S-2) has an Android part (android/). Other
+  # platforms don't offer it.
+  plugin:
+    platforms:
+      android:
+        package: bz.zerotrust.core
+        pluginClass: ZtSignInHandoffPlugin

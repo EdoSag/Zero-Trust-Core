@@ -7,9 +7,11 @@ import '../../account/account_service.dart';
 import '../../config/zt_app_config.dart';
 import '../../core_providers.dart';
 import '../../config/zt_suite.dart';
+import '../../handoff/zt_sign_in_handoff.dart';
 import '../brand/zt_brand_mark.dart';
 import 'zt_auth_messages.dart';
 import 'zt_keep_account.dart';
+import 'zt_sign_in_handoff_ui.dart';
 
 /// Unlock an already signed-in session (app relaunch, after auto-lock).
 /// Works offline, and offers biometrics when the user turned them on.
@@ -199,6 +201,14 @@ class _ZtUnlockScreenState extends ConsumerState<ZtUnlockScreen> {
                       label: Text(ZtL10n.of(context).unlockWithBiometrics),
                     ),
                   ],
+                  ZtHandoffButton(
+                    mode: ZtHandoffMode.unlock,
+                    enabled: !_busy,
+                    onGrant: (grant) async => _done(ref
+                        .read(accountServiceProvider)
+                        .unlockWithHandoff(grant)),
+                    onError: (message) => setState(() => _error = message),
+                  ),
                   if (widget.onSignOut != null)
                     TextButton(
                         onPressed: widget.onSignOut,
