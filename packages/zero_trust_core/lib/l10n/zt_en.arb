@@ -657,5 +657,92 @@
   "updateHowItInstalls": "Your browser downloads the update; open it to install. Android installs it only if it is signed by the same developer as this app.",
   "whatsNew": "What's new",
   "downloadUpdate": "Download",
-  "couldNotOpenLink": "Couldn't open the link."
+  "couldNotOpenLink": "Couldn't open the link.",
+  "backUpEverything": "Back up everything",
+  "backUpEverythingSubtitle": "One encrypted file with your data from every Zero-Trust app",
+  "restoreFromBackup": "Restore from a backup",
+  "restoreFromBackupSubtitle": "Into this account, on any phone. Newer changes are kept.",
+  "backUp": "Back up",
+  "chooseBackupPassword": "Choose a backup password",
+  "backupPasswordExplained": "The backup file is encrypted with this password. You need it to restore, and nobody can recover it for you. Your account password works too.",
+  "backupPassword": "Backup password",
+  "repeatBackupPassword": "Repeat the backup password",
+  "enterYourPasswordToBackUp": "Enter your account password to read your data from every app.",
+  "backingUp": "Backing up {app}…",
+  "@backingUp": {
+    "placeholders": {
+      "app": {
+        "type": "String"
+      }
+    }
+  },
+  "backupSaved": "Backup saved: {items, plural, =1{1 item} other{{items} items}} from {apps, plural, =1{1 app} other{{apps} apps}}.",
+  "@backupSaved": {
+    "placeholders": {
+      "items": {
+        "type": "int"
+      },
+      "apps": {
+        "type": "int"
+      }
+    }
+  },
+  "backupItemsUnreadable": "{count, plural, =1{1 item couldn't be opened and isn't in it.} other{{count} items couldn't be opened and aren't in it.}}",
+  "@backupItemsUnreadable": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "backupFilesMissing": "{count, plural, =1{1 attached file couldn't be read and isn't in it.} other{{count} attached files couldn't be read and aren't in it.}}",
+  "@backupFilesMissing": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "enterBackupPassword": "Enter the backup password",
+  "openBackup": "Open",
+  "wrongBackupPassword": "Wrong backup password.",
+  "notABackupFile": "This isn't a Zero-Trust backup file.",
+  "backupFromNewerVersion": "This backup is from a newer version. Update the app first.",
+  "backupDamaged": "The backup file is damaged or incomplete.",
+  "restoreBackupQuestion": "Restore this backup?",
+  "restoreBackupSummary": "Backup from {date}: {items, plural, =1{1 item} other{{items} items}} from {apps}. Anything you changed or deleted since then stays as it is.",
+  "@restoreBackupSummary": {
+    "placeholders": {
+      "date": {
+        "type": "String"
+      },
+      "items": {
+        "type": "int"
+      },
+      "apps": {
+        "type": "String"
+      }
+    }
+  },
+  "restore": "Restore",
+  "enterYourPasswordToRestore": "Enter your account password to restore into this account.",
+  "restoring": "Restoring {app}…",
+  "@restoring": {
+    "placeholders": {
+      "app": {
+        "type": "String"
+      }
+    }
+  },
+  "backupRestored": "Restored {restored, plural, =1{1 item} other{{restored} items}}. {skipped, plural, =0{} =1{1 was already up to date.} other{{skipped} were already up to date.}}",
+  "@backupRestored": {
+    "placeholders": {
+      "restored": {
+        "type": "int"
+      },
+      "skipped": {
+        "type": "int"
+      }
+    }
+  }
 }
