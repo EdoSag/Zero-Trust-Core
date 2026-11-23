@@ -78,3 +78,21 @@ update public.zt_polls set expires_at = now() - interval '1 minute';
 set role anon;
 select pg_temp.check(public.zt_poll('pAAAAAAAAAAAAAAAAAA') is null, 'expired poll is gone');
 reset role;
+
+-- At most 30 live polls, also when an expired one is moved into the future.
+set role authenticated;
+select pg_temp.as_user('00000000-0000-0000-0000-0000000c0001');
+insert into public.zt_polls (id, owner, sealed, expires_at)
+select 'pLIMIT' || lpad(i::text, 12, '0'), '00000000-0000-0000-0000-0000000c0001',
+       repeat('A', 80), now() + interval '1 day'
+from generate_series(1, 30) i;
+select pg_temp.expect_error($$insert into public.zt_polls (id, owner, sealed, expires_at)
+  values ('pEEEEEEEEEEEEEEEEEE', '00000000-0000-0000-0000-0000000c0001', repeat('A', 80), now() + interval '1 day')$$,
+  'a 31st live poll', 'zt_poll_limit');
+select pg_temp.expect_error($$update public.zt_polls set expires_at = now() + interval '1 day'
+  where id = 'pAAAAAAAAAAAAAAAAAA'$$, 'reviving an expired poll past the limit', 'zt_poll_limit');
+-- Live polls can still be changed at the limit.
+update public.zt_polls set closed = true where id = 'pLIMIT000000000001';
+select pg_temp.check((select closed from public.zt_polls where id = 'pLIMIT000000000001'), 'closed at the limit');
+reset role;
+delete from public.zt_polls where id like 'pLIMIT%';
