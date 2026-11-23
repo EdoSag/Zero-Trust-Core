@@ -171,48 +171,63 @@ void main() {
     await tester.pageBack();
     await tester.pumpAndSettle();
 
-    await tester.scrollUntilVisible(find.text('Other Zero-Trust apps'), 100);
+    // A tall screen, so the whole list is laid out at once.
+    tester.view.physicalSize = const Size(800, 12000);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.reset);
+    await tester.pumpAndSettle();
+    expect(find.text('Other Zero-Trust apps'), findsOneWidget);
     expect(find.text('Zero-Trust Tasks'), findsOneWidget,
         reason: 'only in About: the current app is not listed');
     for (final name in [
       'Notes',
       'Fitness',
       'Contacts',
-      'Clock',
+      'Calendar',
+      'Browser',
+      'Phone',
       'Time',
-      'Quests'
+      'Quests',
+      'Camera',
+      'Gallery',
+      'Home',
+      'Clock',
+      'Family',
+      'Meds',
+      'Keyboard',
     ]) {
-      await tester.scrollUntilVisible(find.text('Zero-Trust $name'), 100);
+      expect(find.text('Zero-Trust $name'), findsOneWidget);
     }
+    // Not out yet.
+    expect(find.text('Zero-Trust Authenticator'), findsNothing);
     await tester.tap(find.text('Zero-Trust Contacts'));
     expect(opened.single.toString(),
         'https://play.google.com/store/apps/details?id=dev.sagron.zerotrustcontacts');
 
-    // Clock is in the list too, under Contacts, with its own line.
-    final contacts = tester.getRect(find.text('Zero-Trust Contacts'));
-    final clock = tester.getRect(find.text('Zero-Trust Clock'));
-    expect(clock.top, greaterThan(contacts.bottom));
-    expect(clock.left, contacts.left);
-    final about =
-        find.text('Alarms, timer, stopwatch and world clock · same account');
-    expect(about, findsOneWidget);
-    expect(
-        tester.getRect(about).top, greaterThanOrEqualTo(clock.bottom - 0.01));
-    expect(tester.getRect(about).left, clock.left);
-
-    // Time and Quests follow Clock, each with its tagline under it.
-    final time = tester.getRect(find.text('Zero-Trust Time'));
-    final quests = tester.getRect(find.text('Zero-Trust Quests'));
-    expect(time.top, greaterThan(clock.bottom));
-    expect(quests.top, greaterThan(time.bottom));
-    expect(time.left, clock.left);
-    expect(quests.left, clock.left);
-    expect(
-        tester
-            .getRect(find.text(
-                'Daily quests for your goals, with XP and levels · same account'))
-            .top,
-        greaterThanOrEqualTo(quests.bottom - 0.01));
+    // Every app on its own line, in the suite's order, each with its
+    // tagline under it.
+    Rect? previous;
+    for (final app in ZtSuite.apps) {
+      if (app.appId == 'tasks' || !app.available) continue;
+      final title = find.text(app.fullName);
+      final rect = tester.getRect(title.last);
+      if (previous != null) {
+        expect(rect.top, greaterThan(previous.bottom), reason: app.name);
+        expect(rect.left, previous.left, reason: app.name);
+      }
+      final line = find.textContaining(' · same account');
+      final tagline = tester.getRect(find.descendant(
+          of: find.ancestor(of: title.last, matching: find.byType(ListTile)),
+          matching: line));
+      expect(tagline.top, greaterThanOrEqualTo(rect.bottom - 0.01),
+          reason: app.name);
+      expect(tagline.left, rect.left, reason: app.name);
+      previous = rect;
+    }
+    expect(find.text('Alarms, timer, stopwatch and world clock · same account'),
+        findsOneWidget);
+    expect(find.text('Medications, doses and reminders · same account'),
+        findsOneWidget);
     await tester.tap(find.text('Zero-Trust Clock'));
     expect(opened.last.toString(),
         'https://play.google.com/store/apps/details?id=dev.sagron.zerotrustclock');

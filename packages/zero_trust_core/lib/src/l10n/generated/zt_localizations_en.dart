@@ -727,6 +727,36 @@ class ZtLocalizationsEn extends ZtLocalizations {
   String get taglineQuests => 'Daily quests for your goals, with XP and levels';
 
   @override
+  String get taglineCalendar => 'Events, reminders and planning';
+
+  @override
+  String get taglineBrowser => 'Private web browsing';
+
+  @override
+  String get taglinePhone => 'Calls, call log and blocking';
+
+  @override
+  String get taglineCamera => 'Photos and videos, encrypted as you take them';
+
+  @override
+  String get taglineGallery => 'Your photos and albums';
+
+  @override
+  String get taglineHome => 'Your smart home';
+
+  @override
+  String get taglineFamily => 'Your family circle and shared locations';
+
+  @override
+  String get taglineMeds => 'Medications, doses and reminders';
+
+  @override
+  String get taglineKeyboard => 'A private keyboard';
+
+  @override
+  String get taglineAuthenticator => 'Two-step sign-in codes';
+
+  @override
   String planName(String name) {
     return 'Plan: $name';
   }
