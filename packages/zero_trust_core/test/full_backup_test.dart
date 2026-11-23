@@ -229,10 +229,12 @@ void main() {
       await tester.pumpAndSettle();
     }
 
+    /// A signed-up account with one note on the server under its own key.
     Future<AccountService> signedIn() async {
       final account =
           AccountService(FakeBackend(), params: fast, legacyParams: fast);
-      await account.signUp(email: email, password: password);
+      final result = await account.signUp(email: email, password: password);
+      await put(serverA, result.dek, 'notes', 'mine', {'title': 'Mine'});
       return account;
     }
 
@@ -313,10 +315,8 @@ void main() {
       await tester.tap(find.widgetWithText(FilledButton, 'Back up'));
       await waitFor(tester, () => saved != null);
       expect(savedName, endsWith('.ztbackup'));
-      // This account's DEK is not dekA, so the seeded rows don't open: the
-      // backup is just empty, which is what an account without data gets.
-      expect(find.textContaining('Backup saved: 0 items from 0 apps.'),
-          findsOneWidget);
+      // Only this account's own note: rows under other keys don't open.
+      expect(find.text('Backup saved: 1 item from 1 app.'), findsOneWidget);
 
       // Restore it: wrong backup password first.
       await tester.pumpAndSettle(const Duration(seconds: 10));
@@ -340,7 +340,9 @@ void main() {
       await tester.tap(find.widgetWithText(FilledButton, 'Restore'));
       await waitFor(
           tester, () => find.textContaining('Restored').evaluate().isNotEmpty);
-      expect(find.textContaining('Restored 0 items.'), findsOneWidget);
+      // Already on the server, unchanged.
+      expect(find.text('Restored 0 items. 1 was already up to date.'),
+          findsOneWidget);
     });
   });
 }

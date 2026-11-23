@@ -356,7 +356,25 @@ abstract final class ZtBackup {
       final codec = await _codec(dek, app);
       try {
         for (var i = 0; i < list.length; i += 200) {
-          final batch = list.skip(i).take(200);
+          // What the account already has in the same or a newer version
+          // is left alone (rewriting it would only make every device
+          // download it again).
+          final candidates = list.skip(i).take(200).toList();
+          final there = {
+            for (final row in await backend
+                .fetch(app, {for (final item in candidates) item.id}))
+              row.itemId: row.updatedAt,
+          };
+          final batch = [
+            for (final item in candidates)
+              if (there[item.id] case final at?
+                  when !item.updatedAt.isAfter(at))
+                null
+              else
+                item,
+          ].nonNulls.toList();
+          skipped += candidates.length - batch.length;
+          if (batch.isEmpty) continue;
           final rows = [
             for (final item in batch)
               await codec.seal(

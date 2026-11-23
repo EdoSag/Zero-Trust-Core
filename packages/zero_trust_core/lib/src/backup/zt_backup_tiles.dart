@@ -185,8 +185,9 @@ class _ZtBackupTilesState extends ConsumerState<ZtBackupTiles> {
       }
       messenger.showSnackBar(SnackBar(
         duration: const Duration(seconds: 8),
-        content: Text(
-            ZtL10n.current.backupRestored(result.restored, result.skipped)),
+        content: Text(ZtL10n.current
+            .backupRestored(result.restored, result.skipped)
+            .trim()),
       ));
     } catch (e) {
       messenger.showSnackBar(SnackBar(content: Text(ztErrorMessage(e))));
