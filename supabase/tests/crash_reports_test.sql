@@ -22,6 +22,22 @@ do $$ begin
   assert (select reports from public.zt_crash_reports where version = '1.0.0+1') = 2,
     'reports counted';
   assert (select occurrences from public.zt_crash_groups) = 6, 'one group per bug';
+  assert (select frames from public.zt_crash_groups)
+    = array['main (package:notes/main.dart:1:1)'], 'the latest stack';
+end $$;
+
+-- Stacks of different lengths, or none, in one group still list (the
+-- fingerprint only covers the first frames).
+do $$ begin
+  perform public.zt_record_crash_report(pg_temp.crash(1, '1.0.2+3')
+    || jsonb_build_object('frames', '[]'::jsonb));
+  perform public.zt_record_crash_report(pg_temp.crash(1, '1.0.3+4')
+    || jsonb_build_object('frames', jsonb_build_array('a', 'b', 'c')));
+  assert (select count(*) from public.zt_crash_groups) = 1, 'still one group';
+  assert (select cardinality(frames) from public.zt_crash_groups) in (0, 1, 3),
+    'a whole stack, not null';
+  assert (select frames is not null from public.zt_crash_groups), 'not null';
+  delete from public.zt_crash_reports where version in ('1.0.2+3', '1.0.3+4');
 end $$;
 
 -- Bad values are refused by the table itself.
