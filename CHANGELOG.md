@@ -3,6 +3,356 @@
 Apps depend on the core by git tag (`ref: vX.Y.Z`). Upgrade notes list what
 an app must change.
 
+## 1.0.0
+
+The first stable release. Every app moves to this tag. It holds sign in
+once per phone (S-2), the full backup file (S-5), one family space for the suite (S-10), tablet and
+foldable layouts (S-11), the in-app update check with an Obtainium link
+(S-1), email change (Z14), crash reports (Z15), the 7-day account deletion
+grace (Z22), the retired raw-password sign-in (Z21), every app in the
+suite list, and the fix for sync freezing after a large import. Old and
+pre-core accounts sign in and see their data as before.
+
+Moving an app from 0.13.0, or from a `backport/import-freeze-fix-on-core-*`
+branch, to `ref: v1.0.0`:
+
+- Nothing has to change for the app to build and run. The upgrade notes in
+  each section below are optional improvements.
+- Worth doing in the same bump: pass
+  `sink: ZtHttpCrashReportSink.supabase(supabaseUrl)` for crash reports
+  (Z15), build release APKs with `--dart-define=ZT_CHANNEL=direct` for the
+  update check (S-1), and override `ztBackupFilesProvider` to offer the full
+  backup on phones (S-5), and wrap the first screen in
+  `ZtSignInHandoffScope` so other apps can sign in with this one (S-2).
+- Database: all migrations up to `20261123130000_core_review_fixes` are
+  live. Edge functions `delete-account`, `account-deletion`, `change-email`,
+  `crash-report` and `sign-in-handoff` must be deployed for Z14, Z15, Z22
+  and S-2 sign-in to work (S-2 unlock works without it).
+
+### Sign in once per phone (S-2)
+
+- New: when another Zero-Trust app on the phone is signed in, the sign-in
+  screen offers **Sign in with ZT Notes** and the lock screen **Unlock with
+  ZT Notes**. That app asks its user (fingerprint or password) and hands
+  over the account's key and, to sign in, a one-time token, so the asking
+  app gets a session of its own without the password. Only apps signed
+  with the same key take part, and everything that travels between them is
+  sealed with a secret only the asking app has. Old accounts keep their
+  pre-core key (`legacyDek`).
+- The core now has an Android part (`android/`, plain Java), registered by
+  Flutter like any plugin. Its manifest adds `<queries>` for the suite's
+  packages.
+- New `AccountService.handoffGrant`, `signInWithHandoff` and
+  `unlockWithHandoff`; optional backend interface `AccountHandoffBackend`
+  (the Supabase backend implements it; test fakes don't need to).
+- New edge function `sign-in-handoff` (with the session): a one-time
+  magic-link token for the signed-in account, made without sending email.
+  Deploy with `supabase functions deploy sign-in-handoff`.
+- Upgrade: wrap the app's first screen in `ZtSignInHandoffScope`, inside
+  the `MaterialApp` (`home: const ZtSignInHandoffScope(child: AppGate())`),
+  so it can answer other apps. Without it the app can still ask, but never
+  answers.
+
+### Every app in the suite list (`ZtSuite`)
+
+- `ZtSuite.apps` now has all 17 apps, in the website's order: Calendar,
+  Browser, Phone, Camera, Gallery, Home, Family, Meds, Keyboard and ZT
+  Authenticator join Notes, Tasks, Fitness, Contacts, Time, Quests and
+  Clock. Each has its accent, icon, tagline (English and Hebrew) and
+  Android package `dev.sagron.zerotrust<id>`.
+- New `ZtSuiteApp.available` (default true). ZT Authenticator
+  (`authenticator`, `dev.sagron.zerotrustauthenticator`) is `false` until
+  it's out: it isn't offered under "Other Zero-Trust apps" yet, but its
+  data is in full backups and its own app gets its brand.
+- These apps now get their brand mark on the sign-in, unlock and about
+  screens. An app that sets `ZtAppConfig.accent` keeps it; one that
+  doesn't now gets its suite accent (the same colour as on the website).
+
+### Sync no longer freezes the app after a large import (`zero_trust_core`)
+
+- Every sync re-reads the last 30 seconds before the newest row it has
+  seen. After an import that uploads hundreds of items at once, that window
+  holds the whole import, so every later sync downloaded it again, and the
+  engine checked the signature of and decrypted each row before noticing it
+  already had it. On a phone that blocked the screen for many seconds on
+  every open, resume and edit ("isn't responding"). A row the device
+  already holds, or has a newer version of, is now skipped before any
+  crypto.
+- Fixed: a pull of more than 500 changed rows read the newest 500 twice and
+  never reached the older ones (`order` sorts newest first unless told
+  otherwise). Pulls now page oldest first, for the account's own items and
+  for shared spaces.
+- `bytea` blobs are read and written without making a string per byte.
+- The screen keeps drawing and taking taps during an import and a large
+  sync. Sealing, signing, checking and decrypting run on the UI isolate, and
+  so does the local store; a few hundred items in a row used to run in one
+  piece. `ItemSyncEngine` now lets the event loop run every 8 ms of such
+  work: while it reads a pull, while it seals and records a push, and while
+  an app saves or deletes items one after another (new `Breather`).
+- `ZtCollection.watch` reads and decodes only the items that changed, not
+  the whole collection on every change. Saving 850 events one by one used
+  to decode about 360,000 items along the way.
+- `ZtLocalStore.changes` announces a long run of writes (24 or more with
+  less than 50 ms between them) in batches about 120 ms apart instead of
+  once per item, so an app's own listener that reloads a list isn't run
+  hundreds of times in a row. Single writes are announced at once, as
+  before.
+- A row skipped because the device already holds it still moves the edit
+  clock (found in review): after a restart with the device's clock set
+  back, the next edit could be stamped older than the version it replaces
+  and lose to it.
+
+- A save, a delete or a sync row that needs no pause runs exactly as it did
+  before the breather: `Breather.step` and `Breather.enter` return null
+  instead of a finished future, so nothing waits an extra turn of the
+  microtask queue. (ZT Notes has widget tests that start a save under
+  `runAsync` while the engine is still starting on the test's fake clock;
+  the extra turn made three of them hang.)
+
+Upgrade notes: nothing to change in apps. No database change. Under
+`flutter test` the pauses and the batching are off (the fake clock never
+fires their timers), so tests behave as before; pass `Breather(enabled:
+true)` or `ZtLocalStore.open(mergeBursts: true)` to test them.
+
+### Encrypted full backup file (S-5; `zero_trust_core`)
+
+- New: Settings, Backup has "Back up everything" and "Restore from a
+  backup". One `.ztbackup` file holds every Zero Trust app's data and
+  attached files, encrypted with a backup password (at least 12
+  characters; PBKDF2 600,000 rounds, then AES-256-GCM in 1 MiB chunks).
+  It can be restored into the same account or a new one, on any phone.
+  Restoring never overwrites newer changes; a wrong password and a damaged
+  or cut file give different messages.
+- Each attached file is checked (opened with its own key, at its own size)
+  before it goes into the backup; a damaged one is reported as missing.
+  Items that can't be opened are left out and the message says how many.
+  A restore uploads only the files of the items it restores.
+- New API: `ZtBackup.create`, `ZtBackup.checkHeader`, `ZtBackup.open`,
+  `ZtBackup.restore`, `ZtBackupTiles`, `ZtBackupFiles` and
+  `ztBackupFilesProvider`. `ZtDataExport.findAttachmentRefs` is now public.
+
+Upgrade notes: the rows show on the web by themselves. On phones, an app
+turns them on by overriding `ztBackupFilesProvider` with a save and pick
+function (for example from `file_picker`); see the `ZtBackupFiles` docs.
+
+### Review fixes for account deletion, crash reports, sessions and families
+
+- Account deletion (Z22): the hourly purge now claims each account just
+  before deleting it (`zt_claim_account_deletion`), so "Keep my account"
+  can no longer race the purge. A claimed account can't be kept; a claim
+  older than 30 minutes (a purge that died) is retried. Migration
+  `20261123130000_core_review_fixes.sql`.
+- "Keep my account" no longer says the account is kept when the purge has
+  already started: it says it's too late, and the warning stays
+  (`accountTooLateToKeep`).
+- Meeting polls (K-5): the 30-live-poll limit is also counted when an
+  expired poll is moved back into the future.
+- Crash reports (Z15): `zt_crash_groups` shows the newest whole stack
+  instead of merging frames across rows, and parallel reports of one bug
+  merge into one row (advisory lock) instead of failing.
+- `change-email` and `delete-account` answer browser preflights
+  (`withSessionCors` in `_shared/cors.ts`), so web and desktop builds can
+  call them.
+- ZT Family uses the shared family circle rules (`ZtFamilySpace.policy`)
+  like every other app, so a member can't write another member's
+  `family.me/<id>/` items there.
+
+No app changes needed. Edge functions `account-deletion`, `change-email`
+and `delete-account` need a redeploy.
+
+### Release checks follow Z21 (`zt_release_checks`)
+
+- The shared release checks no longer expect a never-upgraded pre-core
+  account to sign in with its raw password (retired in Z21; re-checked live
+  on 2026-11-22: 0 such accounts, Edo's pre-core account is upgraded). They
+  now check that an upgraded pre-core account signs in to every app with
+  its old data key, and that a never-upgraded one is refused without the
+  raw password being sent. This turns Core CI green again.
+
+### Tablet and foldable layouts (S-11; `zero_trust_core`, `zt_sharing_ui`)
+
+- New: `ZtWindowClass` (Material 3 size classes), `ZtLayout`
+  (`readableWidth` 720, `formWidth` 560, `readablePadding`,
+  `verticalHinge`), `ZtReadableListView`, and `ZtTwoPane` (list and detail
+  side by side on tablets, split at the hinge on an open foldable, list
+  only on phones; right-to-left aware).
+- Every shared screen now stays readable on tablets and unfolded phones:
+  settings, change email, recovery key, forgot and reset password, data
+  protection, plans, crash reports, and the sharing pages. Phones look the
+  same as before.
+- Upgrade: nothing required. Apps adopt `ZtTwoPane` / `ZtReadableListView`
+  for their own screens.
+
+### sqlite3mc.wasm follows the app's sqlite3 (`tool/`)
+
+- `tool/fetch_sqlite3mc_wasm.sh` now fetches the `sqlite3mc.wasm` of the
+  `sqlite3` version in the app's `pubspec.lock` (3.9.1 or 3.9.2; 3.9.2 when
+  there is no lock yet), each checked against its own pinned checksum. CI
+  broke when `sqlite3` 3.9.2 came out, because the example has no committed
+  lock and the script only knew 3.9.1. An unknown version still stops the
+  build, with a message saying to add its checksum.
+
+### One family space for the whole suite (S-10; `zero_trust_core`)
+
+- The ZT Family circle (space app `family`) is now every app's family
+  space: `ztFamilySpacesProvider` opens and syncs it from any app,
+  `ztFamilySharedSpacesProvider` gives its `SharedSpaces`.
+- `ZtFamilySpace`: item ids `<app>/<kind>/<id>` (`itemId`, `appOf`,
+  `belongsTo`), one shared `policy` (ZT Family's: `family.circle` admin
+  only, `family.me/` owned) and `summaryKey`. `ZtFamilySummary` (`t`, `at`,
+  `due`, `done`, `list`, `kind`) is what ZT Family's hub shows.
+- Suite notes: `ZtSuiteNotes` (`vault_items` app `suite`) under the new
+  `VaultUnlocked.suiteKey`, the same in every app of an account and zeroed
+  on lock. `ZtFamilyPrivateStore` keeps the circle's trust notes there as
+  well as in the app's own store, so other apps can open a circle ZT Family
+  made, including circles made before this change.
+- `SpacesController` takes an optional source (the family circles).
+- No database change: `vault_items` already accepts app `suite`.
+- Upgrade: ZT Family needs nothing but should use `ZtFamilySpace.policy`
+  as its `ztSpacePolicyProvider`. Other apps opt in by using
+  `ztFamilySpacesProvider`.
+
+### ZT Family "share my trip" links (L-1; database)
+
+- Migration `20261123090000_family_trip_shares` (written by the Family
+  thread, copy of `/mnt/project-files/sql/family-trip-shares.sql`):
+  `family_trip_shares` holds only sealed text (the key is in the link
+  after `#`), owner-only RLS, at most 3 running shares per account and 4
+  hours each; anyone with the link reads a running share through
+  `family_trip_get(id)`; ended rows are purged every 10 minutes; rows go
+  with the account.
+- Upgrade: nothing in Core; ZT Family uses it.
+
+### In-app update check and Obtainium link (S-1; `zero_trust_core`)
+
+- Direct Android builds (`ZT_CHANNEL=direct`) tell the person when a newer
+  signed release is on GitHub: once on launch (at most daily, once per
+  version, after the deletion-grace check) and in Settings › About, with
+  "What's new" and a Download button that hands the APK to the browser and
+  Android's installer. Store builds show and check nothing.
+- Settings › About also gets a "Check for updates" switch (on by default)
+  and "Get updates with Obtainium" (adds the app's GitHub repo to
+  Obtainium). English and Hebrew.
+- New: `ZtUpdates`, `ZtReleaseSource`, `ZtRelease`, `ztIsNewerVersion`,
+  `ZtUpdatesTiles`, `ztCheckForUpdateAfterUnlock`, providers
+  `ztUpdatesProvider`, `ztInstalledVersionProvider`,
+  `ztReleaseSourceProvider`, `ztOpenExternalUrlProvider`;
+  `ZtAppConfig.releaseRepo` (defaults to `EdoSag/Zero-Trust-<App>`).
+- New dependencies: `url_launcher`, `package_info_plus`.
+- Upgrade: build release APKs with `--dart-define=ZT_CHANNEL=direct`
+  (without it the build counts as a store build and the rows stay hidden).
+  Apps whose repository name doesn't follow the display name pass
+  `releaseRepo`.
+
+### Retire the raw-password sign-in fallback (Z21; database, `zero_trust_core`)
+
+- Checked live on 2026-11-22: every pre-core account was already upgraded
+  (its old key is the data key, `legacy_dek`), so `AccountService.signIn`
+  no longer falls back to sending the raw password. A wrong password is
+  simply "incorrect email or password".
+- Migration `20261122130000_retire_legacy_sign_in`: `zt_needs_legacy_sign_in`
+  always answers false, so older app versions stop sending raw passwords
+  too, and it no longer reveals which emails had a pre-core account.
+- Kept on purpose: upgraded accounts sign in and unlock as before, the
+  vault still hands apps the legacy key (`VaultUnlocked.legacyKey`), and
+  `LegacyImporter` still imports data left on a phone by a pre-core app.
+- `AccountBackend.needsLegacySignIn` and `AccountService.legacyParams` stay
+  for compatibility but are no longer used.
+- Upgrade: nothing to do.
+
+### Change the account's email (Z14; database, edge function, `zero_trust_core`)
+
+- Settings › **Change email** (English and Hebrew): new address + current
+  password, then the 6-digit code emailed to the new address.
+- The sign-in secret depends on the email, so the server switches the
+  email and the Supabase password in one admin call (edge function
+  `change-email`); there is never a moment when neither address signs in.
+  The encryption keys are not touched, so other devices and apps keep
+  working and just sign in with the new address next time. The old address
+  gets a notice.
+- Migration `20261122110000_email_change`: `zt_email_changes` (hashed code,
+  15 minutes, 5 tries; service role only), `zt_email_in_use`, daily purge.
+- `AccountService`: `canChangeEmail`, `startEmailChange`,
+  `finishEmailChange`. A password change now wraps the data key under the
+  stored salt and derives the sign-in secret from the current email (they
+  differ only after an email change). New errors `EmailInUse`,
+  `EmailChangeCodeWrong`, `EmailChangeExpired`.
+- Shared `_shared/mail.ts` (Brevo) now sends the deletion and email-change
+  emails.
+- Upgrade: nothing to do; the setting appears with the Supabase backend.
+
+### Account deletion waits 7 days (Z22; database, edge functions, `zero_trust_core`)
+
+- Migration `20261122100000_account_deletion_grace`: `zt_account_deletions`
+  (the person sees only their own date), scheduling, "keep" by session or
+  by the email link's token (only its SHA-256 is stored), and an hourly
+  pg_cron job that asks `account-deletion` to delete accounts whose 7 days
+  are over (needs pg_net and two Vault secrets, see the function's header).
+- `delete-account` now schedules instead of deleting and emails the date
+  (EN + HE) with a "Keep my account" link to zerotrust.bz/account/keep/.
+  Asking again never postpones the date. Older apps keep working: they
+  sign out after any 2xx, as before.
+- New `account-deletion` function (deploy with `--no-verify-jwt`): "keep"
+  from the website, and the hourly purge (storage files, then the auth
+  user; shared code in `_shared/delete_user.ts`).
+- `AccountLifecycleBackend` (implemented by `SupabaseAccountBackend`):
+  optional, so apps' test fakes of `AccountBackend` need no change.
+  `AccountService.deleteAccount` returns the deletion date (null without the
+  grace period); `pendingDeletion()` and `keepAccount()` are new.
+- Screens: after delete, a dialog says the date; after sign-in or unlock,
+  an account set to be deleted gets "Keep my account / Delete as planned"
+  (in the background, never delaying the app); settings show a row with the
+  date while it is pending. English and Hebrew.
+- Upgrade: nothing to do; apps get it when they move their core pin.
+
+### Crash reports have a destination (Z15; database, edge function, `zero_trust_core`)
+
+- Migration `20261122090000_crash_reports`: `zt_crash_reports` (one counted
+  row per bug, app version, platform and day; owner only), the
+  `zt_crash_groups` view, `zt_record_crash_report` (service role only, 5,000
+  new rows a day at most) and a daily purge of rows older than 90 days.
+- Edge function `supabase/functions/crash-report` (deploy with
+  `--no-verify-jwt`): refuses anything but a scrubbed report, logs nothing.
+- `ZtHttpCrashReportSink.supabase(supabaseUrl)` posts there with no key or
+  token.
+- Upgrade: pass `sink: ZtHttpCrashReportSink.supabase(supabaseUrl)` to the
+  app's `ZtCrashReporter` (see README "Crash reports (opt-in)"). Settings
+  then offer "Ask me before sending" and "Send automatically".
+
+### ZT Time and ZT Quests in "Other Zero-Trust apps" (`zero_trust_core`)
+
+- `ZtSuite.time` and `ZtSuite.quests` join `ZtSuite.apps`, so every app's
+  settings list them under "Other Zero-Trust apps" (English and Hebrew),
+  and their own sign-in, unlock and onboarding screens get their brand mark
+  from the core.
+- Upgrade: nothing to do. ZT Quests can drop its own `questsSuiteApp` for
+  `ZtSuite.quests` once it moves its core pin.
+
+### ZT Clock in "Other Zero-Trust apps" (`zero_trust_core`)
+
+- `ZtSuite.clock` joins `ZtSuite.apps`, so the settings of every app list
+  Zero-Trust Clock under "Other Zero-Trust apps" (English and Hebrew), and
+  Clock's own sign-in, unlock and onboarding screens get its brand mark.
+- Upgrade: nothing to do. An app shows the new row once it moves its core
+  pin. ZT Clock can then drop its own `clockSuiteApp` for `ZtSuite.clock`.
+
+### Companion apps and shared album files (`zero_trust_core`, database)
+
+- `ZtAppConfig.dataAppId` (optional, defaults to `appId`): whose synced
+  items, local store and attachments the app opens. ZT Gallery sets
+  `appId: 'gallery', dataAppId: 'camera'` to show and add to the photos ZT
+  Camera backs up, with the same keys. Shared spaces, crash reports and the
+  brand still use `appId`. The release checks accept `dataAppId:` for the
+  app id they run with (Gallery runs them as `camera`).
+- Database `20261122120000_space_files_and_app_folders.sql`: zt-attachments
+  now accepts any app folder (it accepted only notes, tasks, fitness and
+  contacts, so ZT Camera's backup was refused), and files of a shared space
+  under `<uploader id>/space_<space id hex>/`, readable by every member of
+  that space and by nobody else. Live: run
+  `sql/space-files-and-app-folders.sql` once.
+- Upgrade: nothing to do. Apps that leave `dataAppId` out behave exactly as
+  before.
+
 ## 0.13.0
 
 The planning engine and the optional AI helper for ZT Calendar's Planner,

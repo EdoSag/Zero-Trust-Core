@@ -346,7 +346,7 @@ class ZtLocalizationsHe extends ZtLocalizations {
 
   @override
   String get thisPermanentlyDeletesYourAccountAnd =>
-      'הפעולה מוחקת לצמיתות את החשבון ואת המידע שלך בכל אפליקציות Zero-Trust. אי אפשר לבטל אותה.';
+      'החשבון והמידע שלך בכל אפליקציות Zero-Trust יימחקו לצמיתות אחרי 7 ימים. עד אז אפשר להתחרט.';
 
   @override
   String get delete => 'מחיקה';
@@ -726,6 +726,46 @@ class ZtLocalizationsHe extends ZtLocalizations {
   String get taglineContacts => 'פנקס הכתובות שלך';
 
   @override
+  String get taglineClock => 'שעונים מעוררים, טיימר, שעון עצר ושעון עולמי';
+
+  @override
+  String get taglineTime => 'מעקב זמן לעבודה ולפרויקטים';
+
+  @override
+  String get taglineQuests =>
+      'משימות יומיות למטרות שלך, עם נקודות ניסיון ורמות';
+
+  @override
+  String get taglineCalendar => 'אירועים, תזכורות ותכנון';
+
+  @override
+  String get taglineBrowser => 'גלישה פרטית באינטרנט';
+
+  @override
+  String get taglinePhone => 'שיחות, יומן שיחות וחסימה';
+
+  @override
+  String get taglineCamera => 'תמונות וסרטונים, מוצפנים כבר בצילום';
+
+  @override
+  String get taglineGallery => 'התמונות והאלבומים שלך';
+
+  @override
+  String get taglineHome => 'הבית החכם שלך';
+
+  @override
+  String get taglineFamily => 'המעגל המשפחתי ושיתוף מיקום';
+
+  @override
+  String get taglineMeds => 'תרופות, מינונים ותזכורות';
+
+  @override
+  String get taglineKeyboard => 'מקלדת פרטית';
+
+  @override
+  String get taglineAuthenticator => 'קודים לכניסה בשני שלבים';
+
+  @override
   String planName(String name) {
     return 'תוכנית: $name';
   }
@@ -970,4 +1010,361 @@ class ZtLocalizationsHe extends ZtLocalizations {
 
   @override
   String get signOutAndRemove => 'התנתקות והסרה';
+
+  @override
+  String get accountDeletionScheduledTitle => 'החשבון שלך מתוזמן למחיקה';
+
+  @override
+  String accountDeletionScheduledBody(String date) {
+    return 'ב-$date החשבון והמידע שלך בכל אפליקציות Zero-Trust יימחקו לצמיתות. עד אז אפשר להשאיר אותו.';
+  }
+
+  @override
+  String accountDeletionScheduledTile(String date) {
+    return 'יימחק ב-$date';
+  }
+
+  @override
+  String get keepMyAccount => 'השארת החשבון';
+
+  @override
+  String get deleteAsPlanned => 'למחוק כמתוכנן';
+
+  @override
+  String get accountKept => 'החשבון שלך לא יימחק.';
+
+  @override
+  String get accountTooLateToKeep =>
+      'כבר מאוחר מדי להשאיר את החשבון: הוא נמחק עכשיו.';
+
+  @override
+  String get accountDeletionRequestedTitle => 'מחיקת החשבון תוזמנה';
+
+  @override
+  String accountDeletionRequestedBody(String date) {
+    return 'החשבון שלך יימחק ב-$date. התחרטת? אפשר להיכנס לאחת מאפליקציות Zero-Trust לפני כן וללחוץ על השארת החשבון, או להשתמש בקישור ששלחנו לך במייל.';
+  }
+
+  @override
+  String get ok => 'אישור';
+
+  @override
+  String get changeEmail => 'שינוי כתובת המייל';
+
+  @override
+  String get changeEmailSubtitle => 'כניסה עם כתובת אחרת';
+
+  @override
+  String get changeEmailIntro =>
+      'המידע שלך נשאר מוצפן עם הסיסמה, כמו קודם. רק הכתובת שאיתה נכנסים משתנה, בכל אפליקציות Zero-Trust.';
+
+  @override
+  String get newEmail => 'מייל חדש';
+
+  @override
+  String get sendCode => 'שליחת קוד';
+
+  @override
+  String enterEmailCode(String email) {
+    return 'יש להזין את הקוד בן 6 הספרות ששלחנו אל $email.';
+  }
+
+  @override
+  String get emailCode => 'קוד';
+
+  @override
+  String get changeEmailConfirm => 'שינוי המייל';
+
+  @override
+  String get sendNewCode => 'שליחת קוד חדש';
+
+  @override
+  String emailChangedTo(String email) {
+    return 'מעכשיו נכנסים לחשבון שלך עם $email.';
+  }
+
+  @override
+  String get errEmailInvalid => 'זו לא נראית כמו כתובת מייל.';
+
+  @override
+  String get errEmailSame => 'זו כבר כתובת המייל של החשבון שלך.';
+
+  @override
+  String get errEmailInUse => 'לכתובת הזו כבר יש חשבון Zero-Trust.';
+
+  @override
+  String get errEmailCodeWrong =>
+      'הקוד לא נכון. כדאי לבדוק את המייל ולנסות שוב.';
+
+  @override
+  String get errEmailCodeExpired => 'תוקף הקוד פג. אפשר לשלוח קוד חדש.';
+
+  @override
+  String get appUpdates => 'עדכוני אפליקציה';
+
+  @override
+  String get checkingForUpdates => 'בודקים אם יש עדכון…';
+
+  @override
+  String youHaveTheLatestVersion(String version) {
+    return 'מותקנת הגרסה האחרונה ($version)';
+  }
+
+  @override
+  String updateAvailableVersion(String version) {
+    return 'גרסה $version זמינה. אפשר להקיש כדי לעדכן.';
+  }
+
+  @override
+  String get couldNotCheckForUpdates =>
+      'לא הצלחנו לבדוק אם יש עדכון. אפשר להקיש כדי לנסות שוב.';
+
+  @override
+  String get noReleaseYet => 'עדיין אין גרסה ב-GitHub';
+
+  @override
+  String get checkForUpdates => 'בדיקת עדכונים';
+
+  @override
+  String get checkForUpdatesSubtitle =>
+      'פעם ביום נשאל את GitHub מה מספר הגרסה החדשה ביותר. שום דבר עליך או על הנתונים שלך לא נשלח.';
+
+  @override
+  String get getUpdatesWithObtainium => 'קבלת עדכונים עם Obtainium';
+
+  @override
+  String get obtainiumSubtitle =>
+      'אפליקציה חינמית שמתקינה עדכונים ישירות מ-GitHub';
+
+  @override
+  String get updateAvailableTitle => 'יש עדכון';
+
+  @override
+  String updateAvailableBody(String app, String version, String installed) {
+    return '$app $version מוכנה. אצלך מותקנת $installed.';
+  }
+
+  @override
+  String get updateHowItInstalls =>
+      'הדפדפן יוריד את העדכון, ואז יש לפתוח אותו כדי להתקין. אנדרואיד יתקין אותו רק אם הוא חתום על ידי אותו מפתח כמו האפליקציה הזו.';
+
+  @override
+  String get whatsNew => 'מה חדש';
+
+  @override
+  String get downloadUpdate => 'הורדה';
+
+  @override
+  String get couldNotOpenLink => 'לא הצלחנו לפתוח את הקישור.';
+
+  @override
+  String get backUpEverything => 'גיבוי של הכול';
+
+  @override
+  String get backUpEverythingSubtitle =>
+      'קובץ מוצפן אחד עם המידע שלך מכל אפליקציות Zero-Trust';
+
+  @override
+  String get restoreFromBackup => 'שחזור מגיבוי';
+
+  @override
+  String get restoreFromBackupSubtitle =>
+      'לחשבון הזה, בכל טלפון. שינויים חדשים יותר נשמרים.';
+
+  @override
+  String get backUp => 'גיבוי';
+
+  @override
+  String get chooseBackupPassword => 'בחירת סיסמה לגיבוי';
+
+  @override
+  String get backupPasswordExplained =>
+      'קובץ הגיבוי מוצפן בסיסמה הזו. צריך אותה כדי לשחזר, ואף אחד לא יוכל לשחזר אותה בשבילך. אפשר גם להשתמש בסיסמת החשבון.';
+
+  @override
+  String get backupPassword => 'סיסמת הגיבוי';
+
+  @override
+  String get repeatBackupPassword => 'הקלדה חוזרת של סיסמת הגיבוי';
+
+  @override
+  String get enterYourPasswordToBackUp =>
+      'יש להזין את סיסמת החשבון כדי לקרוא את המידע שלך מכל האפליקציות.';
+
+  @override
+  String backingUp(String app) {
+    return 'מגבה את $app…';
+  }
+
+  @override
+  String backupSaved(int items, int apps) {
+    String _temp0 = intl.Intl.pluralLogic(
+      items,
+      locale: localeName,
+      other: '$items פריטים',
+      one: 'פריט אחד',
+    );
+    String _temp1 = intl.Intl.pluralLogic(
+      apps,
+      locale: localeName,
+      other: 'מ־$apps אפליקציות',
+      one: 'מאפליקציה אחת',
+    );
+    return 'הגיבוי נשמר: $_temp0 $_temp1.';
+  }
+
+  @override
+  String backupItemsUnreadable(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'לא ניתן היה לפתוח $count פריטים והם לא נכללו.',
+      one: 'לא ניתן היה לפתוח פריט אחד והוא לא נכלל.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String backupFilesMissing(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'לא ניתן היה לקרוא $count קבצים מצורפים והם לא נכללו.',
+      one: 'לא ניתן היה לקרוא קובץ מצורף אחד והוא לא נכלל.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get enterBackupPassword => 'הזנת סיסמת הגיבוי';
+
+  @override
+  String get openBackup => 'פתיחה';
+
+  @override
+  String get wrongBackupPassword => 'סיסמת הגיבוי שגויה.';
+
+  @override
+  String get notABackupFile => 'זה לא קובץ גיבוי של Zero-Trust.';
+
+  @override
+  String get backupFromNewerVersion =>
+      'הגיבוי נוצר בגרסה חדשה יותר. יש לעדכן קודם את האפליקציה.';
+
+  @override
+  String get backupDamaged => 'קובץ הגיבוי פגום או חלקי.';
+
+  @override
+  String get restoreBackupQuestion => 'לשחזר את הגיבוי הזה?';
+
+  @override
+  String restoreBackupSummary(String date, int items, String apps) {
+    String _temp0 = intl.Intl.pluralLogic(
+      items,
+      locale: localeName,
+      other: '$items פריטים',
+      one: 'פריט אחד',
+    );
+    return 'גיבוי מ־$date: $_temp0 מ־$apps. מה ששינית או מחקת מאז יישאר כפי שהוא.';
+  }
+
+  @override
+  String get restore => 'שחזור';
+
+  @override
+  String get enterYourPasswordToRestore =>
+      'יש להזין את סיסמת החשבון כדי לשחזר לחשבון הזה.';
+
+  @override
+  String restoring(String app) {
+    return 'משחזר את $app…';
+  }
+
+  @override
+  String backupRestored(int restored, int skipped) {
+    String _temp0 = intl.Intl.pluralLogic(
+      restored,
+      locale: localeName,
+      other: 'שוחזרו $restored פריטים.',
+      one: 'שוחזר פריט אחד.',
+    );
+    String _temp1 = intl.Intl.pluralLogic(
+      skipped,
+      locale: localeName,
+      other: '$skipped כבר היו מעודכנים.',
+      one: 'פריט אחד כבר היה מעודכן.',
+      zero: '',
+    );
+    return '$_temp0 $_temp1';
+  }
+
+  @override
+  String handoffSignInWith(String app) {
+    return 'התחברות עם $app';
+  }
+
+  @override
+  String get handoffSignInWithAnother => 'התחברות דרך אפליקציית ZT אחרת';
+
+  @override
+  String handoffUnlockWith(String app) {
+    return 'ביטול נעילה עם $app';
+  }
+
+  @override
+  String get handoffUnlockWithAnother => 'ביטול נעילה דרך אפליקציית ZT אחרת';
+
+  @override
+  String get handoffPickApp => 'להשתמש בחשבון מתוך';
+
+  @override
+  String handoffWaiting(String app) {
+    return 'יש לאשר ב-$app…';
+  }
+
+  @override
+  String handoffAskSignIn(String app) {
+    return 'להתחבר ל-$app?';
+  }
+
+  @override
+  String handoffAskUnlock(String app) {
+    return 'לבטל את הנעילה של $app?';
+  }
+
+  @override
+  String handoffAskBody(String app, String email) {
+    return '$app תיפתח בטלפון הזה עם חשבון ה-Zero-Trust שלך ($email), בלי סיסמה. רק אפליקציות Zero-Trust יכולות לבקש את זה.';
+  }
+
+  @override
+  String handoffConfirm(String app) {
+    return 'יש לאשר שזה באמת את/ה כדי לשתף את החשבון עם $app.';
+  }
+
+  @override
+  String get handoffAllow => 'אישור';
+
+  @override
+  String handoffDeclined(String app) {
+    return '$app לא שיתפה את החשבון.';
+  }
+
+  @override
+  String handoffSignedOut(String app) {
+    return '$app לא מחוברת. אפשר להתחבר בה קודם, או להזין כאן את הסיסמה.';
+  }
+
+  @override
+  String handoffFailed(String app) {
+    return '$app לא הצליחה לשתף את החשבון. אפשר לנסות שוב, או להזין את הסיסמה.';
+  }
+
+  @override
+  String handoffNoAnswer(String app) {
+    return 'לא התקבלה תשובה מ-$app. אפשר לנסות שוב.';
+  }
+
+  @override
+  String get handoffWrongAccount => 'האפליקציה הזאת מחוברת לחשבון אחר.';
 }

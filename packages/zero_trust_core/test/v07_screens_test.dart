@@ -131,19 +131,15 @@ void main() {
   });
 
   testWidgets(
-      'pre-core accounts sign in with old, weak or breached passwords and '
-      'keep their data key', (tester) async {
-    // A Tasks/Fitness/Contacts account from before the core: Supabase
-    // password = the raw password, data key = PBKDF2(password, salt).
+      'upgraded pre-core accounts sign in with old, weak or breached '
+      'passwords and keep their data key', (tester) async {
+    // A Tasks/Fitness/Contacts account from before the core, upgraded at its
+    // first core sign-in: data key = PBKDF2(password, old salt).
     const old = 'summer2024';
     final checker = AlwaysBreached();
     breaches = checker;
-    final legacySalt = Kdf.newSalt();
-    final todaysKey = await tester.runAsync(() =>
-        Kdf.deriveMasterKey(password: old, salt: legacySalt, params: fast));
-    backend.authPasswords[email] = old;
-    backend.profiles[email] =
-        ProfileRecord(legacySalt: ZtBase64.encode(legacySalt));
+    final todaysKey = await tester
+        .runAsync(() => backend.seedUpgradedLegacyAccount(email, old));
 
     UnlockResult? result;
     await tester.pumpWidget(app(ZtSignInScreen(onUnlocked: (r) => result = r)));
@@ -175,15 +171,66 @@ void main() {
     await tester.pageBack();
     await tester.pumpAndSettle();
 
-    await tester.scrollUntilVisible(find.text('Other Zero-Trust apps'), 100);
+    // A tall screen, so the whole list is laid out at once.
+    tester.view.physicalSize = const Size(800, 12000);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.reset);
+    await tester.pumpAndSettle();
+    expect(find.text('Other Zero-Trust apps'), findsOneWidget);
     expect(find.text('Zero-Trust Tasks'), findsOneWidget,
         reason: 'only in About: the current app is not listed');
-    for (final name in ['Notes', 'Fitness', 'Contacts']) {
-      await tester.scrollUntilVisible(find.text('Zero-Trust $name'), 100);
+    for (final name in [
+      'Notes',
+      'Fitness',
+      'Contacts',
+      'Calendar',
+      'Browser',
+      'Phone',
+      'Time',
+      'Quests',
+      'Camera',
+      'Gallery',
+      'Home',
+      'Clock',
+      'Family',
+      'Meds',
+      'Keyboard',
+    ]) {
+      expect(find.text('Zero-Trust $name'), findsOneWidget);
     }
+    // Not out yet.
+    expect(find.text('Zero-Trust Authenticator'), findsNothing);
     await tester.tap(find.text('Zero-Trust Contacts'));
     expect(opened.single.toString(),
         'https://play.google.com/store/apps/details?id=dev.sagron.zerotrustcontacts');
+
+    // Every app on its own line, in the suite's order, each with its
+    // tagline under it.
+    Rect? previous;
+    for (final app in ZtSuite.apps) {
+      if (app.appId == 'tasks' || !app.available) continue;
+      final title = find.text(app.fullName);
+      final rect = tester.getRect(title.last);
+      if (previous != null) {
+        expect(rect.top, greaterThan(previous.bottom), reason: app.name);
+        expect(rect.left, previous.left, reason: app.name);
+      }
+      final line = find.textContaining(' · same account');
+      final tagline = tester.getRect(find.descendant(
+          of: find.ancestor(of: title.last, matching: find.byType(ListTile)),
+          matching: line));
+      expect(tagline.top, greaterThanOrEqualTo(rect.bottom - 0.01),
+          reason: app.name);
+      expect(tagline.left, rect.left, reason: app.name);
+      previous = rect;
+    }
+    expect(find.text('Alarms, timer, stopwatch and world clock · same account'),
+        findsOneWidget);
+    expect(find.text('Medications, doses and reminders · same account'),
+        findsOneWidget);
+    await tester.tap(find.text('Zero-Trust Clock'));
+    expect(opened.last.toString(),
+        'https://play.google.com/store/apps/details?id=dev.sagron.zerotrustclock');
 
     // No wallpaper palette in tests (as on iOS): the switch is hidden.
     expect(find.text('Use wallpaper colours'), findsNothing);

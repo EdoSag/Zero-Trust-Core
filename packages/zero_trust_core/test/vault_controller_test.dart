@@ -59,6 +59,26 @@ void main() {
     expect(heldKey.every((b) => b == 0), isTrue);
   });
 
+  test('a companion app derives the key of the data it opens (dataAppId)',
+      () async {
+    const gallery = ZtAppConfig(
+        appId: 'gallery',
+        dataAppId: 'camera',
+        displayName: 'Zero-Trust Gallery');
+    expect(gallery.dataAppId, 'camera');
+    expect(
+        const ZtAppConfig(appId: 'notes', displayName: 'Zero-Trust Notes')
+            .dataAppId,
+        'notes');
+    final c = containerFor(gallery);
+    addTearDown(c.dispose);
+    final dek = Uint8List.fromList(List.filled(32, 5));
+    final camera = await KeyHierarchy.appKey(Uint8List.fromList(dek), 'camera');
+
+    await c.read(vaultControllerProvider.notifier).unlock(dek);
+    expect((c.read(vaultControllerProvider) as VaultUnlocked).appKey, camera);
+  });
+
   test('forgetLegacyKey zeroes the legacy key and keeps the app key', () async {
     final c = containerFor(
         const ZtAppConfig(appId: 'notes', displayName: 'Zero-Trust Notes'));

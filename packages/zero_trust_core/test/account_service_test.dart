@@ -56,61 +56,44 @@ void main() {
     expect(backend.passwordsSeenByServer, isNot(contains(password)));
   });
 
-  test('after an upgrade, a typo never sends the raw password', () async {
-    final legacySalt = Kdf.newSalt();
+  test('a pre-core account never has its raw password sent (Z21)', () async {
+    // Retired fallback: a never-upgraded pre-core account (raw Supabase
+    // password) is refused like any wrong password. Live check 2026-11-22:
+    // no such account exists.
     backend.authPasswords[email] = password;
     backend.profiles[email] =
-        ProfileRecord(legacySalt: ZtBase64.encode(legacySalt));
-    await service.signIn(email: email, password: password);
-    expect(backend.profiles[email]!.authUpgraded, isTrue);
-    await service.signOut();
-    backend.passwordsSeenByServer.clear();
+        ProfileRecord(legacySalt: ZtBase64.encode(Kdf.newSalt()));
+    await expectLater(service.signIn(email: email, password: password),
+        throwsA(isA<InvalidCredentials>()));
+    expect(backend.passwordsSeenByServer, isNot(contains(password)));
+    expect(backend.legacyLookups, 0, reason: 'the server is not even asked');
+  });
 
+  test('an upgraded pre-core account signs in with its old data key', () async {
+    final oldKey = await backend.seedUpgradedLegacyAccount(email, password);
+    final result = await service.signIn(email: email, password: password);
+    expect(result.dek, oldKey);
+    expect(result.legacyDek, isTrue);
+    expect(result.newRecoveryKey, isNull);
+    expect(backend.passwordsSeenByServer, isNot(contains(password)));
+
+    backend.passwordsSeenByServer.clear();
+    await service.signOut();
     await expectLater(service.signIn(email: email, password: 'a typo password'),
         throwsA(isA<InvalidCredentials>()));
     expect(backend.passwordsSeenByServer, isNot(contains('a typo password')));
   });
 
   test('an unrecorded upgrade is recorded at the next sign-in', () async {
-    final legacySalt = Kdf.newSalt();
-    backend.authPasswords[email] = password;
-    backend.profiles[email] =
-        ProfileRecord(legacySalt: ZtBase64.encode(legacySalt));
-    await service.signIn(email: email, password: password);
-    final p = backend.profiles[email]!;
-    backend.profiles[email] =
-        ProfileRecord(legacySalt: p.legacySalt, keys: p.keys); // mark lost
-    await service.signOut();
-
+    await backend.seedUpgradedLegacyAccount(email, password, upgraded: false);
     await service.signIn(email: email, password: password);
     expect(backend.profiles[email]!.authUpgraded, isTrue);
-  });
-
-  test('legacy account is upgraded and keeps its existing data key', () async {
-    // What today's apps did: Supabase password = raw password, data key =
-    // PBKDF2(password, profiles.salt), salt written unpadded (Contacts/Tasks).
-    final legacySalt = Kdf.newSalt();
-    final todaysKey = await Kdf.deriveMasterKey(
-        password: password, salt: legacySalt, params: fast);
-    backend.authPasswords[email] = password;
-    backend.profiles[email] =
-        ProfileRecord(legacySalt: ZtBase64.encode(legacySalt));
-
-    final upgraded = await service.signIn(email: email, password: password);
-    expect(upgraded.dek, todaysKey);
-    expect(upgraded.legacyDek, isTrue);
-    expect(upgraded.newRecoveryKey, isNotNull);
-    expect(backend.authPasswords[email], isNot(password));
-
-    await service.signOut();
-    final next = await service.signIn(email: email, password: password);
-    expect(next.dek, todaysKey);
   });
 
   group('one account opens every app', () {
     // Each app has its own AccountService on the same project.
 
-    test('made in any app, it signs in to all four with the same key',
+    test('made in any app, it signs in to all the others with the same key',
         () async {
       for (final maker in ZtSuite.apps) {
         final backend = FakeBackend();
@@ -132,20 +115,9 @@ void main() {
       }
     });
 
-    test(
-        'a pre-core account upgraded by one app opens the others with its '
-        'old data key', () async {
-      final legacySalt = Kdf.newSalt();
-      final oldKey = await Kdf.deriveMasterKey(
-          password: password, salt: legacySalt, params: fast);
-      backend.authPasswords[email] = password;
-      backend.profiles[email] =
-          ProfileRecord(legacySalt: ZtBase64.encode(legacySalt));
-
-      final first =
-          await AccountService(backend, params: fast, legacyParams: fast)
-              .signIn(email: email, password: password);
-      expect(first.legacyDek, isTrue);
+    test('an upgraded pre-core account opens every app with its old data key',
+        () async {
+      final oldKey = await backend.seedUpgradedLegacyAccount(email, password);
       for (final _ in ZtSuite.apps) {
         final other =
             await AccountService(backend, params: fast, legacyParams: fast)
@@ -156,37 +128,25 @@ void main() {
     });
   });
 
-  test('legacy salt written by Notes (standard base64) also upgrades',
+  test('an upgraded account whose old salt was standard base64 (Notes)',
       () async {
-    final legacySalt = Kdf.newSalt();
-    backend.authPasswords[email] = password;
-    backend.profiles[email] =
-        ProfileRecord(legacySalt: base64.encode(legacySalt));
-    final upgraded = await service.signIn(email: email, password: password);
-    expect(
-        upgraded.dek,
-        await Kdf.deriveMasterKey(
-            password: password, salt: legacySalt, params: fast));
+    final oldKey = await backend.seedUpgradedLegacyAccount(email, password,
+        encodeSalt: base64.encode);
+    final result = await service.signIn(email: email, password: password);
+    expect(result.dek, oldKey);
   });
 
-  test('an upgrade interrupted before the auth switch completes next time',
+  test('change password on an upgraded account keeps the old data key',
       () async {
-    final legacySalt = Kdf.newSalt();
-    backend.authPasswords[email] = password;
-    backend.profiles[email] =
-        ProfileRecord(legacySalt: ZtBase64.encode(legacySalt));
-    backend.failNextPasswordUpdate = true;
-
-    await expectLater(
-        service.signIn(email: email, password: password), throwsException);
-    expect(backend.authPasswords[email], password); // still legacy auth
-
-    final retry = await service.signIn(email: email, password: password);
-    expect(
-        retry.dek,
-        await Kdf.deriveMasterKey(
-            password: password, salt: legacySalt, params: fast));
-    expect(backend.authPasswords[email], isNot(password));
+    final oldKey = await backend.seedUpgradedLegacyAccount(email, password);
+    await service.signIn(email: email, password: password);
+    await service.changePassword(
+        currentPassword: password, newPassword: 'a brand new password');
+    await service.signOut();
+    final next =
+        await service.signIn(email: email, password: 'a brand new password');
+    expect(next.dek, oldKey);
+    expect(next.legacyDek, isTrue);
   });
 
   test('change password keeps the DEK; old password stops working', () async {
@@ -301,14 +261,7 @@ void main() {
 
   test('upgraded account: the vault exposes the legacy key for old data',
       () async {
-    final legacySalt = Kdf.newSalt();
-    final todaysKey = await Kdf.deriveMasterKey(
-        password: password, salt: legacySalt, params: fast);
-    backend.authPasswords[email] = password;
-    backend.profiles[email] =
-        ProfileRecord(legacySalt: ZtBase64.encode(legacySalt));
-    await service.signIn(email: email, password: password);
-    await service.signOut();
+    final todaysKey = await backend.seedUpgradedLegacyAccount(email, password);
     final again = await service.signIn(email: email, password: password);
     expect(again.legacyDek, isTrue);
 
@@ -584,9 +537,7 @@ void main() {
     });
 
     test('keeps the legacy flag for upgraded accounts', () async {
-      backend.authPasswords[email] = password;
-      backend.profiles[email] =
-          ProfileRecord(legacySalt: ZtBase64.encode(Kdf.newSalt()));
+      await backend.seedUpgradedLegacyAccount(email, password);
       await s.signIn(email: email, password: password);
       await s.enableBiometrics(password);
       expect((await s.unlockWithBiometrics())!.legacyDek, isTrue);
@@ -636,6 +587,149 @@ void main() {
     expect(backend.profiles, isNotEmpty);
     await service.deleteAccount(password: password);
     expect(backend.profiles, isEmpty);
+  });
+
+  group('deletion grace (Z22)', () {
+    late GraceFakeBackend grace;
+    late AccountService s;
+    late InMemoryKeyCache cache;
+
+    setUp(() {
+      grace = GraceFakeBackend();
+      cache = InMemoryKeyCache();
+      s = AccountService(grace, params: fast, keyCache: cache);
+    });
+
+    test('deleting only schedules it, 7 days out, and signs out', () async {
+      final created = await s.signUp(email: email, password: password);
+      expect(await s.pendingDeletion(), isNull);
+      final when = await s.deleteAccount(password: password);
+      expect(when, grace.now.add(const Duration(days: 7)));
+      expect(s.currentUserId, isNull);
+      expect(await cache.read(email), isNull, reason: 'device keys forgotten');
+      // Still there: signing in again works and shows the date.
+      expect(grace.profiles, isNotEmpty);
+      final back = await s.signIn(email: email, password: password);
+      expect(back.dek, created.dek);
+      expect(await s.pendingDeletion(), when);
+    });
+
+    test('asking again never postpones it', () async {
+      await s.signUp(email: email, password: password);
+      final first = await s.deleteAccount(password: password);
+      await s.signIn(email: email, password: password);
+      grace.now = grace.now.add(const Duration(days: 3));
+      expect(await s.deleteAccount(password: password), first);
+    });
+
+    test('"Keep my account" cancels it', () async {
+      await s.signUp(email: email, password: password);
+      await s.deleteAccount(password: password);
+      await s.signIn(email: email, password: password);
+      expect(await s.keepAccount(), isTrue);
+      expect(await s.pendingDeletion(), isNull);
+      expect(await s.keepAccount(), isFalse);
+    });
+
+    test('still needs the password, checked by the server', () async {
+      await s.signUp(email: email, password: password);
+      grace.freshSession = false;
+      await expectLater(s.deleteAccount(password: 'not my password!!'),
+          throwsA(isA<InvalidCredentials>()));
+      expect(grace.scheduled, isEmpty);
+    });
+
+    test('offline: no answer rather than an error', () async {
+      await s.signUp(email: email, password: password);
+      grace.offline = true;
+      expect(await s.pendingDeletion(), isNull);
+    });
+
+    test('email change: new address signs in, same keys, old one stops',
+        () async {
+      final created = await s.signUp(email: email, password: password);
+      await s.startEmailChange(
+          password: password, newEmail: ' new@example.com ');
+      expect(grace.codesSent, hasLength(1));
+      await expectLater(
+          s.finishEmailChange(
+              password: password, newEmail: 'new@example.com', code: '000000'),
+          throwsA(isA<EmailChangeCodeWrong>()));
+      expect(s.currentEmail, email, reason: 'nothing changed yet');
+      expect(
+          await s.finishEmailChange(
+              password: password,
+              newEmail: 'new@example.com',
+              code: grace.codesSent.single),
+          'new@example.com');
+      expect(s.currentEmail, 'new@example.com');
+      expect(grace.passwordsSeenByServer, isNot(contains(password)));
+
+      await s.signOut();
+      await expectLater(s.signIn(email: email, password: password),
+          throwsA(isA<InvalidCredentials>()));
+      final back = await s.signIn(email: 'new@example.com', password: password);
+      expect(back.dek, created.dek, reason: 'the data key never changed');
+
+      // Later password changes and re-authentication keep working.
+      await s.changePassword(
+          currentPassword: password, newPassword: 'another long password');
+      await s.signOut();
+      final again = await s.signIn(
+          email: 'new@example.com', password: 'another long password');
+      expect(again.dek, created.dek);
+      expect(await s.unlock('another long password'), isA<UnlockResult>());
+      await s.deleteAccount(password: 'another long password');
+      expect(grace.scheduled, isNotEmpty);
+    });
+
+    test('email change needs the right password and a new address', () async {
+      await s.signUp(email: email, password: password);
+      await expectLater(
+          s.startEmailChange(
+              password: 'not my password!!', newEmail: 'n@x.com'),
+          throwsA(isA<KeyMismatch>()));
+      await expectLater(
+          s.startEmailChange(password: password, newEmail: 'EDO@example.com'),
+          throwsA(isA<ArgumentError>()));
+      expect(grace.codesSent, isEmpty);
+    });
+
+    test('email change to an address that has an account is refused', () async {
+      await s.signUp(email: 'other@example.com', password: password);
+      await s.signOut();
+      await s.signUp(email: email, password: password);
+      await expectLater(
+          s.startEmailChange(password: password, newEmail: 'other@example.com'),
+          throwsA(isA<EmailInUse>()));
+    });
+
+    test('forgot password after an email change still works', () async {
+      final created = await s.signUp(email: email, password: password);
+      final recovery = await created.newRecoveryKey!.format();
+      await s.startEmailChange(password: password, newEmail: 'new@example.com');
+      await s.finishEmailChange(
+          password: password,
+          newEmail: 'new@example.com',
+          code: grace.codesSent.single);
+      final reset = await s.recover(
+          recoveryKey: recovery, newPassword: 'fresh password here');
+      expect(reset.dek, created.dek);
+      await s.signOut();
+      expect(
+          (await s.signIn(
+                  email: 'new@example.com', password: 'fresh password here'))
+              .dek,
+          created.dek);
+    });
+
+    test('a backend without the grace period deletes at once', () async {
+      await service.signUp(email: email, password: password);
+      expect(await service.pendingDeletion(), isNull);
+      expect(await service.keepAccount(), isFalse);
+      expect(await service.deleteAccount(password: password), isNull);
+      expect(backend.profiles, isEmpty);
+    });
   });
 }
 

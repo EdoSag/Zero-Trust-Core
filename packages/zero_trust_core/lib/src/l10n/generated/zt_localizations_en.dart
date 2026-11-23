@@ -351,7 +351,7 @@ class ZtLocalizationsEn extends ZtLocalizations {
 
   @override
   String get thisPermanentlyDeletesYourAccountAnd =>
-      'This permanently deletes your account and your data in every Zero-Trust app. It can\'t be undone.';
+      'Your account and your data in every Zero-Trust app will be deleted for good after 7 days. Until then you can change your mind.';
 
   @override
   String get delete => 'Delete';
@@ -718,6 +718,45 @@ class ZtLocalizationsEn extends ZtLocalizations {
   String get taglineContacts => 'Your address book';
 
   @override
+  String get taglineClock => 'Alarms, timer, stopwatch and world clock';
+
+  @override
+  String get taglineTime => 'Time tracking for work and projects';
+
+  @override
+  String get taglineQuests => 'Daily quests for your goals, with XP and levels';
+
+  @override
+  String get taglineCalendar => 'Events, reminders and planning';
+
+  @override
+  String get taglineBrowser => 'Private web browsing';
+
+  @override
+  String get taglinePhone => 'Calls, call log and blocking';
+
+  @override
+  String get taglineCamera => 'Photos and videos, encrypted as you take them';
+
+  @override
+  String get taglineGallery => 'Your photos and albums';
+
+  @override
+  String get taglineHome => 'Your smart home';
+
+  @override
+  String get taglineFamily => 'Your family circle and shared locations';
+
+  @override
+  String get taglineMeds => 'Medications, doses and reminders';
+
+  @override
+  String get taglineKeyboard => 'A private keyboard';
+
+  @override
+  String get taglineAuthenticator => 'Two-step sign-in codes';
+
+  @override
   String planName(String name) {
     return 'Plan: $name';
   }
@@ -970,4 +1009,363 @@ class ZtLocalizationsEn extends ZtLocalizations {
 
   @override
   String get signOutAndRemove => 'Sign out and remove';
+
+  @override
+  String get accountDeletionScheduledTitle =>
+      'Your account is set to be deleted';
+
+  @override
+  String accountDeletionScheduledBody(String date) {
+    return 'On $date your account and your data in every Zero-Trust app will be deleted for good. Until then you can keep it.';
+  }
+
+  @override
+  String accountDeletionScheduledTile(String date) {
+    return 'Will be deleted on $date';
+  }
+
+  @override
+  String get keepMyAccount => 'Keep my account';
+
+  @override
+  String get deleteAsPlanned => 'Delete as planned';
+
+  @override
+  String get accountKept => 'Your account won\'t be deleted.';
+
+  @override
+  String get accountTooLateToKeep =>
+      'It\'s too late to keep this account: it\'s being deleted now.';
+
+  @override
+  String get accountDeletionRequestedTitle => 'Account deletion scheduled';
+
+  @override
+  String accountDeletionRequestedBody(String date) {
+    return 'Your account will be deleted on $date. Changed your mind? Sign in to any Zero-Trust app before then and tap Keep my account, or use the link we emailed you.';
+  }
+
+  @override
+  String get ok => 'OK';
+
+  @override
+  String get changeEmail => 'Change email';
+
+  @override
+  String get changeEmailSubtitle => 'Sign in with a different address';
+
+  @override
+  String get changeEmailIntro =>
+      'Your data stays encrypted with your password, as before. Only the address you sign in with changes, in every Zero-Trust app.';
+
+  @override
+  String get newEmail => 'New email';
+
+  @override
+  String get sendCode => 'Send code';
+
+  @override
+  String enterEmailCode(String email) {
+    return 'Enter the 6-digit code we sent to $email.';
+  }
+
+  @override
+  String get emailCode => 'Code';
+
+  @override
+  String get changeEmailConfirm => 'Change email';
+
+  @override
+  String get sendNewCode => 'Send a new code';
+
+  @override
+  String emailChangedTo(String email) {
+    return 'Your account now signs in with $email.';
+  }
+
+  @override
+  String get errEmailInvalid => 'That doesn\'t look like an email address.';
+
+  @override
+  String get errEmailSame => 'That is already your account\'s email.';
+
+  @override
+  String get errEmailInUse => 'That email already has a Zero-Trust account.';
+
+  @override
+  String get errEmailCodeWrong =>
+      'That code isn\'t right. Check the email and try again.';
+
+  @override
+  String get errEmailCodeExpired => 'The code expired. Send a new one.';
+
+  @override
+  String get appUpdates => 'App updates';
+
+  @override
+  String get checkingForUpdates => 'Checking for updates…';
+
+  @override
+  String youHaveTheLatestVersion(String version) {
+    return 'You have the latest version ($version)';
+  }
+
+  @override
+  String updateAvailableVersion(String version) {
+    return 'Version $version is available. Tap to update.';
+  }
+
+  @override
+  String get couldNotCheckForUpdates =>
+      'Couldn\'t check for updates. Tap to try again.';
+
+  @override
+  String get noReleaseYet => 'No release on GitHub yet';
+
+  @override
+  String get checkForUpdates => 'Check for updates';
+
+  @override
+  String get checkForUpdatesSubtitle =>
+      'Once a day, asks GitHub for the newest version number. Nothing about you or your data is sent.';
+
+  @override
+  String get getUpdatesWithObtainium => 'Get updates with Obtainium';
+
+  @override
+  String get obtainiumSubtitle =>
+      'A free app that installs updates straight from GitHub';
+
+  @override
+  String get updateAvailableTitle => 'Update available';
+
+  @override
+  String updateAvailableBody(String app, String version, String installed) {
+    return '$app $version is ready. You have $installed.';
+  }
+
+  @override
+  String get updateHowItInstalls =>
+      'Your browser downloads the update; open it to install. Android installs it only if it is signed by the same developer as this app.';
+
+  @override
+  String get whatsNew => 'What\'s new';
+
+  @override
+  String get downloadUpdate => 'Download';
+
+  @override
+  String get couldNotOpenLink => 'Couldn\'t open the link.';
+
+  @override
+  String get backUpEverything => 'Back up everything';
+
+  @override
+  String get backUpEverythingSubtitle =>
+      'One encrypted file with your data from every Zero-Trust app';
+
+  @override
+  String get restoreFromBackup => 'Restore from a backup';
+
+  @override
+  String get restoreFromBackupSubtitle =>
+      'Into this account, on any phone. Newer changes are kept.';
+
+  @override
+  String get backUp => 'Back up';
+
+  @override
+  String get chooseBackupPassword => 'Choose a backup password';
+
+  @override
+  String get backupPasswordExplained =>
+      'The backup file is encrypted with this password. You need it to restore, and nobody can recover it for you. Your account password works too.';
+
+  @override
+  String get backupPassword => 'Backup password';
+
+  @override
+  String get repeatBackupPassword => 'Repeat the backup password';
+
+  @override
+  String get enterYourPasswordToBackUp =>
+      'Enter your account password to read your data from every app.';
+
+  @override
+  String backingUp(String app) {
+    return 'Backing up $app…';
+  }
+
+  @override
+  String backupSaved(int items, int apps) {
+    String _temp0 = intl.Intl.pluralLogic(
+      items,
+      locale: localeName,
+      other: '$items items',
+      one: '1 item',
+    );
+    String _temp1 = intl.Intl.pluralLogic(
+      apps,
+      locale: localeName,
+      other: '$apps apps',
+      one: '1 app',
+    );
+    return 'Backup saved: $_temp0 from $_temp1.';
+  }
+
+  @override
+  String backupItemsUnreadable(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count items couldn\'t be opened and aren\'t in it.',
+      one: '1 item couldn\'t be opened and isn\'t in it.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String backupFilesMissing(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count attached files couldn\'t be read and aren\'t in it.',
+      one: '1 attached file couldn\'t be read and isn\'t in it.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get enterBackupPassword => 'Enter the backup password';
+
+  @override
+  String get openBackup => 'Open';
+
+  @override
+  String get wrongBackupPassword => 'Wrong backup password.';
+
+  @override
+  String get notABackupFile => 'This isn\'t a Zero-Trust backup file.';
+
+  @override
+  String get backupFromNewerVersion =>
+      'This backup is from a newer version. Update the app first.';
+
+  @override
+  String get backupDamaged => 'The backup file is damaged or incomplete.';
+
+  @override
+  String get restoreBackupQuestion => 'Restore this backup?';
+
+  @override
+  String restoreBackupSummary(String date, int items, String apps) {
+    String _temp0 = intl.Intl.pluralLogic(
+      items,
+      locale: localeName,
+      other: '$items items',
+      one: '1 item',
+    );
+    return 'Backup from $date: $_temp0 from $apps. Anything you changed or deleted since then stays as it is.';
+  }
+
+  @override
+  String get restore => 'Restore';
+
+  @override
+  String get enterYourPasswordToRestore =>
+      'Enter your account password to restore into this account.';
+
+  @override
+  String restoring(String app) {
+    return 'Restoring $app…';
+  }
+
+  @override
+  String backupRestored(int restored, int skipped) {
+    String _temp0 = intl.Intl.pluralLogic(
+      restored,
+      locale: localeName,
+      other: '$restored items',
+      one: '1 item',
+    );
+    String _temp1 = intl.Intl.pluralLogic(
+      skipped,
+      locale: localeName,
+      other: '$skipped were already up to date.',
+      one: '1 was already up to date.',
+      zero: '',
+    );
+    return 'Restored $_temp0. $_temp1';
+  }
+
+  @override
+  String handoffSignInWith(String app) {
+    return 'Sign in with $app';
+  }
+
+  @override
+  String get handoffSignInWithAnother => 'Sign in with another ZT app';
+
+  @override
+  String handoffUnlockWith(String app) {
+    return 'Unlock with $app';
+  }
+
+  @override
+  String get handoffUnlockWithAnother => 'Unlock with another ZT app';
+
+  @override
+  String get handoffPickApp => 'Use the account from';
+
+  @override
+  String handoffWaiting(String app) {
+    return 'Confirm in $app…';
+  }
+
+  @override
+  String handoffAskSignIn(String app) {
+    return 'Sign in to $app?';
+  }
+
+  @override
+  String handoffAskUnlock(String app) {
+    return 'Unlock $app?';
+  }
+
+  @override
+  String handoffAskBody(String app, String email) {
+    return '$app will open with your Zero-Trust account ($email) on this phone, without the password. Only Zero-Trust apps can ask for this.';
+  }
+
+  @override
+  String handoffConfirm(String app) {
+    return 'Confirm it\'s you to share your account with $app.';
+  }
+
+  @override
+  String get handoffAllow => 'Allow';
+
+  @override
+  String handoffDeclined(String app) {
+    return '$app didn\'t share the account.';
+  }
+
+  @override
+  String handoffSignedOut(String app) {
+    return '$app isn\'t signed in. Sign in there first, or use your password here.';
+  }
+
+  @override
+  String handoffFailed(String app) {
+    return '$app couldn\'t share the account. Try again, or use your password.';
+  }
+
+  @override
+  String handoffNoAnswer(String app) {
+    return 'No answer came from $app. Try again.';
+  }
+
+  @override
+  String get handoffWrongAccount =>
+      'That app is signed in to a different account.';
 }

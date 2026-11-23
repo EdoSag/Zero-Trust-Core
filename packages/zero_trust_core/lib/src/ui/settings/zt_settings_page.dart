@@ -8,6 +8,7 @@ import '../../l10n/zt_l10n.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../config/zt_app_config.dart';
+import '../../backup/zt_backup_tiles.dart';
 import '../../export/zt_data_export.dart';
 import '../../export/zt_export_data_tile.dart';
 import '../../attachments/attachment_cache.dart';
@@ -17,12 +18,14 @@ import '../../config/zt_preferences.dart';
 import '../../config/zt_suite.dart';
 import '../../crash/zt_crash_reporter.dart';
 import '../brand/zt_brand_mark.dart';
+import 'zt_change_email_screen.dart';
 import 'zt_crash_reports_screen.dart';
 import 'zt_data_protection_screen.dart';
 import '../../core_providers.dart';
 import '../../vault/vault_controller.dart';
 import '../../account/biometric_key_store.dart';
 import '../../account/password_check.dart';
+import '../auth/zt_keep_account.dart';
 import '../auth/zt_confirm_identity.dart';
 import '../auth/zt_auth_messages.dart';
 import '../auth/zt_password_strength.dart';
@@ -33,6 +36,8 @@ import '../auth/zt_recovery_key_screen.dart';
 import 'zt_plan_tile.dart';
 import 'zt_storage_tile.dart';
 import 'zt_sync_status_tile.dart';
+import 'zt_updates_tiles.dart';
+import '../layout/zt_adaptive.dart';
 
 /// Privacy policy every Zero-Trust app links to from Settings.
 final Uri ztPrivacyPolicyUrl = Uri.parse('https://zerotrust.bz/privacy/');
@@ -155,10 +160,11 @@ class ZtSettingsPage extends ConsumerWidget {
     final theme = Theme.of(context);
     // An app that works without an account, and nobody is signed in.
     final signedOut = accountOptional && account.currentEmail == null;
+    final fullBackup = !signedOut && ref.watch(ztBackupFilesProvider) != null;
 
     return Scaffold(
       appBar: AppBar(title: Text(ZtL10n.of(context).settings)),
-      body: ListView(
+      body: ZtReadableListView(
         children: [
           if (signedOut && onSignIn != null) ...[
             _Header(ZtL10n.of(context).account),
@@ -178,6 +184,7 @@ class ZtSettingsPage extends ConsumerWidget {
                   Text(account.currentEmail ?? ZtL10n.of(context).notSignedIn),
               subtitle: Text(ZtL10n.of(context).oneAccountForEveryApp),
             ),
+            ZtPendingDeletionTile(account: account),
             if (showSyncStatus) const ZtSyncStatusTile(),
             if (showPlan) ZtPlanTile(onTap: onOpenPlans),
             if (showStorageUsage) const ZtStorageTile(),
@@ -186,6 +193,23 @@ class ZtSettingsPage extends ConsumerWidget {
               title: Text(ZtL10n.of(context).changePassword),
               onTap: () => _changePassword(context, ref),
             ),
+            if (account.canChangeEmail)
+              ListTile(
+                leading: const Icon(Icons.alternate_email),
+                title: Text(ZtL10n.of(context).changeEmail),
+                subtitle: Text(ZtL10n.of(context).changeEmailSubtitle),
+                onTap: () async {
+                  final email = await Navigator.push<String>(
+                    context,
+                    MaterialPageRoute(
+                        builder: (_) => const ZtChangeEmailScreen()),
+                  );
+                  if (email == null || !context.mounted) return;
+                  ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+                      content: Text(ZtL10n.of(context).emailChangedTo(email))));
+                  (context as Element).markNeedsBuild();
+                },
+              ),
             ListTile(
               leading: const Icon(Icons.logout),
               title: Text(ZtL10n.of(context).signOut),
@@ -280,10 +304,12 @@ class ZtSettingsPage extends ConsumerWidget {
           ),
           const _DynamicColorTile(),
           if (backupSection.isNotEmpty ||
+              fullBackup ||
               (onDataExported != null && !signedOut)) ...[
             _Header(ZtL10n.of(context).backup),
             if (onDataExported != null && !signedOut)
               ZtExportDataTile(onExported: onDataExported!),
+            if (fullBackup) const ZtBackupTiles(),
             ...backupSection,
           ],
           if (appSection.isNotEmpty) ...[
@@ -299,6 +325,7 @@ class ZtSettingsPage extends ConsumerWidget {
               ZtL10n.of(context).endToEndEncryptedWeCant,
             ].join(' · ')),
           ),
+          const ZtUpdatesTiles(),
           if (onOpenUrl != null) ...[
             ListTile(
               leading: const Icon(Icons.help_outline),
@@ -340,7 +367,7 @@ class ZtSettingsPage extends ConsumerWidget {
           if (showOtherApps && onOpenUrl != null) ...[
             _Header(ZtL10n.of(context).otherZeroTrustApps),
             for (final app in ZtSuite.apps)
-              if (app.appId != config.appId)
+              if (app.appId != config.appId && app.available)
                 ListTile(
                   leading: ZtBrandMark(app: app, size: 40),
                   title: Text(app.fullName),
@@ -375,6 +402,19 @@ class ZtSettingsPage extends ConsumerWidget {
       'tasks' => l.taglineTasks,
       'fitness' => l.taglineFitness,
       'contacts' => l.taglineContacts,
+      'clock' => l.taglineClock,
+      'time' => l.taglineTime,
+      'quests' => l.taglineQuests,
+      'calendar' => l.taglineCalendar,
+      'browser' => l.taglineBrowser,
+      'phone' => l.taglinePhone,
+      'camera' => l.taglineCamera,
+      'gallery' => l.taglineGallery,
+      'home' => l.taglineHome,
+      'family' => l.taglineFamily,
+      'meds' => l.taglineMeds,
+      'keyboard' => l.taglineKeyboard,
+      'authenticator' => l.taglineAuthenticator,
       _ => app.tagline,
     };
   }
@@ -638,7 +678,7 @@ class ZtSettingsPage extends ConsumerWidget {
   /// file is encrypted under keys that no longer exist anywhere.
   static Future<void> _deleteLocalData(WidgetRef ref, String userId) async {
     try {
-      final appId = ref.read(ztAppConfigProvider).appId;
+      final appId = ref.read(ztAppConfigProvider).dataAppId;
       await ZtLocalStore.deleteFiles(
           await ZtLocalStore.pathFor(appId: appId, userId: userId));
       if (kIsWeb) {
@@ -665,7 +705,23 @@ class ZtSettingsPage extends ConsumerWidget {
     final account = ref.read(accountServiceProvider);
     try {
       final userId = account.currentUserId;
-      await account.deleteAccount(password: password);
+      final when = await account.deleteAccount(password: password);
+      if (when != null && context.mounted) {
+        await showDialog<void>(
+          context: context,
+          builder: (context) => AlertDialog(
+            title: Text(ZtL10n.of(context).accountDeletionRequestedTitle),
+            content: Text(ZtL10n.of(context)
+                .accountDeletionRequestedBody(ztDeletionDate(when))),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(context),
+                child: Text(ZtL10n.of(context).ok),
+              ),
+            ],
+          ),
+        );
+      }
       ref.read(vaultControllerProvider.notifier).lock();
       if (userId != null) await _deleteLocalData(ref, userId);
       onSignedOut();

@@ -55,7 +55,7 @@ final ztLocalStoreProvider = FutureProvider<LocalItemStore>((ref) async {
     disposed = true;
     appKey.fillRange(0, appKey.length, 0);
   });
-  final appId = ref.watch(ztAppConfigProvider.select((c) => c.appId));
+  final appId = ref.watch(ztAppConfigProvider.select((c) => c.dataAppId));
   final userId = ref.watch(accountServiceProvider).currentUserId;
   if (userId == null) throw StateError('Not signed in');
   final path = await ZtLocalStore.pathFor(appId: appId, userId: userId);
@@ -86,7 +86,7 @@ final ztSyncEngineProvider = FutureProvider<ItemSyncEngine>((ref) async {
     disposed = true;
     appKey.fillRange(0, appKey.length, 0);
   });
-  final appId = ref.watch(ztAppConfigProvider.select((c) => c.appId));
+  final appId = ref.watch(ztAppConfigProvider.select((c) => c.dataAppId));
   final backend = ref.watch(ztSyncBackendProvider);
   final store = await ref.watch(ztLocalStoreProvider.future);
   final deviceId = await ref.watch(ztDeviceIdProvider.future);

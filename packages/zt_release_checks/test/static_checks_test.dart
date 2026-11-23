@@ -118,9 +118,42 @@ void main() {
     expect(_failures(_goodApp(internet: false)).keys, ['internet permission']);
   });
 
+  test('INTERNET in the manifest of a released edition counts', () {
+    final app = _goodApp(internet: false);
+    void manifest(String edition, String body) =>
+        File(p.join(app.path, 'android/app/src/$edition/AndroidManifest.xml'))
+          ..parent.createSync(recursive: true)
+          ..writeAsStringSync('<manifest>$body</manifest>');
+    const internet =
+        '<uses-permission android:name="android.permission.INTERNET"/>';
+
+    // Debug and profile builds are not released.
+    manifest('debug', internet);
+    manifest('profile', internet);
+    manifest('offline', '');
+    expect(_failures(app).keys, ['internet permission']);
+
+    manifest('full', internet);
+    expect(_failures(app), isEmpty);
+  });
+
   test('a wrong or unknown app id fails', () {
     expect(_failures(_goodApp(), appId: 'tasks').keys, ['app id']);
     expect(_failures(_goodApp(), appId: 'mail').keys, ['app id']);
+    expect(_failures(_goodApp(), appId: 'keyboard').keys, ['app id']);
+  });
+
+  test('a companion app passes for the data it opens (dataAppId)', () {
+    final app = _goodApp();
+    File(p.join(app.path, 'lib/main.dart')).writeAsStringSync('''
+const config = ZtAppConfig(
+  appId: 'gallery',
+  dataAppId: 'camera',
+  displayName: 'Zero-Trust Gallery',
+);
+''');
+    expect(_failures(app, appId: 'camera'), isEmpty);
+    expect(_failures(app, appId: 'notes').keys, ['app id']);
   });
 
   group('database uses', () {

@@ -9,6 +9,9 @@ set role authenticated;
 set request.jwt.claim.sub = '00000000-0000-0000-0000-0000000000a1';
 insert into storage.objects (bucket_id, name)
   values ('zt-attachments', '00000000-0000-0000-0000-0000000000a1/notes/0123');
+-- Every app folder, not only the first four (ZT Camera's backup).
+insert into storage.objects (bucket_id, name)
+  values ('zt-attachments', '00000000-0000-0000-0000-0000000000a1/camera/0123');
 do $$ begin
   begin
     insert into storage.objects (bucket_id, name)
@@ -18,8 +21,14 @@ do $$ begin
   end;
   begin
     insert into storage.objects (bucket_id, name)
-      values ('zt-attachments', '00000000-0000-0000-0000-0000000000a1/other/0123');
+      values ('zt-attachments', '00000000-0000-0000-0000-0000000000a1/Other-App/0123');
     raise exception 'wrote outside an app folder';
+  exception when insufficient_privilege then null;
+  end;
+  begin
+    insert into storage.objects (bucket_id, name)
+      values ('zt-attachments', '00000000-0000-0000-0000-0000000000a1/0123');
+    raise exception 'wrote outside any folder';
   exception when insufficient_privilege then null;
   end;
 end $$;
@@ -30,7 +39,7 @@ do $$ begin
 end $$;
 set request.jwt.claim.sub = '00000000-0000-0000-0000-0000000000a1';
 do $$ begin
-  assert (select count(*) from storage.objects) = 1, 'owner sees own file, other user could not delete it';
+  assert (select count(*) from storage.objects) = 2, 'owner sees own files, other user could not delete it';
 end $$;
 reset role;
 

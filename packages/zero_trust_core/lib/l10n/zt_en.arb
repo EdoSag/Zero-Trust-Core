@@ -104,7 +104,7 @@
   "passwordChangedYourOtherDevicesWere": "Password changed. Your other devices were signed out.",
   "enterYourPasswordYourCurrentRecovery": "Enter your password. Your current recovery key will stop working.",
   "deleteAccountQuestion": "Delete account?",
-  "thisPermanentlyDeletesYourAccountAnd": "This permanently deletes your account and your data in every Zero-Trust app. It can't be undone.",
+  "thisPermanentlyDeletesYourAccountAnd": "Your account and your data in every Zero-Trust app will be deleted for good after 7 days. Until then you can change your mind.",
   "delete": "Delete",
   "useWallpaperColours": "Use wallpaper colours",
   "matchYourPhonesThemeInsteadOf": "Match your phone's theme instead of the app's",
@@ -375,6 +375,19 @@
   "taglineTasks": "To-dos, reminders and lists",
   "taglineFitness": "Activity, workouts and health",
   "taglineContacts": "Your address book",
+  "taglineClock": "Alarms, timer, stopwatch and world clock",
+  "taglineTime": "Time tracking for work and projects",
+  "taglineQuests": "Daily quests for your goals, with XP and levels",
+  "taglineCalendar": "Events, reminders and planning",
+  "taglineBrowser": "Private web browsing",
+  "taglinePhone": "Calls, call log and blocking",
+  "taglineCamera": "Photos and videos, encrypted as you take them",
+  "taglineGallery": "Your photos and albums",
+  "taglineHome": "Your smart home",
+  "taglineFamily": "Your family circle and shared locations",
+  "taglineMeds": "Medications, doses and reminders",
+  "taglineKeyboard": "A private keyboard",
+  "taglineAuthenticator": "Two-step sign-in codes",
   "planName": "Plan: {name}",
   "@planName": {
     "description": "Settings row: the account's plan, e.g. 'Plan: Free'",
@@ -546,5 +559,296 @@
   "forSharedOrPublicComputers": "For shared or public computers",
   "removeYourDataFromThisBrowser": "Remove your data from this browser?",
   "removeFromBrowserExplanation": "You'll be signed out, and the encrypted copy kept in this browser will be deleted, along with your settings here. Changes that haven't synced yet will be lost.\n\nYour account and everything already synced stay safe. Sign in again any time to get it back.",
-  "signOutAndRemove": "Sign out and remove"
+  "signOutAndRemove": "Sign out and remove",
+  "accountDeletionScheduledTitle": "Your account is set to be deleted",
+  "accountDeletionScheduledBody": "On {date} your account and your data in every Zero-Trust app will be deleted for good. Until then you can keep it.",
+  "@accountDeletionScheduledBody": {
+    "placeholders": {
+      "date": {
+        "type": "String",
+        "example": "Long date, e.g. 29 November 2026"
+      }
+    }
+  },
+  "accountDeletionScheduledTile": "Will be deleted on {date}",
+  "@accountDeletionScheduledTile": {
+    "placeholders": {
+      "date": {
+        "type": "String",
+        "example": "Long date"
+      }
+    }
+  },
+  "keepMyAccount": "Keep my account",
+  "deleteAsPlanned": "Delete as planned",
+  "accountKept": "Your account won't be deleted.",
+  "accountTooLateToKeep": "It's too late to keep this account: it's being deleted now.",
+  "accountDeletionRequestedTitle": "Account deletion scheduled",
+  "accountDeletionRequestedBody": "Your account will be deleted on {date}. Changed your mind? Sign in to any Zero-Trust app before then and tap Keep my account, or use the link we emailed you.",
+  "@accountDeletionRequestedBody": {
+    "placeholders": {
+      "date": {
+        "type": "String",
+        "example": "Long date"
+      }
+    }
+  },
+  "ok": "OK",
+  "changeEmail": "Change email",
+  "changeEmailSubtitle": "Sign in with a different address",
+  "changeEmailIntro": "Your data stays encrypted with your password, as before. Only the address you sign in with changes, in every Zero-Trust app.",
+  "newEmail": "New email",
+  "sendCode": "Send code",
+  "enterEmailCode": "Enter the 6-digit code we sent to {email}.",
+  "@enterEmailCode": {
+    "placeholders": {
+      "email": {
+        "type": "String",
+        "example": "edo@example.com"
+      }
+    }
+  },
+  "emailCode": "Code",
+  "changeEmailConfirm": "Change email",
+  "sendNewCode": "Send a new code",
+  "emailChangedTo": "Your account now signs in with {email}.",
+  "@emailChangedTo": {
+    "placeholders": {
+      "email": {
+        "type": "String",
+        "example": "edo@example.com"
+      }
+    }
+  },
+  "errEmailInvalid": "That doesn't look like an email address.",
+  "errEmailSame": "That is already your account's email.",
+  "errEmailInUse": "That email already has a Zero-Trust account.",
+  "errEmailCodeWrong": "That code isn't right. Check the email and try again.",
+  "errEmailCodeExpired": "The code expired. Send a new one.",
+  "appUpdates": "App updates",
+  "checkingForUpdates": "Checking for updates…",
+  "youHaveTheLatestVersion": "You have the latest version ({version})",
+  "@youHaveTheLatestVersion": {
+    "placeholders": {
+      "version": {
+        "type": "String"
+      }
+    }
+  },
+  "updateAvailableVersion": "Version {version} is available. Tap to update.",
+  "@updateAvailableVersion": {
+    "placeholders": {
+      "version": {
+        "type": "String"
+      }
+    }
+  },
+  "couldNotCheckForUpdates": "Couldn't check for updates. Tap to try again.",
+  "noReleaseYet": "No release on GitHub yet",
+  "checkForUpdates": "Check for updates",
+  "checkForUpdatesSubtitle": "Once a day, asks GitHub for the newest version number. Nothing about you or your data is sent.",
+  "getUpdatesWithObtainium": "Get updates with Obtainium",
+  "obtainiumSubtitle": "A free app that installs updates straight from GitHub",
+  "updateAvailableTitle": "Update available",
+  "updateAvailableBody": "{app} {version} is ready. You have {installed}.",
+  "@updateAvailableBody": {
+    "placeholders": {
+      "app": {
+        "type": "String"
+      },
+      "version": {
+        "type": "String"
+      },
+      "installed": {
+        "type": "String"
+      }
+    }
+  },
+  "updateHowItInstalls": "Your browser downloads the update; open it to install. Android installs it only if it is signed by the same developer as this app.",
+  "whatsNew": "What's new",
+  "downloadUpdate": "Download",
+  "couldNotOpenLink": "Couldn't open the link.",
+  "backUpEverything": "Back up everything",
+  "backUpEverythingSubtitle": "One encrypted file with your data from every Zero-Trust app",
+  "restoreFromBackup": "Restore from a backup",
+  "restoreFromBackupSubtitle": "Into this account, on any phone. Newer changes are kept.",
+  "backUp": "Back up",
+  "chooseBackupPassword": "Choose a backup password",
+  "backupPasswordExplained": "The backup file is encrypted with this password. You need it to restore, and nobody can recover it for you. Your account password works too.",
+  "backupPassword": "Backup password",
+  "repeatBackupPassword": "Repeat the backup password",
+  "enterYourPasswordToBackUp": "Enter your account password to read your data from every app.",
+  "backingUp": "Backing up {app}…",
+  "@backingUp": {
+    "placeholders": {
+      "app": {
+        "type": "String"
+      }
+    }
+  },
+  "backupSaved": "Backup saved: {items, plural, =1{1 item} other{{items} items}} from {apps, plural, =1{1 app} other{{apps} apps}}.",
+  "@backupSaved": {
+    "placeholders": {
+      "items": {
+        "type": "int"
+      },
+      "apps": {
+        "type": "int"
+      }
+    }
+  },
+  "backupItemsUnreadable": "{count, plural, =1{1 item couldn't be opened and isn't in it.} other{{count} items couldn't be opened and aren't in it.}}",
+  "@backupItemsUnreadable": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "backupFilesMissing": "{count, plural, =1{1 attached file couldn't be read and isn't in it.} other{{count} attached files couldn't be read and aren't in it.}}",
+  "@backupFilesMissing": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "enterBackupPassword": "Enter the backup password",
+  "openBackup": "Open",
+  "wrongBackupPassword": "Wrong backup password.",
+  "notABackupFile": "This isn't a Zero-Trust backup file.",
+  "backupFromNewerVersion": "This backup is from a newer version. Update the app first.",
+  "backupDamaged": "The backup file is damaged or incomplete.",
+  "restoreBackupQuestion": "Restore this backup?",
+  "restoreBackupSummary": "Backup from {date}: {items, plural, =1{1 item} other{{items} items}} from {apps}. Anything you changed or deleted since then stays as it is.",
+  "@restoreBackupSummary": {
+    "placeholders": {
+      "date": {
+        "type": "String"
+      },
+      "items": {
+        "type": "int"
+      },
+      "apps": {
+        "type": "String"
+      }
+    }
+  },
+  "restore": "Restore",
+  "enterYourPasswordToRestore": "Enter your account password to restore into this account.",
+  "restoring": "Restoring {app}…",
+  "@restoring": {
+    "placeholders": {
+      "app": {
+        "type": "String"
+      }
+    }
+  },
+  "backupRestored": "Restored {restored, plural, =1{1 item} other{{restored} items}}. {skipped, plural, =0{} =1{1 was already up to date.} other{{skipped} were already up to date.}}",
+  "@backupRestored": {
+    "placeholders": {
+      "restored": {
+        "type": "int"
+      },
+      "skipped": {
+        "type": "int"
+      }
+    }
+  },
+  "handoffSignInWith": "Sign in with {app}",
+  "@handoffSignInWith": {
+    "placeholders": {
+      "app": {
+        "type": "String"
+      }
+    }
+  },
+  "handoffSignInWithAnother": "Sign in with another ZT app",
+  "handoffUnlockWith": "Unlock with {app}",
+  "@handoffUnlockWith": {
+    "placeholders": {
+      "app": {
+        "type": "String"
+      }
+    }
+  },
+  "handoffUnlockWithAnother": "Unlock with another ZT app",
+  "handoffPickApp": "Use the account from",
+  "handoffWaiting": "Confirm in {app}…",
+  "@handoffWaiting": {
+    "placeholders": {
+      "app": {
+        "type": "String"
+      }
+    }
+  },
+  "handoffAskSignIn": "Sign in to {app}?",
+  "@handoffAskSignIn": {
+    "placeholders": {
+      "app": {
+        "type": "String"
+      }
+    }
+  },
+  "handoffAskUnlock": "Unlock {app}?",
+  "@handoffAskUnlock": {
+    "placeholders": {
+      "app": {
+        "type": "String"
+      }
+    }
+  },
+  "handoffAskBody": "{app} will open with your Zero-Trust account ({email}) on this phone, without the password. Only Zero-Trust apps can ask for this.",
+  "@handoffAskBody": {
+    "placeholders": {
+      "app": {
+        "type": "String"
+      },
+      "email": {
+        "type": "String"
+      }
+    }
+  },
+  "handoffConfirm": "Confirm it's you to share your account with {app}.",
+  "@handoffConfirm": {
+    "placeholders": {
+      "app": {
+        "type": "String"
+      }
+    }
+  },
+  "handoffAllow": "Allow",
+  "handoffDeclined": "{app} didn't share the account.",
+  "@handoffDeclined": {
+    "placeholders": {
+      "app": {
+        "type": "String"
+      }
+    }
+  },
+  "handoffSignedOut": "{app} isn't signed in. Sign in there first, or use your password here.",
+  "@handoffSignedOut": {
+    "placeholders": {
+      "app": {
+        "type": "String"
+      }
+    }
+  },
+  "handoffFailed": "{app} couldn't share the account. Try again, or use your password.",
+  "@handoffFailed": {
+    "placeholders": {
+      "app": {
+        "type": "String"
+      }
+    }
+  },
+  "handoffNoAnswer": "No answer came from {app}. Try again.",
+  "@handoffNoAnswer": {
+    "placeholders": {
+      "app": {
+        "type": "String"
+      }
+    }
+  },
+  "handoffWrongAccount": "That app is signed in to a different account."
 }

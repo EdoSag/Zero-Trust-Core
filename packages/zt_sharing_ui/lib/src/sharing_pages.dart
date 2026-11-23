@@ -284,19 +284,21 @@ class _ZtSpacePageState extends ConsumerState<ZtSpacePage> {
           return Scaffold(
             key: const Key('zt-space-waiting'),
             appBar: AppBar(title: Text(s.waitingToJoin)),
-            body: ListView(padding: const EdgeInsets.all(24), children: [
-              const Icon(Icons.hourglass_top, size: 48),
-              const SizedBox(height: 16),
-              Text(s.waitingExplain, textAlign: TextAlign.center),
-              const SizedBox(height: 16),
-              Text(code,
-                  textAlign: TextAlign.center,
-                  textDirection: TextDirection.ltr,
-                  style: Theme.of(context)
-                      .textTheme
-                      .displaySmall
-                      ?.copyWith(letterSpacing: 3)),
-            ]),
+            body: ZtReadableListView(
+                padding: const EdgeInsets.all(24),
+                children: [
+                  const Icon(Icons.hourglass_top, size: 48),
+                  const SizedBox(height: 16),
+                  Text(s.waitingExplain, textAlign: TextAlign.center),
+                  const SizedBox(height: 16),
+                  Text(code,
+                      textAlign: TextAlign.center,
+                      textDirection: TextDirection.ltr,
+                      style: Theme.of(context)
+                          .textTheme
+                          .displaySmall
+                          ?.copyWith(letterSpacing: 3)),
+                ]),
           );
         },
       );
@@ -332,7 +334,7 @@ class _ZtSpacePageState extends ConsumerState<ZtSpacePage> {
           ),
         ],
       ),
-      body: ListView(
+      body: ZtReadableListView(
         padding: const EdgeInsets.symmetric(vertical: 8),
         children: [
           if (_busy) const LinearProgressIndicator(),
@@ -463,7 +465,7 @@ class _ZtInvitePageState extends ConsumerState<ZtInvitePage> {
     ];
     return Scaffold(
       appBar: AppBar(title: Text(s.inviteTo(widget.title))),
-      body: ListView(
+      body: ZtReadableListView(
         padding: const EdgeInsets.all(16),
         children: [
           for (final j in joins)
@@ -698,7 +700,7 @@ class _ZtJoinSpacePageState extends ConsumerState<ZtJoinSpacePage> {
     return Scaffold(
       appBar: AppBar(title: Text(s.joinTitle)),
       body: started != null
-          ? ListView(
+          ? ZtReadableListView(
               padding: const EdgeInsets.all(24),
               children: [
                 const Icon(Icons.verified_user_outlined, size: 56),
@@ -725,7 +727,7 @@ class _ZtJoinSpacePageState extends ConsumerState<ZtJoinSpacePage> {
             )
           : Form(
               key: _form,
-              child: ListView(
+              child: ZtReadableListView(
                 padding: const EdgeInsets.all(16),
                 children: [
                   Text(s.joinIntro),

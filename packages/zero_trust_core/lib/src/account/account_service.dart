@@ -4,6 +4,9 @@ import 'dart:typed_data';
 import 'package:zt_crypto/zt_crypto.dart';
 
 import 'account_backend.dart';
+import 'account_handoff.dart';
+import 'account_lifecycle.dart';
+import '../l10n/zt_l10n.dart';
 import 'biometric_key_store.dart';
 import 'key_cache.dart';
 import 'session_key_store.dart';
@@ -85,6 +88,8 @@ class AccountService {
   final List<KdfParams> previousParams;
 
   /// How pre-core apps stretched the password (PBKDF2-SHA256, 600k).
+  /// No longer used since the raw-password upgrade was retired; kept so
+  /// apps that pass it still compile.
   final KdfParams legacyParams;
 
   /// Creates the account. With email confirmation on (it should be, so no
@@ -115,19 +120,21 @@ class AccountService {
   Future<void> resendConfirmation(String email, {String? redirectTo}) =>
       _backend.resendConfirmation(email.trim(), redirectTo: redirectTo);
 
-  /// Signs in and unlocks. Accounts made by pre-core app versions are
-  /// upgraded on the way: their existing key becomes the DEK, so all local
-  /// and cloud data stays readable.
+  /// Signs in and unlocks.
+  ///
+  /// Accounts made by pre-core app versions were upgraded at their first
+  /// core sign-in (their old key became the DEK, `legacyDek`), and keep
+  /// working here. The raw-password fallback that did that upgrade was
+  /// retired on 2026-11-22 after checking live that no account still
+  /// needed it: the raw password is never sent to the server any more.
   Future<UnlockResult> signIn({
     required String email,
     required String password,
   }) async {
     final salt = await Kdf.saltForEmail(email);
-    PasswordCredentials? current;
     for (final p in [params, ...previousParams]) {
       final creds = await KeyHierarchy.deriveCredentials(
           password: password, salt: salt, params: p);
-      if (p == params) current = creds;
       try {
         await _backend.signIn(email, creds.authSecret);
       } on InvalidCredentials {
@@ -135,47 +142,7 @@ class AccountService {
       }
       return _afterAuth(password, salt, authParams: p, credentials: creds);
     }
-    // Derived above for [params]; reused below instead of deriving again.
-    final creds = current!;
-
-    // A pre-core account still signs in with the raw password. Send it only
-    // when the server says this email is one: on any other account a typo
-    // (or a password from another site) would otherwise reach Supabase.
-    if (!await _backend.needsLegacySignIn(email.trim())) {
-      throw const InvalidCredentials();
-    }
-    await _backend.signIn(email, password); // throws InvalidCredentials
-    final profile = await _backend.fetchProfile();
-
-    if (profile?.keys != null) {
-      // An earlier upgrade stored v2 keys but failed before switching the
-      // auth password. Finish it.
-      final unlocked = await _unlock(password, profile!.keys!);
-      await _backend.updateAuthPassword(creds.authSecret);
-      await _markAuthUpgraded();
-      return unlocked;
-    }
-
-    final legacySalt = profile?.legacySalt;
-    if (legacySalt == null) throw const KeyMismatch();
-    final keys = await KeyHierarchy.migrateLegacyAccount(
-      password: password,
-      legacySalt: legacySalt,
-      salt: salt,
-      legacyParams: legacyParams,
-      params: params,
-      credentials: creds,
-    );
-    // Keys first, auth password second: if the second step fails, the next
-    // sign-in lands in the branch above and completes it.
-    await _writeKeys(_toStored(keys.stored, legacyDek: true));
-    await _backend.updateAuthPassword(keys.authSecret);
-    await _markAuthUpgraded();
-    return UnlockResult(
-      dek: keys.dek,
-      legacyDek: true,
-      newRecoveryKey: keys.recoveryKey,
-    );
+    throw const InvalidCredentials();
   }
 
   /// Re-derive the DEK for an already signed-in session (app relaunch).
@@ -479,16 +446,177 @@ class AccountService {
   /// Deletes the account in every app. [password] is checked with the
   /// server first, which also gives the fresh sign-in the server requires,
   /// so an unattended unlocked phone or a stolen session can't do this.
-  Future<void> deleteAccount({required String password}) async {
+  ///
+  /// With a backend that has a grace period ([AccountLifecycleBackend]) the
+  /// account is only scheduled for deletion; the returned time says when.
+  /// Either way this device signs out and forgets its keys.
+  Future<DateTime?> deleteAccount({required String password}) async {
     final userId = _backend.currentUserId;
     await _reauthenticate(password);
-    await _backend.deleteAccount();
+    final lifecycle = _lifecycle;
+    DateTime? when;
+    if (lifecycle != null) {
+      when = await lifecycle.requestDeletion();
+    } else {
+      await _backend.deleteAccount();
+    }
     if (userId != null) {
       await _cache.clear(userId);
       await _biometrics?.clear(userId);
       _forgets++;
       await _inOrder(() async => _sessionKeys?.clear(userId));
     }
+    return when;
+  }
+
+  AccountLifecycleBackend? get _lifecycle {
+    final backend = _backend;
+    return backend is AccountLifecycleBackend
+        ? backend as AccountLifecycleBackend
+        : null;
+  }
+
+  /// When the signed-in account is set to be deleted, or null (also when
+  /// the server can't be reached: this only decides whether to offer
+  /// "Keep my account").
+  Future<DateTime?> pendingDeletion() async {
+    final lifecycle = _lifecycle;
+    if (lifecycle == null || _backend.currentUserId == null) return null;
+    try {
+      return await lifecycle.pendingDeletion().timeout(onlineTimeout);
+    } on Object {
+      return null;
+    }
+  }
+
+  /// Cancels a scheduled deletion of the signed-in account.
+  Future<bool> keepAccount() async => await _lifecycle?.keepAccount() ?? false;
+
+  /// The server can change the account's email (Z14).
+  bool get canChangeEmail => _lifecycle != null;
+
+  /// First step of changing the email: checks [password] on this device and
+  /// with the server (a fresh sign-in, which the server requires), then has
+  /// a 6-digit code emailed to [newEmail].
+  Future<void> startEmailChange({
+    required String password,
+    required String newEmail,
+  }) async {
+    final lifecycle = _lifecycle;
+    if (lifecycle == null) throw StateError('Email change is not available');
+    final email = newEmail.trim();
+    if (email.toLowerCase() == currentEmail?.toLowerCase()) {
+      throw ArgumentError(ZtL10n.current.errEmailSame);
+    }
+    final keys = await _fetchKeys();
+    if (keys == null) throw const KeyMismatch();
+    final unlocked = await _unlock(password, keys);
+    unlocked.dek.fillRange(0, unlocked.dek.length, 0);
+    await _reauthenticate(password);
+    await lifecycle.startEmailChange(email);
+  }
+
+  /// Second step: with the emailed [code], the server switches the email
+  /// and the sign-in secret together, so there is never a moment when
+  /// neither address signs in. The encryption keys don't change, so every
+  /// app and device keeps working; other devices just sign in with the new
+  /// address next time.
+  Future<String> finishEmailChange({
+    required String password,
+    required String newEmail,
+    required String code,
+  }) async {
+    final lifecycle = _lifecycle;
+    if (lifecycle == null) throw StateError('Email change is not available');
+    final creds = await KeyHierarchy.deriveCredentials(
+        password: password,
+        salt: await Kdf.saltForEmail(newEmail.trim()),
+        params: params);
+    try {
+      return await lifecycle.finishEmailChange(code.trim(), creds.authSecret);
+    } finally {
+      creds.kek.fillRange(0, creds.kek.length, 0);
+    }
+  }
+
+  AccountHandoffBackend? get _handoff {
+    final backend = _backend;
+    return backend is AccountHandoffBackend
+        ? backend as AccountHandoffBackend
+        : null;
+  }
+
+  /// This app can sign another Zero-Trust app on the phone in (S-2).
+  bool get canHandOffSession => _handoff != null;
+
+  /// What another app on this phone needs to open with this account (S-2).
+  /// [proof] is the key from `ztConfirmIdentity`, so the person holding the
+  /// phone just proved it's them; it is copied, not kept. With
+  /// [withSession] the server also makes a one-time sign-in token, so the
+  /// other app gets a session of its own.
+  Future<ZtHandoffGrant> handoffGrant(
+    UnlockResult proof, {
+    required bool withSession,
+    Duration validFor = const Duration(minutes: 2),
+  }) async {
+    final userId = _requireUserId();
+    final email = _backend.currentEmail ?? '';
+    String? token;
+    if (withSession) {
+      final handoff = _handoff;
+      if (handoff == null) throw StateError('Handing off is not available');
+      token = await handoff.handoffToken().timeout(onlineTimeout * 2);
+    }
+    // Signed out, or into another account, while the server answered.
+    if (_backend.currentUserId != userId) throw StateError('Not signed in');
+    return ZtHandoffGrant(
+      userId: userId,
+      email: email,
+      dek: Uint8List.fromList(proof.dek),
+      legacyDek: proof.legacyDek,
+      tokenHash: token,
+      expiresAt: DateTime.now().add(validFor),
+    );
+  }
+
+  /// Signs in with what another app on this phone handed over (S-2) and
+  /// unlocks, without the password. The session is this app's own. The
+  /// server's key row is fetched (and kept for offline unlock) as after a
+  /// password sign-in; if anything fails, this app is left signed out.
+  /// [grant] is left untouched.
+  Future<UnlockResult> signInWithHandoff(ZtHandoffGrant grant) async {
+    final handoff = _handoff;
+    final token = grant.tokenHash;
+    if (handoff == null) throw StateError('Handing off is not available');
+    if (token == null) throw ArgumentError('No sign-in token');
+    await handoff.signInWithHandoffToken(token);
+    try {
+      if (_backend.currentUserId != grant.userId) {
+        throw const ZtHandoffWrongAccount();
+      }
+      final keys = await _fetchKeys();
+      if (keys == null) throw const KeyMismatch();
+      return UnlockResult(
+          dek: Uint8List.fromList(grant.dek), legacyDek: keys.legacyDek);
+    } on Object {
+      try {
+        await _backend.signOut();
+      } on Object {
+        // Best effort: the sign-in screen stays up either way.
+      }
+      rethrow;
+    }
+  }
+
+  /// Unlocks this app, already signed in to the same account, with the key
+  /// another app on this phone handed over (S-2). Works offline. [grant] is
+  /// left untouched.
+  UnlockResult unlockWithHandoff(ZtHandoffGrant grant) {
+    if (_backend.currentUserId != grant.userId) {
+      throw const ZtHandoffWrongAccount();
+    }
+    return UnlockResult(
+        dek: Uint8List.fromList(grant.dek), legacyDek: grant.legacyDek);
   }
 
   Future<UnlockResult> _afterAuth(
@@ -571,19 +699,28 @@ class AccountService {
     if (email == null) throw StateError('Not signed in');
     final keys = await _fetchKeys();
     if (keys == null) throw const KeyMismatch();
+    // The data key stays wrapped under the stored salt; the sign-in secret
+    // follows the account's email. They are the same salt unless the email
+    // was changed (Z14), and then the secret needs a second derivation.
+    final emailSalt = await Kdf.saltForEmail(email);
     final rewrapped = await KeyHierarchy.rewrapForNewPassword(
       dek: dek,
       newPassword: newPassword,
       stored: _wrapped(keys),
-      salt: await Kdf.saltForEmail(email),
+      salt: keys.kdfSalt,
       params: params,
     );
+    final authSecret = _sameBytes(keys.kdfSalt, emailSalt)
+        ? rewrapped.authSecret
+        : (await KeyHierarchy.deriveCredentials(
+                password: newPassword, salt: emailSalt, params: params))
+            .authSecret;
     final pending = keys.copyWith(
       pendingWrappedDek: rewrapped.stored.wrappedDek,
       pendingKdfParams: params.toJson(),
     );
     await _writeKeys(pending);
-    await _backend.updateAuthPassword(rewrapped.authSecret);
+    await _backend.updateAuthPassword(authSecret);
     await _writeKeys(_promote(pending));
   }
 

@@ -725,7 +725,7 @@ abstract class ZtLocalizations {
   /// No description provided for @thisPermanentlyDeletesYourAccountAnd.
   ///
   /// In en, this message translates to:
-  /// **'This permanently deletes your account and your data in every Zero-Trust app. It can\'t be undone.'**
+  /// **'Your account and your data in every Zero-Trust app will be deleted for good after 7 days. Until then you can change your mind.'**
   String get thisPermanentlyDeletesYourAccountAnd;
 
   /// No description provided for @delete.
@@ -1244,6 +1244,84 @@ abstract class ZtLocalizations {
   /// **'Your address book'**
   String get taglineContacts;
 
+  /// No description provided for @taglineClock.
+  ///
+  /// In en, this message translates to:
+  /// **'Alarms, timer, stopwatch and world clock'**
+  String get taglineClock;
+
+  /// No description provided for @taglineTime.
+  ///
+  /// In en, this message translates to:
+  /// **'Time tracking for work and projects'**
+  String get taglineTime;
+
+  /// No description provided for @taglineQuests.
+  ///
+  /// In en, this message translates to:
+  /// **'Daily quests for your goals, with XP and levels'**
+  String get taglineQuests;
+
+  /// No description provided for @taglineCalendar.
+  ///
+  /// In en, this message translates to:
+  /// **'Events, reminders and planning'**
+  String get taglineCalendar;
+
+  /// No description provided for @taglineBrowser.
+  ///
+  /// In en, this message translates to:
+  /// **'Private web browsing'**
+  String get taglineBrowser;
+
+  /// No description provided for @taglinePhone.
+  ///
+  /// In en, this message translates to:
+  /// **'Calls, call log and blocking'**
+  String get taglinePhone;
+
+  /// No description provided for @taglineCamera.
+  ///
+  /// In en, this message translates to:
+  /// **'Photos and videos, encrypted as you take them'**
+  String get taglineCamera;
+
+  /// No description provided for @taglineGallery.
+  ///
+  /// In en, this message translates to:
+  /// **'Your photos and albums'**
+  String get taglineGallery;
+
+  /// No description provided for @taglineHome.
+  ///
+  /// In en, this message translates to:
+  /// **'Your smart home'**
+  String get taglineHome;
+
+  /// No description provided for @taglineFamily.
+  ///
+  /// In en, this message translates to:
+  /// **'Your family circle and shared locations'**
+  String get taglineFamily;
+
+  /// No description provided for @taglineMeds.
+  ///
+  /// In en, this message translates to:
+  /// **'Medications, doses and reminders'**
+  String get taglineMeds;
+
+  /// No description provided for @taglineKeyboard.
+  ///
+  /// In en, this message translates to:
+  /// **'A private keyboard'**
+  String get taglineKeyboard;
+
+  /// No description provided for @taglineAuthenticator.
+  ///
+  /// In en, this message translates to:
+  /// **'Two-step sign-in codes'**
+  String get taglineAuthenticator;
+
   /// Settings row: the account's plan, e.g. 'Plan: Free'
   ///
   /// In en, this message translates to:
@@ -1645,6 +1723,504 @@ abstract class ZtLocalizations {
   /// In en, this message translates to:
   /// **'Sign out and remove'**
   String get signOutAndRemove;
+
+  /// No description provided for @accountDeletionScheduledTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Your account is set to be deleted'**
+  String get accountDeletionScheduledTitle;
+
+  /// No description provided for @accountDeletionScheduledBody.
+  ///
+  /// In en, this message translates to:
+  /// **'On {date} your account and your data in every Zero-Trust app will be deleted for good. Until then you can keep it.'**
+  String accountDeletionScheduledBody(String date);
+
+  /// No description provided for @accountDeletionScheduledTile.
+  ///
+  /// In en, this message translates to:
+  /// **'Will be deleted on {date}'**
+  String accountDeletionScheduledTile(String date);
+
+  /// No description provided for @keepMyAccount.
+  ///
+  /// In en, this message translates to:
+  /// **'Keep my account'**
+  String get keepMyAccount;
+
+  /// No description provided for @deleteAsPlanned.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete as planned'**
+  String get deleteAsPlanned;
+
+  /// No description provided for @accountKept.
+  ///
+  /// In en, this message translates to:
+  /// **'Your account won\'t be deleted.'**
+  String get accountKept;
+
+  /// No description provided for @accountTooLateToKeep.
+  ///
+  /// In en, this message translates to:
+  /// **'It\'s too late to keep this account: it\'s being deleted now.'**
+  String get accountTooLateToKeep;
+
+  /// No description provided for @accountDeletionRequestedTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Account deletion scheduled'**
+  String get accountDeletionRequestedTitle;
+
+  /// No description provided for @accountDeletionRequestedBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Your account will be deleted on {date}. Changed your mind? Sign in to any Zero-Trust app before then and tap Keep my account, or use the link we emailed you.'**
+  String accountDeletionRequestedBody(String date);
+
+  /// No description provided for @ok.
+  ///
+  /// In en, this message translates to:
+  /// **'OK'**
+  String get ok;
+
+  /// No description provided for @changeEmail.
+  ///
+  /// In en, this message translates to:
+  /// **'Change email'**
+  String get changeEmail;
+
+  /// No description provided for @changeEmailSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Sign in with a different address'**
+  String get changeEmailSubtitle;
+
+  /// No description provided for @changeEmailIntro.
+  ///
+  /// In en, this message translates to:
+  /// **'Your data stays encrypted with your password, as before. Only the address you sign in with changes, in every Zero-Trust app.'**
+  String get changeEmailIntro;
+
+  /// No description provided for @newEmail.
+  ///
+  /// In en, this message translates to:
+  /// **'New email'**
+  String get newEmail;
+
+  /// No description provided for @sendCode.
+  ///
+  /// In en, this message translates to:
+  /// **'Send code'**
+  String get sendCode;
+
+  /// No description provided for @enterEmailCode.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter the 6-digit code we sent to {email}.'**
+  String enterEmailCode(String email);
+
+  /// No description provided for @emailCode.
+  ///
+  /// In en, this message translates to:
+  /// **'Code'**
+  String get emailCode;
+
+  /// No description provided for @changeEmailConfirm.
+  ///
+  /// In en, this message translates to:
+  /// **'Change email'**
+  String get changeEmailConfirm;
+
+  /// No description provided for @sendNewCode.
+  ///
+  /// In en, this message translates to:
+  /// **'Send a new code'**
+  String get sendNewCode;
+
+  /// No description provided for @emailChangedTo.
+  ///
+  /// In en, this message translates to:
+  /// **'Your account now signs in with {email}.'**
+  String emailChangedTo(String email);
+
+  /// No description provided for @errEmailInvalid.
+  ///
+  /// In en, this message translates to:
+  /// **'That doesn\'t look like an email address.'**
+  String get errEmailInvalid;
+
+  /// No description provided for @errEmailSame.
+  ///
+  /// In en, this message translates to:
+  /// **'That is already your account\'s email.'**
+  String get errEmailSame;
+
+  /// No description provided for @errEmailInUse.
+  ///
+  /// In en, this message translates to:
+  /// **'That email already has a Zero-Trust account.'**
+  String get errEmailInUse;
+
+  /// No description provided for @errEmailCodeWrong.
+  ///
+  /// In en, this message translates to:
+  /// **'That code isn\'t right. Check the email and try again.'**
+  String get errEmailCodeWrong;
+
+  /// No description provided for @errEmailCodeExpired.
+  ///
+  /// In en, this message translates to:
+  /// **'The code expired. Send a new one.'**
+  String get errEmailCodeExpired;
+
+  /// No description provided for @appUpdates.
+  ///
+  /// In en, this message translates to:
+  /// **'App updates'**
+  String get appUpdates;
+
+  /// No description provided for @checkingForUpdates.
+  ///
+  /// In en, this message translates to:
+  /// **'Checking for updates…'**
+  String get checkingForUpdates;
+
+  /// No description provided for @youHaveTheLatestVersion.
+  ///
+  /// In en, this message translates to:
+  /// **'You have the latest version ({version})'**
+  String youHaveTheLatestVersion(String version);
+
+  /// No description provided for @updateAvailableVersion.
+  ///
+  /// In en, this message translates to:
+  /// **'Version {version} is available. Tap to update.'**
+  String updateAvailableVersion(String version);
+
+  /// No description provided for @couldNotCheckForUpdates.
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t check for updates. Tap to try again.'**
+  String get couldNotCheckForUpdates;
+
+  /// No description provided for @noReleaseYet.
+  ///
+  /// In en, this message translates to:
+  /// **'No release on GitHub yet'**
+  String get noReleaseYet;
+
+  /// No description provided for @checkForUpdates.
+  ///
+  /// In en, this message translates to:
+  /// **'Check for updates'**
+  String get checkForUpdates;
+
+  /// No description provided for @checkForUpdatesSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Once a day, asks GitHub for the newest version number. Nothing about you or your data is sent.'**
+  String get checkForUpdatesSubtitle;
+
+  /// No description provided for @getUpdatesWithObtainium.
+  ///
+  /// In en, this message translates to:
+  /// **'Get updates with Obtainium'**
+  String get getUpdatesWithObtainium;
+
+  /// No description provided for @obtainiumSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'A free app that installs updates straight from GitHub'**
+  String get obtainiumSubtitle;
+
+  /// No description provided for @updateAvailableTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Update available'**
+  String get updateAvailableTitle;
+
+  /// No description provided for @updateAvailableBody.
+  ///
+  /// In en, this message translates to:
+  /// **'{app} {version} is ready. You have {installed}.'**
+  String updateAvailableBody(String app, String version, String installed);
+
+  /// No description provided for @updateHowItInstalls.
+  ///
+  /// In en, this message translates to:
+  /// **'Your browser downloads the update; open it to install. Android installs it only if it is signed by the same developer as this app.'**
+  String get updateHowItInstalls;
+
+  /// No description provided for @whatsNew.
+  ///
+  /// In en, this message translates to:
+  /// **'What\'s new'**
+  String get whatsNew;
+
+  /// No description provided for @downloadUpdate.
+  ///
+  /// In en, this message translates to:
+  /// **'Download'**
+  String get downloadUpdate;
+
+  /// No description provided for @couldNotOpenLink.
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t open the link.'**
+  String get couldNotOpenLink;
+
+  /// No description provided for @backUpEverything.
+  ///
+  /// In en, this message translates to:
+  /// **'Back up everything'**
+  String get backUpEverything;
+
+  /// No description provided for @backUpEverythingSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'One encrypted file with your data from every Zero-Trust app'**
+  String get backUpEverythingSubtitle;
+
+  /// No description provided for @restoreFromBackup.
+  ///
+  /// In en, this message translates to:
+  /// **'Restore from a backup'**
+  String get restoreFromBackup;
+
+  /// No description provided for @restoreFromBackupSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Into this account, on any phone. Newer changes are kept.'**
+  String get restoreFromBackupSubtitle;
+
+  /// No description provided for @backUp.
+  ///
+  /// In en, this message translates to:
+  /// **'Back up'**
+  String get backUp;
+
+  /// No description provided for @chooseBackupPassword.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose a backup password'**
+  String get chooseBackupPassword;
+
+  /// No description provided for @backupPasswordExplained.
+  ///
+  /// In en, this message translates to:
+  /// **'The backup file is encrypted with this password. You need it to restore, and nobody can recover it for you. Your account password works too.'**
+  String get backupPasswordExplained;
+
+  /// No description provided for @backupPassword.
+  ///
+  /// In en, this message translates to:
+  /// **'Backup password'**
+  String get backupPassword;
+
+  /// No description provided for @repeatBackupPassword.
+  ///
+  /// In en, this message translates to:
+  /// **'Repeat the backup password'**
+  String get repeatBackupPassword;
+
+  /// No description provided for @enterYourPasswordToBackUp.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter your account password to read your data from every app.'**
+  String get enterYourPasswordToBackUp;
+
+  /// No description provided for @backingUp.
+  ///
+  /// In en, this message translates to:
+  /// **'Backing up {app}…'**
+  String backingUp(String app);
+
+  /// No description provided for @backupSaved.
+  ///
+  /// In en, this message translates to:
+  /// **'Backup saved: {items, plural, =1{1 item} other{{items} items}} from {apps, plural, =1{1 app} other{{apps} apps}}.'**
+  String backupSaved(int items, int apps);
+
+  /// No description provided for @backupItemsUnreadable.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 item couldn\'t be opened and isn\'t in it.} other{{count} items couldn\'t be opened and aren\'t in it.}}'**
+  String backupItemsUnreadable(int count);
+
+  /// No description provided for @backupFilesMissing.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 attached file couldn\'t be read and isn\'t in it.} other{{count} attached files couldn\'t be read and aren\'t in it.}}'**
+  String backupFilesMissing(int count);
+
+  /// No description provided for @enterBackupPassword.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter the backup password'**
+  String get enterBackupPassword;
+
+  /// No description provided for @openBackup.
+  ///
+  /// In en, this message translates to:
+  /// **'Open'**
+  String get openBackup;
+
+  /// No description provided for @wrongBackupPassword.
+  ///
+  /// In en, this message translates to:
+  /// **'Wrong backup password.'**
+  String get wrongBackupPassword;
+
+  /// No description provided for @notABackupFile.
+  ///
+  /// In en, this message translates to:
+  /// **'This isn\'t a Zero-Trust backup file.'**
+  String get notABackupFile;
+
+  /// No description provided for @backupFromNewerVersion.
+  ///
+  /// In en, this message translates to:
+  /// **'This backup is from a newer version. Update the app first.'**
+  String get backupFromNewerVersion;
+
+  /// No description provided for @backupDamaged.
+  ///
+  /// In en, this message translates to:
+  /// **'The backup file is damaged or incomplete.'**
+  String get backupDamaged;
+
+  /// No description provided for @restoreBackupQuestion.
+  ///
+  /// In en, this message translates to:
+  /// **'Restore this backup?'**
+  String get restoreBackupQuestion;
+
+  /// No description provided for @restoreBackupSummary.
+  ///
+  /// In en, this message translates to:
+  /// **'Backup from {date}: {items, plural, =1{1 item} other{{items} items}} from {apps}. Anything you changed or deleted since then stays as it is.'**
+  String restoreBackupSummary(String date, int items, String apps);
+
+  /// No description provided for @restore.
+  ///
+  /// In en, this message translates to:
+  /// **'Restore'**
+  String get restore;
+
+  /// No description provided for @enterYourPasswordToRestore.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter your account password to restore into this account.'**
+  String get enterYourPasswordToRestore;
+
+  /// No description provided for @restoring.
+  ///
+  /// In en, this message translates to:
+  /// **'Restoring {app}…'**
+  String restoring(String app);
+
+  /// No description provided for @backupRestored.
+  ///
+  /// In en, this message translates to:
+  /// **'Restored {restored, plural, =1{1 item} other{{restored} items}}. {skipped, plural, =0{} =1{1 was already up to date.} other{{skipped} were already up to date.}}'**
+  String backupRestored(int restored, int skipped);
+
+  /// No description provided for @handoffSignInWith.
+  ///
+  /// In en, this message translates to:
+  /// **'Sign in with {app}'**
+  String handoffSignInWith(String app);
+
+  /// No description provided for @handoffSignInWithAnother.
+  ///
+  /// In en, this message translates to:
+  /// **'Sign in with another ZT app'**
+  String get handoffSignInWithAnother;
+
+  /// No description provided for @handoffUnlockWith.
+  ///
+  /// In en, this message translates to:
+  /// **'Unlock with {app}'**
+  String handoffUnlockWith(String app);
+
+  /// No description provided for @handoffUnlockWithAnother.
+  ///
+  /// In en, this message translates to:
+  /// **'Unlock with another ZT app'**
+  String get handoffUnlockWithAnother;
+
+  /// No description provided for @handoffPickApp.
+  ///
+  /// In en, this message translates to:
+  /// **'Use the account from'**
+  String get handoffPickApp;
+
+  /// No description provided for @handoffWaiting.
+  ///
+  /// In en, this message translates to:
+  /// **'Confirm in {app}…'**
+  String handoffWaiting(String app);
+
+  /// No description provided for @handoffAskSignIn.
+  ///
+  /// In en, this message translates to:
+  /// **'Sign in to {app}?'**
+  String handoffAskSignIn(String app);
+
+  /// No description provided for @handoffAskUnlock.
+  ///
+  /// In en, this message translates to:
+  /// **'Unlock {app}?'**
+  String handoffAskUnlock(String app);
+
+  /// No description provided for @handoffAskBody.
+  ///
+  /// In en, this message translates to:
+  /// **'{app} will open with your Zero-Trust account ({email}) on this phone, without the password. Only Zero-Trust apps can ask for this.'**
+  String handoffAskBody(String app, String email);
+
+  /// No description provided for @handoffConfirm.
+  ///
+  /// In en, this message translates to:
+  /// **'Confirm it\'s you to share your account with {app}.'**
+  String handoffConfirm(String app);
+
+  /// No description provided for @handoffAllow.
+  ///
+  /// In en, this message translates to:
+  /// **'Allow'**
+  String get handoffAllow;
+
+  /// No description provided for @handoffDeclined.
+  ///
+  /// In en, this message translates to:
+  /// **'{app} didn\'t share the account.'**
+  String handoffDeclined(String app);
+
+  /// No description provided for @handoffSignedOut.
+  ///
+  /// In en, this message translates to:
+  /// **'{app} isn\'t signed in. Sign in there first, or use your password here.'**
+  String handoffSignedOut(String app);
+
+  /// No description provided for @handoffFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'{app} couldn\'t share the account. Try again, or use your password.'**
+  String handoffFailed(String app);
+
+  /// No description provided for @handoffNoAnswer.
+  ///
+  /// In en, this message translates to:
+  /// **'No answer came from {app}. Try again.'**
+  String handoffNoAnswer(String app);
+
+  /// No description provided for @handoffWrongAccount.
+  ///
+  /// In en, this message translates to:
+  /// **'That app is signed in to a different account.'**
+  String get handoffWrongAccount;
 }
 
 class _ZtLocalizationsDelegate extends LocalizationsDelegate<ZtLocalizations> {

@@ -5,6 +5,7 @@ import 'package:intl/intl.dart';
 import '../../billing/zt_billing_store.dart';
 import '../../billing/zt_plan.dart';
 import '../../l10n/zt_l10n.dart';
+import '../layout/zt_adaptive.dart';
 
 /// Shows the account's plan and lets people buy or manage Plus through the
 /// build's store ([ztBillingStoreProvider]). Open it from
@@ -98,7 +99,7 @@ class _ZtPlansScreenState extends ConsumerState<ZtPlansScreen> {
 
     return Scaffold(
       appBar: AppBar(title: Text(l10n.plansTitle)),
-      body: ListView(
+      body: ZtReadableListView(
         padding: const EdgeInsets.all(16),
         children: [
           Card(

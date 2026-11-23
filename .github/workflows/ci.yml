@@ -56,11 +56,29 @@ jobs:
       - run: flutter test
       - name: The apps' release checks pass against this core, for every app
         run: |
-          for app in notes tasks fitness contacts calendar phone browser time meds quests family home; do
+          for app in notes tasks fitness contacts calendar phone browser time meds quests camera family home clock mail keyboard authenticator; do
             sed "s/{{APP_ID}}/$app/" ../zt_release_checks/templates/release_checks_test.dart \
               > "test/release_checks_${app}_test.dart"
           done
           flutter test test/release_checks_*_test.dart
+
+  # The core's Android part ("sign in once per phone", S-2) is only built
+  # inside an app, so build one: the example app, with an Android shell.
+  android_plugin:
+    runs-on: ubuntu-latest
+    defaults: { run: { working-directory: packages/zero_trust_core/example } }
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with: { distribution: temurin, java-version: 17 }
+      - uses: subosito/flutter-action@v2
+        with: { channel: stable, flutter-version: 3.47.9 }
+      - run: flutter create --platforms=android --org bz.zerotrust .
+      - run: flutter build apk --debug
+      - name: The plugin is registered and its queries reach the app
+        run: |
+          grep -q "bz.zerotrust.core.ZtSignInHandoffPlugin" android/app/src/main/java/io/flutter/plugins/GeneratedPluginRegistrant.java
+          grep -rl --include=AndroidManifest.xml "dev.sagron.zerotrustnotes" build/app/intermediates | grep -q merged
 
   zt_sharing_ui:
     runs-on: ubuntu-latest
@@ -154,7 +172,7 @@ jobs:
           psql -q -v ON_ERROR_STOP=1 -f tests/00_supabase_stub.sql \
             $(for f in migrations/*.sql; do echo -f "$f"; done) \
             -f tests/key_guard_test.sql -f tests/vault_items_test.sql \
-            -f tests/attachments_test.sql \
+            -f tests/attachments_test.sql -f tests/space_files_test.sql \
             -f tests/storage_quota_test.sql \
             -f tests/drop_unused_tables_test.sql \
             -f tests/shared_spaces_test.sql \
@@ -163,7 +181,12 @@ jobs:
             -f tests/booking_pages_test.sql \
             -f tests/booking_slots_fixes_test.sql \
             -f tests/family_location_test.sql \
-            -f tests/planner_ai_test.sql
+            -f tests/planner_ai_test.sql \
+            -f tests/crash_reports_test.sql \
+            -f tests/account_deletion_test.sql \
+            -f tests/email_change_test.sql \
+            -f tests/family_trip_shares_test.sql \
+            -f tests/meeting_polls_test.sql
 
   edge_functions:
     runs-on: ubuntu-latest
@@ -173,6 +196,7 @@ jobs:
       - uses: denoland/setup-deno@v2
         with: { deno-version: v2.x }
       - run: deno lint
-      - run: deno check delete-account/index.ts
+      - run: deno check delete-account/index.ts account-deletion/index.ts change-email/index.ts
       - run: deno check planner-ai/index.ts planner-ai/eval/run.ts
-      - run: deno test --allow-read planner-ai/
+      - run: deno check crash-report/index.ts sign-in-handoff/index.ts
+      - run: deno test --allow-read planner-ai/ crash-report/ _shared/ change-email/ sign-in-handoff/

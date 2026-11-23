@@ -1,9 +1,20 @@
-// Deletes the calling user's account. Every row referencing auth.users
-// cascades (profiles, vault_items, legacy encrypted_* tables); storage
-// objects under {user_id}/ are removed first.
+// Asks to delete the calling user's account (Z22). Nothing is deleted
+// now: the account is scheduled for deletion in 7 days and an email (EN +
+// HE) says when, with a "Keep my account" link. The account-deletion
+// function deletes it for good once the 7 days are over.
+//
+// Answers 200 {"delete_after": "<ISO time>"}. Older app versions only check
+// for a 2xx and then sign out, which is still right.
 import { createClient } from "jsr:@supabase/supabase-js@2";
+import { withSessionCors } from "../_shared/cors.ts";
+import { hashToken, newToken } from "../_shared/delete_user.ts";
+import { DELETION_HTML, DELETION_SUBJECT } from "../_shared/deletion_email.ts";
+import { secondsSincePasswordSignIn, sendMail } from "../_shared/mail.ts";
 
-Deno.serve(async (req) => {
+const GRACE_DAYS = 7;
+const KEEP_URL = Deno.env.get("ZT_KEEP_ACCOUNT_URL") ?? "https://zerotrust.bz/account/keep/";
+
+Deno.serve(withSessionCors(async (req) => {
   const jwt = req.headers.get("Authorization")?.replace("Bearer ", "");
   if (!jwt) return new Response("Unauthorized", { status: 401 });
 
@@ -15,61 +26,41 @@ Deno.serve(async (req) => {
   if (error || !user) return new Response("Unauthorized", { status: 401 });
 
   // Require a password sign-in in the last few minutes, so a stolen or
-  // long-lived session can't delete the account. The token is verified
-  // above; its `amr` claim records when each sign-in method was used, and
-  // unlike `iat` it isn't moved by token refreshes.
-  const RECENT_SECONDS = 10 * 60;
-  let signedInAt = 0;
-  try {
-    const payload = JSON.parse(atob(
-      jwt.split(".")[1].replace(/-/g, "+").replace(/_/g, "/"),
-    ));
-    for (const entry of payload.amr ?? []) {
-      if (entry.method === "password") signedInAt = Math.max(signedInAt, entry.timestamp ?? 0);
-    }
-  } catch (_) {
-    // Treated as no recent sign-in.
-  }
-  if (Date.now() / 1000 - signedInAt > RECENT_SECONDS) {
+  // long-lived session can't ask for the deletion.
+  if (secondsSincePasswordSignIn(jwt) > 10 * 60) {
     return new Response("Sign in again to delete your account", { status: 403 });
   }
 
-  // Remove every object under {user_id}/ in every bucket. Each round lists
-  // the first page, recurses into folders (entries with a null id) and
-  // removes the files, until the prefix is empty, so folders of any size
-  // are covered. Any storage error aborts before the auth user is deleted,
-  // so a retry can finish the cleanup instead of orphaning files.
-  const PAGE = 1000;
-  const MAX_ROUNDS = 10_000;
-  const removeUnder = async (bucket: string, prefix: string): Promise<void> => {
-    for (let round = 0; round < MAX_ROUNDS; round++) {
-      const { data: entries, error } = await admin.storage.from(bucket)
-        .list(prefix, { limit: PAGE });
-      if (error) throw error;
-      if (!entries || entries.length === 0) return;
-      const files: string[] = [];
-      for (const entry of entries) {
-        const path = `${prefix}/${entry.name}`;
-        if (entry.id === null) await removeUnder(bucket, path);
-        else files.push(path);
-      }
-      if (files.length) {
-        const { error: removeError } = await admin.storage.from(bucket).remove(files);
-        if (removeError) throw removeError;
-      }
-    }
-    throw new Error(`Could not empty ${bucket}/${prefix}`);
-  };
-
-  try {
-    const { data: buckets, error: bucketsError } = await admin.storage.listBuckets();
-    if (bucketsError) throw bucketsError;
-    for (const bucket of buckets ?? []) await removeUnder(bucket.id, user.id);
-  } catch (e) {
-    return new Response(`Storage cleanup failed: ${(e as Error).message}`, { status: 500 });
+  const token = newToken();
+  const { data: deleteAfter, error: scheduleError } = await admin.rpc(
+    "zt_schedule_account_deletion",
+    { p_user: user.id, p_token_hash: await hashToken(token), p_days: GRACE_DAYS },
+  );
+  if (scheduleError || typeof deleteAfter !== "string") {
+    return new Response("Could not schedule the deletion", { status: 500 });
   }
 
-  const { error: deleteError } = await admin.auth.admin.deleteUser(user.id);
-  if (deleteError) return new Response(deleteError.message, { status: 500 });
-  return new Response(null, { status: 204 });
-});
+  // Best effort: the deletion is scheduled either way, and every app shows
+  // it with a "Keep my account" button after sign-in.
+  if (user.email) {
+    try {
+      await sendDeletionEmail(user.email, new Date(deleteAfter), `${KEEP_URL}#${token}`);
+    } catch (_) {
+      // Not logged: the address must not end up in function logs.
+    }
+  }
+  return Response.json({ delete_after: deleteAfter });
+}));
+
+async function sendDeletionEmail(to: string, when: Date, undoUrl: string): Promise<void> {
+  const fmt = (locale: string) =>
+    new Intl.DateTimeFormat(locale, { dateStyle: "long", timeZone: "UTC" }).format(when);
+  await sendMail(
+    to,
+    DELETION_SUBJECT,
+    DELETION_HTML
+      .replaceAll("{{DATE_EN}}", fmt("en-GB"))
+      .replaceAll("{{DATE_HE}}", fmt("he-IL"))
+      .replaceAll("{{UNDO_URL}}", undoUrl),
+  );
+}

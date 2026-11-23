@@ -19,10 +19,11 @@ insert into public.profiles (id, salt) values
 insert into public.profiles (id, key_version, kdf_salt, kdf_params, wrapped_dek, recovery_wrapped_dek)
   values ('00000000-0000-0000-0000-00000000000b', 2, '\x01', '{}', '\x0a', '\x0b');
 
--- Legacy lookup, as anon before sign-in.
+-- Legacy lookup, as anon before sign-in: retired (Z21), always false, so
+-- even a not-yet-upgraded pre-core account never gets its raw password sent.
 set role anon;
 do $$ begin
-  assert public.zt_needs_legacy_sign_in(' Legacy@X.com '), 'legacy account';
+  assert not public.zt_needs_legacy_sign_in(' Legacy@X.com '), 'legacy account (retired)';
   assert not public.zt_needs_legacy_sign_in('v2@x.com'), 'v2 account';
   assert not public.zt_needs_legacy_sign_in('nobody@x.com'), 'unknown email';
 end $$;
@@ -33,9 +34,6 @@ set request.jwt.claim.sub = '00000000-0000-0000-0000-00000000000a';
 update public.profiles set key_version = 2, kdf_salt = '\x01', kdf_params = '{}',
   wrapped_dek = '\x0a', recovery_wrapped_dek = '\x0b', legacy_dek = true
   where id = auth.uid();
-do $$ begin
-  assert public.zt_needs_legacy_sign_in('legacy@x.com'), 'mid-upgrade stays legacy';
-end $$;
 update public.profiles set auth_upgraded_at = now() where id = auth.uid();
 do $$ begin
   assert not public.zt_needs_legacy_sign_in('legacy@x.com'), 'switched account';

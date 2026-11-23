@@ -32,7 +32,7 @@ dependencies:
     git:
       url: https://github.com/EdoSag/Zero-Trust-Core.git
       path: packages/zero_trust_core
-      ref: v0.10.0  # always pin a release tag; see CHANGELOG.md
+      ref: v1.0.0  # always pin a release tag; see CHANGELOG.md
 ```
 
 ```dart
@@ -102,6 +102,40 @@ Each app needs, once:
 - Android: `MainActivity` extends `FlutterFragmentActivity`, and
   `minSdkVersion` is at least 28.
 - iOS: `NSFaceIDUsageDescription` in `Info.plist`.
+
+### Sign in once per phone (S-2)
+
+When another Zero-Trust app on the phone is signed in, `ZtSignInScreen`
+shows **Sign in with ZT Notes** (or "with another ZT app" and a list), and
+`ZtUnlockScreen` shows **Unlock with ZT Notes**. Tapping it opens that app,
+which asks "Sign in to ZT Calendar?", then for the fingerprint or the
+password (`ztConfirmIdentity`), and sends back the account's data key and,
+to sign in, a one-time sign-in token from the `sign-in-handoff` edge
+function. The asking app then has a session of its own; neither app signs
+the other out. Accounts from before the core keep their old key
+(`legacyDek`).
+
+How it stays private: the request carries a fresh random secret and the
+answer is sealed (AES-256-GCM) with a key derived from it. Requests and
+answers go over the apps' launch intents, only between apps signed with the
+same key (`PackageManager.checkSignatures`); the answer always goes to the
+app named as the asker. A made-up request can only make an app ask its
+user; a made-up answer doesn't open. A session made this way doesn't count
+as a password sign-in, so deleting the account or changing the email still
+asks for the password.
+
+Each app needs, once, the answering side around its first screen, inside
+the `MaterialApp`:
+
+```dart
+MaterialApp(home: const ZtSignInHandoffScope(child: AppGate()))
+```
+
+The asking side needs nothing: the buttons appear on their own on Android
+when a sibling app is installed. The Android part lives in this package
+(`android/`, Java, registered by Flutter like any plugin); its manifest
+lists every `ZtSuite` package under `<queries>` (a test keeps them in step).
+Other platforms don't show the buttons.
 
 ### Auto-lock
 
@@ -266,6 +300,42 @@ ref.watch(ztSpacesProvider)             // spaces, their stores and status
 - Invite links look like `https://zerotrust.bz/join#zt1.<app>.…`; register
   that link (or let users paste it) in the app.
 
+#### One family space for the whole suite (S-10)
+
+The ZT Family circle (a space with app `family`) is the family space of
+every app. ZT Family creates it and handles members and invites; any other
+app opens the same circle and keeps its family items there, and ZT
+Family's hub lists them together.
+
+```dart
+// Any app: the circles this account belongs to, kept in sync.
+final family = ref.watch(ztFamilySpacesProvider);
+final circle = family.entries.firstOrNull;
+
+// Save a family item: id "<app>/<kind>/<id>", app-qualified kind, and a
+// summary the hub can show without knowing the app's model.
+await ref.read(ztFamilySpacesProvider.notifier).save(
+  circle!.info.id,
+  ZtFamilySpace.itemId('calendar', 'event', event.id),
+  ZtFamilySummary(title: event.title, kind: 'calendar.event', at: event.start)
+      .addTo({'kind': 'calendar.event', ...event.toJson()}),
+);
+
+// Read only your own items back.
+final mine = (await circle.space!.store.all())
+    .where((i) => ZtFamilySpace.belongsTo(i.itemId, 'calendar'));
+```
+
+- Everyone checks the circle with `ZtFamilySpace.policy` (ZT Family's rules:
+  only admins write `family.circle`, only a member writes `family.me/<id>/…`).
+  Change it only in Core, so all apps agree.
+- How to trust the circle travels between the account's apps in its *suite
+  notes* (`vault_items` app `suite`, sealed and signed under a key every app
+  of the account derives: `VaultUnlocked.suiteKey`). ZT Family copies its
+  notes there (circles from before S-10 too, the next time it opens them);
+  another app copies them into its own synced store the first time, so it
+  opens the circle offline afterwards.
+
 #### Sharing screens (`packages/zt_sharing_ui`)
 
 The screens on top of `ztSpacesProvider`, the same in every app. A separate
@@ -346,7 +416,9 @@ read each report exactly as it would be sent, copy it or delete it.
 final crashes = ZtCrashReporter(
   appId: 'notes',
   appVersion: packageVersion,
-  sink: null, // a ZtCrashReportSink once there is a destination
+  // The suite's own destination: the `crash-report` edge function on the
+  // same Supabase project the app signs in to. No key or token is sent.
+  sink: ZtHttpCrashReportSink.supabase(supabaseUrl),
 );
 crashes.install(); // before runApp
 await crashes.load();
@@ -362,6 +434,33 @@ call `maybeAskToSendZtCrashReports(context, crashes)` after unlock to offer
 sending saved reports. `ZtHttpCrashReportSink` posts the JSON to any
 endpoint without an account token.
 
+Where they go: `supabase/functions/crash-report` checks each report (only
+the fields above, printable text, sizes, a day in the last 60 days) and
+calls `zt_record_crash_report`, which merges reports of the same bug, app
+version and day into one counted row of `public.zt_crash_reports`. Only the
+owner can read it; `public.zt_crash_groups` lists one row per bug. Rows are
+deleted after 90 days, and at most 5,000 new rows a day are taken (past
+that the function answers 503 and phones keep their reports). Deploy with
+`supabase functions deploy crash-report --no-verify-jwt`.
+
+### App updates (APKs from GitHub)
+
+Builds installed from GitHub releases (`--dart-define=ZT_CHANNEL=direct`,
+Android) check for a newer release themselves; store builds never do.
+
+- On launch, at most once a day and once per version, the sign-in and
+  unlock screens show "Update available" with the release notes. Settings ›
+  About has the same row (tap to update or check again), a switch to turn
+  the daily check off, and "Get updates with Obtainium".
+- The check is one anonymous request to
+  `api.github.com/repos/<repo>/releases/latest`; nothing about the person is
+  sent. "Download" opens the signed APK in the browser, which hands it to
+  Android's installer. Android only installs it over the app when it is
+  signed with the same key, so a swapped file can't replace the app.
+- The repository defaults to `EdoSag/<display name with dashes>`
+  ("Zero-Trust Notes" -> `EdoSag/Zero-Trust-Notes`); pass
+  `ZtAppConfig(releaseRepo: ...)` when it differs.
+
 ### Look and feel
 
 `ZtThemeBuilder` gives every app the same theme: brand indigo, the app's
@@ -369,6 +468,27 @@ accent from `ZtSuite`, remembered light/dark/system, and optional wallpaper
 colours. `ZtBrandMark(app: ZtSuite.notes)` is the app mark; `ZtSpacing` the
 spacing steps. Settings shows "How your data is protected" and, with
 `onOpenUrl`, the other Zero-Trust apps.
+
+### Tablets and foldables (S-11)
+
+Every shared screen (settings, change email, recovery key, data protection,
+plans, crash reports, sharing pages) keeps its content readable on wide
+windows: `ZtReadableListView` centres it at most 720 dp wide (forms 560 dp)
+while scrolling still works across the whole window. For an app's own
+screens:
+
+```dart
+ZtWindowClass.of(context)            // compact < 600 <= medium < 840 <= expanded
+ZtReadableListView(children: [...])  // instead of ListView for lists and forms
+
+// List and detail: side by side on a tablet, one pane each side of the
+// hinge on an open book-style foldable, list only on a phone.
+ZtTwoPane(list: notesList, detail: selected ?? const PickANote());
+if (!ZtTwoPane.showsBoth(context)) Navigator.push(...);  // phone: own page
+```
+
+`ZtTwoPane` follows the reading direction (in Hebrew the list is on the
+right) and never puts content under the hinge (`ZtLayout.verticalHinge`).
 
 ### Data from before the core
 

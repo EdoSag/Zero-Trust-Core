@@ -56,3 +56,8 @@ Future<void> ztWipeBrowserStorage({
 
 /// Loads the page again from the server. Browsers only.
 void ztReloadPage() => throw UnsupportedError('Only browsers reload a page');
+
+/// Whether this is a `flutter test` run. Tests run on a fake clock that
+/// never fires a real timer, so work that gives the screen a turn (see
+/// `Breather`) stays in one piece there.
+final bool ztInFlutterTest = Platform.environment.containsKey('FLUTTER_TEST');

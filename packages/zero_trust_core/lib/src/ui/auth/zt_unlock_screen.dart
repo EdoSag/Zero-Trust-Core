@@ -7,8 +7,11 @@ import '../../account/account_service.dart';
 import '../../config/zt_app_config.dart';
 import '../../core_providers.dart';
 import '../../config/zt_suite.dart';
+import '../../handoff/zt_sign_in_handoff.dart';
 import '../brand/zt_brand_mark.dart';
 import 'zt_auth_messages.dart';
+import 'zt_keep_account.dart';
+import 'zt_sign_in_handoff_ui.dart';
 
 /// Unlock an already signed-in session (app relaunch, after auto-lock).
 /// Works offline, and offers biometrics when the user turned them on.
@@ -60,13 +63,21 @@ class _ZtUnlockScreenState extends ConsumerState<ZtUnlockScreen> {
       return;
     }
     if (kept != null) {
-      widget.onUnlocked(kept);
+      _done(kept);
       return;
     }
     // Focused only now, so the keyboard doesn't flash up for a vault that
     // opens on its own.
     _passwordFocus.requestFocus();
     await _checkBiometrics();
+  }
+
+  /// Opens the app, then (in the background) offers to keep an account
+  /// that is set to be deleted.
+  void _done(UnlockResult result) {
+    ztCheckPendingDeletionAfterUnlock(
+        context, ref.read(accountServiceProvider));
+    widget.onUnlocked(result);
   }
 
   Future<void> _checkBiometrics() async {
@@ -85,7 +96,7 @@ class _ZtUnlockScreenState extends ConsumerState<ZtUnlockScreen> {
     try {
       final result =
           await ref.read(accountServiceProvider).unlockWithBiometrics();
-      if (result != null && mounted) widget.onUnlocked(result);
+      if (result != null && mounted) _done(result);
     } catch (e) {
       if (mounted) {
         setState(() {
@@ -115,7 +126,7 @@ class _ZtUnlockScreenState extends ConsumerState<ZtUnlockScreen> {
       final result =
           await ref.read(accountServiceProvider).unlock(_password.text);
       _password.clear();
-      if (mounted) widget.onUnlocked(result);
+      if (mounted) _done(result);
     } catch (e) {
       if (mounted) setState(() => _error = ztAuthErrorMessage(e));
     } finally {
@@ -190,6 +201,14 @@ class _ZtUnlockScreenState extends ConsumerState<ZtUnlockScreen> {
                       label: Text(ZtL10n.of(context).unlockWithBiometrics),
                     ),
                   ],
+                  ZtHandoffButton(
+                    mode: ZtHandoffMode.unlock,
+                    enabled: !_busy,
+                    onGrant: (grant) async => _done(ref
+                        .read(accountServiceProvider)
+                        .unlockWithHandoff(grant)),
+                    onError: (message) => setState(() => _error = message),
+                  ),
                   if (widget.onSignOut != null)
                     TextButton(
                         onPressed: widget.onSignOut,
