@@ -1368,4 +1368,7 @@ class ZtLocalizationsEn extends ZtLocalizations {
   @override
   String get handoffWrongAccount =>
       'That app is signed in to a different account.';
+
+  @override
+  String get tapToCheckForUpdates => 'Tap to check now.';
 }
