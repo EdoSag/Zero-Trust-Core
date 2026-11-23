@@ -572,6 +572,7 @@
   "keepMyAccount": "Keep my account",
   "deleteAsPlanned": "Delete as planned",
   "accountKept": "Your account won't be deleted.",
+  "accountTooLateToKeep": "It's too late to keep this account: it's being deleted now.",
   "accountDeletionRequestedTitle": "Account deletion scheduled",
   "accountDeletionRequestedBody": "Your account will be deleted on {date}. Changed your mind? Sign in to any Zero-Trust app before then and tap Keep my account, or use the link we emailed you.",
   "@accountDeletionRequestedBody": {

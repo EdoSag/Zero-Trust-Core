@@ -199,7 +199,12 @@ class GraceFakeBackend extends FakeBackend implements AccountLifecycleBackend {
   }
 
   @override
-  Future<bool> keepAccount() async => scheduled.remove(currentUserId) != null;
+  Future<bool> keepAccount() async =>
+      !purging.contains(currentUserId) &&
+      scheduled.remove(currentUserId) != null;
+
+  /// Accounts the hourly purge has claimed: too late to keep.
+  final Set<String?> purging = {};
 
   // Email change (Z14). Users keep their first email as their id; the
   // sign-in address can differ after a change.

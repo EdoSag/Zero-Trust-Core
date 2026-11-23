@@ -12,6 +12,11 @@ an app must change.
   can no longer race the purge. A claimed account can't be kept; a claim
   older than 30 minutes (a purge that died) is retried. Migration
   `20261123130000_core_review_fixes.sql`.
+- "Keep my account" no longer says the account is kept when the purge has
+  already started: it says it's too late, and the warning stays
+  (`accountTooLateToKeep`).
+- Meeting polls (K-5): the 30-live-poll limit is also counted when an
+  expired poll is moved back into the future.
 - Crash reports (Z15): `zt_crash_groups` shows the newest whole stack
   instead of merging frames across rows, and parallel reports of one bug
   merge into one row (advisory lock) instead of failing.
