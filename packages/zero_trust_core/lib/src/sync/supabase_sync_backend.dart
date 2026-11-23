@@ -3,6 +3,8 @@ import 'dart:typed_data';
 
 import 'package:supabase_flutter/supabase_flutter.dart';
 
+import 'bytea.dart';
+import 'keyset_pull.dart';
 import 'sync_backend.dart';
 
 /// [SyncBackend] over the shared `vault_items` table (RLS: own rows only).
@@ -22,33 +24,17 @@ class SupabaseSyncBackend implements SyncBackend {
 
   @override
   Future<List<RemoteItem>> pull(String app, {DateTime? since}) async {
-    final out = <RemoteItem>[];
-    // Keyset cursor on (synced_at, item_id): rows sharing a timestamp (a
-    // backfill, one transaction) page correctly however many there are.
-    String? afterAt = since?.toUtc().toIso8601String();
-    String? afterId;
-    while (true) {
-      var query = _client
+    final userId = _userId;
+    final rows = await ztPullRows(
+      () => _client
           .from(_table)
           .select(_columns)
-          .eq('user_id', _userId)
-          .eq('app', app);
-      if (afterAt != null && afterId == null) {
-        query = query.gt('synced_at', afterAt);
-      } else if (afterAt != null) {
-        query = query.or('synced_at.gt."$afterAt",'
-            'and(synced_at.eq."$afterAt",item_id.gt."$afterId")');
-      }
-      final rows =
-          await query.order('synced_at').order('item_id').limit(_pageSize);
-      out.addAll(rows.map(_fromRow));
-      if (rows.length < _pageSize) return out;
-      // Normalised to `...Z` so no `+00:00` ends up in the filter string.
-      afterAt = DateTime.parse(rows.last['synced_at'] as String)
-          .toUtc()
-          .toIso8601String();
-      afterId = rows.last['item_id'] as String;
-    }
+          .eq('user_id', userId)
+          .eq('app', app),
+      since: since,
+      pageSize: _pageSize,
+    );
+    return rows.map(_fromRow).toList();
   }
 
   static const _columns =
@@ -148,15 +134,8 @@ class SupabaseSyncBackend implements SyncBackend {
             : DateTime.parse(row['synced_at'] as String),
       );
 
-  static String _toBytea(Uint8List bytes) =>
-      '\\x${bytes.map((b) => b.toRadixString(16).padLeft(2, '0')).join()}';
+  static String _toBytea(Uint8List bytes) => ztByteaEncode(bytes);
 
-  static Uint8List? _fromBytea(String? value) {
-    if (value == null) return null;
-    final hex = value.startsWith('\\x') ? value.substring(2) : value;
-    return Uint8List.fromList([
-      for (var i = 0; i < hex.length; i += 2)
-        int.parse(hex.substring(i, i + 2), radix: 16),
-    ]);
-  }
+  static Uint8List? _fromBytea(String? value) =>
+      value == null ? null : ztByteaDecode(value);
 }

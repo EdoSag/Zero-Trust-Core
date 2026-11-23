@@ -5,6 +5,7 @@ import 'dart:typed_data';
 
 import 'package:zt_crypto/zt_crypto.dart';
 
+import 'breather.dart';
 import 'local_item_store.dart';
 import 'sync_backend.dart';
 
@@ -75,6 +76,7 @@ class ItemSyncEngine {
     DateTime Function()? clock,
     Duration pullOverlap = const Duration(seconds: 30),
     int pushBatchSize = 200,
+    Breather? breather,
   }) : this.withCodec(
           appId: appId,
           codec: AppItemCodec(
@@ -85,6 +87,7 @@ class ItemSyncEngine {
           clock: clock,
           pullOverlap: pullOverlap,
           pushBatchSize: pushBatchSize,
+          breather: breather,
         );
 
   /// An engine that seals and checks rows with [codec] instead of the
@@ -98,7 +101,9 @@ class ItemSyncEngine {
     DateTime Function()? clock,
     this.pullOverlap = const Duration(seconds: 30),
     this.pushBatchSize = 200,
-  }) : _clock = clock ?? DateTime.now;
+    Breather? breather,
+  })  : _clock = clock ?? DateTime.now,
+        _breather = breather ?? Breather();
 
   /// An engine for the unlocked vault's [appKey], with the signing keys
   /// derived from it.
@@ -155,6 +160,11 @@ class ItemSyncEngine {
   final ItemCodec codec;
   final DateTime Function() _clock;
 
+  /// Lets the screen draw and take taps during a long pull or push, and
+  /// while an import saves items one after another: the crypto and the
+  /// local store both run on the UI isolate.
+  final Breather _breather;
+
   Future<void> Function()? _cancelLive;
   Future<void> _serial = Future.value();
   DateTime? _latestSeen;
@@ -186,16 +196,44 @@ class ItemSyncEngine {
   ///
   /// [at] overrides the edit time. Only for content that must lose to every
   /// real edit, such as an import (see `LegacyImporter`).
-  Future<void> save(String itemId, Map<String, Object?> json,
-          {DateTime? at}) async =>
-      store.put(LocalItem(
+  Future<void> save(String itemId, Map<String, Object?> json, {DateTime? at}) {
+    // Not `await`ed when there is nothing to wait for: a save must reach
+    // the store in the same turn it always did.
+    final pause = _breather.enter();
+    return pause == null
+        ? _save(itemId, json, at)
+        : pause.then((_) => _save(itemId, json, at));
+  }
+
+  Future<void> _save(
+      String itemId, Map<String, Object?> json, DateTime? at) async {
+    try {
+      await store.put(LocalItem(
           itemId: itemId,
           updatedAt: at?.toUtc() ?? await _stamp(),
           json: json,
           dirty: true));
+    } finally {
+      _breather.leave();
+    }
+  }
 
-  Future<void> delete(String itemId) async => store.put(LocalItem(
-      itemId: itemId, updatedAt: await _stamp(), deleted: true, dirty: true));
+  Future<void> delete(String itemId) {
+    final pause = _breather.enter();
+    return pause == null ? _delete(itemId) : pause.then((_) => _delete(itemId));
+  }
+
+  Future<void> _delete(String itemId) async {
+    try {
+      await store.put(LocalItem(
+          itemId: itemId,
+          updatedAt: await _stamp(),
+          deleted: true,
+          dirty: true));
+    } finally {
+      _breather.leave();
+    }
+  }
 
   /// Pull and apply remote changes, then push local ones. Calls are
   /// serialised, so overlapping triggers (resume, timer, realtime) are safe.
@@ -259,7 +297,9 @@ class ItemSyncEngine {
     final onServer = <String>{};
     final pulled = await backend.pull(appId, since: since);
     await codec.prepare(pulled);
+    _breather.start();
     for (final remote in pulled) {
+      if (_breather.step() case final pause?) await pause;
       onServer.add(remote.itemId);
       if (await _apply(remote, conflicts, rejected)) applied++;
       if (!rejected.contains(remote.itemId)) readable.add(remote.itemId);
@@ -275,6 +315,7 @@ class ItemSyncEngine {
         if (local.deleted || local.dirty || onServer.contains(local.itemId)) {
           continue;
         }
+        if (_breather.step() case final pause?) await pause;
         await store.put(LocalItem(
           itemId: local.itemId,
           updatedAt: local.updatedAt,
@@ -295,6 +336,7 @@ class ItemSyncEngine {
       final again = await backend.fetch(appId, retry);
       await codec.prepare(again);
       for (final remote in again) {
+        if (_breather.step() case final pause?) await pause;
         if (await _apply(remote, conflicts, rejected)) applied++;
       }
     }
@@ -311,7 +353,12 @@ class ItemSyncEngine {
     ];
     for (var i = 0; i < ordered.length; i += pushBatchSize) {
       final batch = ordered.sublist(i, min(i + pushBatchSize, ordered.length));
-      final sealed = [for (final item in batch) await _seal(item)];
+      final sealed = <RemoteItem>[];
+      _breather.start();
+      for (final item in batch) {
+        if (_breather.step() case final pause?) await pause;
+        sealed.add(await _seal(item));
+      }
       Set<String> accepted;
       try {
         accepted = await backend.pushAll(appId, sealed);
@@ -332,10 +379,12 @@ class ItemSyncEngine {
           }
         }
       }
+      _breather.start();
       for (final item in batch) {
         // Not accepted: stays dirty, so the next pull reports the conflict
         // (or the push succeeds later) instead of the edit being dropped.
         if (!accepted.contains(item.itemId)) continue;
+        if (_breather.step() case final pause?) await pause;
         // Leave it dirty if it was edited again while the push was in flight.
         final current = await store.get(item.itemId);
         if (current != null && current.updatedAt == item.updatedAt) {
@@ -361,6 +410,20 @@ class ItemSyncEngine {
     List<SyncConflict> conflicts,
     List<String> rejected,
   ) async {
+    // A row this device already holds, or has a newer version of, can't
+    // change anything here, so it isn't checked or decrypted. Every pull
+    // re-reads the last [pullOverlap], and after a large import that is
+    // hundreds of rows each time.
+    final held = await store.get(remote.itemId);
+    if (held != null && !_remoteWins(remote, held)) {
+      _sawServerTime(remote);
+      // The version held here is at least as new as the row and was checked
+      // when it arrived. Seen again now that the server's time is known: a
+      // restart with this device's clock set back skips it when seeding.
+      _observe(held.updatedAt);
+      return false;
+    }
+
     final Map<String, Object?>? json;
     try {
       json = await _open(remote);
@@ -369,13 +432,10 @@ class ItemSyncEngine {
       if (!rejected.contains(remote.itemId)) rejected.add(remote.itemId);
       return false;
     }
-    final synced = remote.syncedAt?.toUtc();
-    if (synced != null &&
-        (_serverTime == null || synced.isAfter(_serverTime!))) {
-      _serverTime = synced;
-    }
+    _sawServerTime(remote);
     _observe(remote.updatedAt);
 
+    // Read again: the item may have been edited here while the row opened.
     final local = await store.get(remote.itemId);
     if (local != null && !_remoteWins(remote, local)) return false;
     if (local != null && local.dirty) {
@@ -388,6 +448,14 @@ class ItemSyncEngine {
       deleted: remote.deleted,
     ));
     return true;
+  }
+
+  void _sawServerTime(RemoteItem remote) {
+    final synced = remote.syncedAt?.toUtc();
+    if (synced != null &&
+        (_serverTime == null || synced.isAfter(_serverTime!))) {
+      _serverTime = synced;
+    }
   }
 
   bool _remoteWins(RemoteItem remote, LocalItem local) {

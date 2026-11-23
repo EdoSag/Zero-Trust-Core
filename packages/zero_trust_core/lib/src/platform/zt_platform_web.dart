@@ -195,3 +195,7 @@ Future<void> ztWipeBrowserStorage({
 
 /// Loads the page again from the server, dropping everything in memory.
 void ztReloadPage() => web.window.location.reload();
+
+/// Whether this is a `flutter test` run (see the `dart:io` version). Browser
+/// test runs use real timers.
+const bool ztInFlutterTest = false;
