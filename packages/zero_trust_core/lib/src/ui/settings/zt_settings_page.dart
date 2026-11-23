@@ -367,7 +367,7 @@ class ZtSettingsPage extends ConsumerWidget {
           if (showOtherApps && onOpenUrl != null) ...[
             _Header(ZtL10n.of(context).otherZeroTrustApps),
             for (final app in ZtSuite.apps)
-              if (app.appId != config.appId)
+              if (app.appId != config.appId && app.available)
                 ListTile(
                   leading: ZtBrandMark(app: app, size: 40),
                   title: Text(app.fullName),
@@ -405,6 +405,16 @@ class ZtSettingsPage extends ConsumerWidget {
       'clock' => l.taglineClock,
       'time' => l.taglineTime,
       'quests' => l.taglineQuests,
+      'calendar' => l.taglineCalendar,
+      'browser' => l.taglineBrowser,
+      'phone' => l.taglinePhone,
+      'camera' => l.taglineCamera,
+      'gallery' => l.taglineGallery,
+      'home' => l.taglineHome,
+      'family' => l.taglineFamily,
+      'meds' => l.taglineMeds,
+      'keyboard' => l.taglineKeyboard,
+      'authenticator' => l.taglineAuthenticator,
       _ => app.tagline,
     };
   }

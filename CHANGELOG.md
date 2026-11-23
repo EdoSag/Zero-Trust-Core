@@ -5,6 +5,21 @@ an app must change.
 
 ## Unreleased
 
+### Every app in the suite list (`ZtSuite`)
+
+- `ZtSuite.apps` now has all 17 apps, in the website's order: Calendar,
+  Browser, Phone, Camera, Gallery, Home, Family, Meds, Keyboard and ZT
+  Authenticator join Notes, Tasks, Fitness, Contacts, Time, Quests and
+  Clock. Each has its accent, icon, tagline (English and Hebrew) and
+  Android package `dev.sagron.zerotrust<id>`.
+- New `ZtSuiteApp.available` (default true). ZT Authenticator
+  (`authenticator`, `dev.sagron.zerotrustauthenticator`) is `false` until
+  it's out: it isn't offered under "Other Zero-Trust apps" yet, but its
+  data is in full backups and its own app gets its brand.
+- These apps now get their brand mark on the sign-in, unlock and about
+  screens. An app that sets `ZtAppConfig.accent` keeps it; one that
+  doesn't now gets its suite accent (the same colour as on the website).
+
 ### Sync no longer freezes the app after a large import (`zero_trust_core`)
 
 - Every sync re-reads the last 30 seconds before the newest row it has

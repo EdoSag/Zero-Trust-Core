@@ -736,6 +736,36 @@ class ZtLocalizationsHe extends ZtLocalizations {
       'משימות יומיות למטרות שלך, עם נקודות ניסיון ורמות';
 
   @override
+  String get taglineCalendar => 'אירועים, תזכורות ותכנון';
+
+  @override
+  String get taglineBrowser => 'גלישה פרטית באינטרנט';
+
+  @override
+  String get taglinePhone => 'שיחות, יומן שיחות וחסימה';
+
+  @override
+  String get taglineCamera => 'תמונות וסרטונים, מוצפנים כבר בצילום';
+
+  @override
+  String get taglineGallery => 'התמונות והאלבומים שלך';
+
+  @override
+  String get taglineHome => 'הבית החכם שלך';
+
+  @override
+  String get taglineFamily => 'המעגל המשפחתי ושיתוף מיקום';
+
+  @override
+  String get taglineMeds => 'תרופות, מינונים ותזכורות';
+
+  @override
+  String get taglineKeyboard => 'מקלדת פרטית';
+
+  @override
+  String get taglineAuthenticator => 'קודים לכניסה בשני שלבים';
+
+  @override
   String planName(String name) {
     return 'תוכנית: $name';
   }

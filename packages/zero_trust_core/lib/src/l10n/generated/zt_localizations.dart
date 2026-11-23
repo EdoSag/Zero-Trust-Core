@@ -1262,6 +1262,66 @@ abstract class ZtLocalizations {
   /// **'Daily quests for your goals, with XP and levels'**
   String get taglineQuests;
 
+  /// No description provided for @taglineCalendar.
+  ///
+  /// In en, this message translates to:
+  /// **'Events, reminders and planning'**
+  String get taglineCalendar;
+
+  /// No description provided for @taglineBrowser.
+  ///
+  /// In en, this message translates to:
+  /// **'Private web browsing'**
+  String get taglineBrowser;
+
+  /// No description provided for @taglinePhone.
+  ///
+  /// In en, this message translates to:
+  /// **'Calls, call log and blocking'**
+  String get taglinePhone;
+
+  /// No description provided for @taglineCamera.
+  ///
+  /// In en, this message translates to:
+  /// **'Photos and videos, encrypted as you take them'**
+  String get taglineCamera;
+
+  /// No description provided for @taglineGallery.
+  ///
+  /// In en, this message translates to:
+  /// **'Your photos and albums'**
+  String get taglineGallery;
+
+  /// No description provided for @taglineHome.
+  ///
+  /// In en, this message translates to:
+  /// **'Your smart home'**
+  String get taglineHome;
+
+  /// No description provided for @taglineFamily.
+  ///
+  /// In en, this message translates to:
+  /// **'Your family circle and shared locations'**
+  String get taglineFamily;
+
+  /// No description provided for @taglineMeds.
+  ///
+  /// In en, this message translates to:
+  /// **'Medications, doses and reminders'**
+  String get taglineMeds;
+
+  /// No description provided for @taglineKeyboard.
+  ///
+  /// In en, this message translates to:
+  /// **'A private keyboard'**
+  String get taglineKeyboard;
+
+  /// No description provided for @taglineAuthenticator.
+  ///
+  /// In en, this message translates to:
+  /// **'Two-step sign-in codes'**
+  String get taglineAuthenticator;
+
   /// Settings row: the account's plan, e.g. 'Plan: Free'
   ///
   /// In en, this message translates to:
