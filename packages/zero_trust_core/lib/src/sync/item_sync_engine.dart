@@ -196,9 +196,17 @@ class ItemSyncEngine {
   ///
   /// [at] overrides the edit time. Only for content that must lose to every
   /// real edit, such as an import (see `LegacyImporter`).
-  Future<void> save(String itemId, Map<String, Object?> json,
-      {DateTime? at}) async {
-    await _breather.enter();
+  Future<void> save(String itemId, Map<String, Object?> json, {DateTime? at}) {
+    // Not `await`ed when there is nothing to wait for: a save must reach
+    // the store in the same turn it always did.
+    final pause = _breather.enter();
+    return pause == null
+        ? _save(itemId, json, at)
+        : pause.then((_) => _save(itemId, json, at));
+  }
+
+  Future<void> _save(
+      String itemId, Map<String, Object?> json, DateTime? at) async {
     try {
       await store.put(LocalItem(
           itemId: itemId,
@@ -210,8 +218,12 @@ class ItemSyncEngine {
     }
   }
 
-  Future<void> delete(String itemId) async {
-    await _breather.enter();
+  Future<void> delete(String itemId) {
+    final pause = _breather.enter();
+    return pause == null ? _delete(itemId) : pause.then((_) => _delete(itemId));
+  }
+
+  Future<void> _delete(String itemId) async {
     try {
       await store.put(LocalItem(
           itemId: itemId,
@@ -287,7 +299,7 @@ class ItemSyncEngine {
     await codec.prepare(pulled);
     _breather.start();
     for (final remote in pulled) {
-      await _breather.step();
+      if (_breather.step() case final pause?) await pause;
       onServer.add(remote.itemId);
       if (await _apply(remote, conflicts, rejected)) applied++;
       if (!rejected.contains(remote.itemId)) readable.add(remote.itemId);
@@ -303,7 +315,7 @@ class ItemSyncEngine {
         if (local.deleted || local.dirty || onServer.contains(local.itemId)) {
           continue;
         }
-        await _breather.step();
+        if (_breather.step() case final pause?) await pause;
         await store.put(LocalItem(
           itemId: local.itemId,
           updatedAt: local.updatedAt,
@@ -324,7 +336,7 @@ class ItemSyncEngine {
       final again = await backend.fetch(appId, retry);
       await codec.prepare(again);
       for (final remote in again) {
-        await _breather.step();
+        if (_breather.step() case final pause?) await pause;
         if (await _apply(remote, conflicts, rejected)) applied++;
       }
     }
@@ -344,7 +356,7 @@ class ItemSyncEngine {
       final sealed = <RemoteItem>[];
       _breather.start();
       for (final item in batch) {
-        await _breather.step();
+        if (_breather.step() case final pause?) await pause;
         sealed.add(await _seal(item));
       }
       Set<String> accepted;
@@ -372,7 +384,7 @@ class ItemSyncEngine {
         // Not accepted: stays dirty, so the next pull reports the conflict
         // (or the push succeeds later) instead of the edit being dropped.
         if (!accepted.contains(item.itemId)) continue;
-        await _breather.step();
+        if (_breather.step() case final pause?) await pause;
         // Leave it dirty if it was edited again while the push was in flight.
         final current = await store.get(item.itemId);
         if (current != null && current.updatedAt == item.updatedAt) {
