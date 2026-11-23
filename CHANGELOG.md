@@ -5,6 +5,23 @@ an app must change.
 
 ## Unreleased
 
+### Encrypted full backup file (S-5; `zero_trust_core`)
+
+- New: Settings, Backup has "Back up everything" and "Restore from a
+  backup". One `.ztbackup` file holds every Zero Trust app's data and
+  attached files, encrypted with a backup password (at least 12
+  characters; PBKDF2 600,000 rounds, then AES-256-GCM in 1 MiB chunks).
+  It can be restored into the same account or a new one, on any phone.
+  Restoring never overwrites newer changes; a wrong password and a damaged
+  or cut file give different messages.
+- New API: `ZtBackup.create`, `ZtBackup.checkHeader`, `ZtBackup.open`,
+  `ZtBackup.restore`, `ZtBackupTiles`, `ZtBackupFiles` and
+  `ztBackupFilesProvider`. `ZtDataExport.findAttachmentRefs` is now public.
+
+Upgrade notes: the rows show on the web by themselves. On phones, an app
+turns them on by overriding `ztBackupFilesProvider` with a save and pick
+function (for example from `file_picker`); see the `ZtBackupFiles` docs.
+
 ### Review fixes for account deletion, crash reports, sessions and families
 
 - Account deletion (Z22): the hourly purge now claims each account just
