@@ -3,7 +3,29 @@
 Apps depend on the core by git tag (`ref: vX.Y.Z`). Upgrade notes list what
 an app must change.
 
-## Unreleased
+## 1.0.0
+
+The first stable release. Every app moves to this tag. It holds the full
+backup file (S-5), one family space for the suite (S-10), tablet and
+foldable layouts (S-11), the in-app update check with an Obtainium link
+(S-1), email change (Z14), crash reports (Z15), the 7-day account deletion
+grace (Z22), the retired raw-password sign-in (Z21), every app in the
+suite list, and the fix for sync freezing after a large import. Old and
+pre-core accounts sign in and see their data as before.
+
+Moving an app from 0.13.0, or from a `backport/import-freeze-fix-on-core-*`
+branch, to `ref: v1.0.0`:
+
+- Nothing has to change for the app to build and run. The upgrade notes in
+  each section below are optional improvements.
+- Worth doing in the same bump: pass
+  `sink: ZtHttpCrashReportSink.supabase(supabaseUrl)` for crash reports
+  (Z15), build release APKs with `--dart-define=ZT_CHANNEL=direct` for the
+  update check (S-1), and override `ztBackupFilesProvider` to offer the full
+  backup on phones (S-5).
+- Database: all migrations up to `20261123130000_core_review_fixes` are
+  live. Edge functions `delete-account`, `account-deletion`, `change-email`
+  and `crash-report` must be deployed for Z14, Z15 and Z22 to work.
 
 ### Every app in the suite list (`ZtSuite`)
 
