@@ -39,6 +39,13 @@ an app must change.
   back, the next edit could be stamped older than the version it replaces
   and lose to it.
 
+- A save, a delete or a sync row that needs no pause runs exactly as it did
+  before the breather: `Breather.step` and `Breather.enter` return null
+  instead of a finished future, so nothing waits an extra turn of the
+  microtask queue. (ZT Notes has widget tests that start a save under
+  `runAsync` while the engine is still starting on the test's fake clock;
+  the extra turn made three of them hang.)
+
 Upgrade notes: nothing to change in apps. No database change. Under
 `flutter test` the pauses and the batching are off (the fake clock never
 fires their timers), so tests behave as before; pass `Breather(enabled:

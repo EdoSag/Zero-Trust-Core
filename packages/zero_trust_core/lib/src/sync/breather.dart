@@ -48,27 +48,38 @@ class Breather {
   /// Marks the start of a loop whose every pass calls [step].
   void start() => _sliceStart = _clock.elapsedMicroseconds;
 
-  /// Inside a loop: pauses when a [slice] has passed since the last pause
-  /// (or [start]).
-  Future<void> step() async {
-    if (!enabled) return;
-    if (_clock.elapsedMicroseconds - _sliceStart < slice.inMicroseconds) return;
-    await _pause();
-    _sliceStart = _clock.elapsedMicroseconds;
+  /// Inside a loop: the pause to wait for when a [slice] has passed since
+  /// the last pause (or [start]), else null.
+  ///
+  /// Null rather than a finished future, so that work which needs no pause
+  /// runs exactly as it would without a breather, with no extra turn of
+  /// the microtask queue: `if (breather.step() case final pause?) await
+  /// pause;`.
+  Future<void>? step() {
+    if (!enabled) return null;
+    if (_clock.elapsedMicroseconds - _sliceStart < slice.inMicroseconds) {
+      return null;
+    }
+    return _paused();
   }
 
   /// Before one piece of work that callers may repeat without a loop the
-  /// breather can see (saving items one by one): pauses when [burst] or more
-  /// of them have run back to back for a [slice]. Call [leave] after it.
-  Future<void> enter() async {
-    if (!enabled) return;
+  /// breather can see (saving items one by one): the pause to wait for when
+  /// [burst] or more of them have run back to back for a [slice], else
+  /// null. Call [leave] after the work.
+  Future<void>? enter() {
+    if (!enabled) return null;
     final now = _clock.elapsedMicroseconds;
     if (now - _lastEnd > idleGap.inMicroseconds) {
       _run = 0;
       _sliceStart = now;
     }
     _run++;
-    if (_run < burst || now - _sliceStart < slice.inMicroseconds) return;
+    if (_run < burst || now - _sliceStart < slice.inMicroseconds) return null;
+    return _paused();
+  }
+
+  Future<void> _paused() async {
     await _pause();
     _sliceStart = _clock.elapsedMicroseconds;
   }
