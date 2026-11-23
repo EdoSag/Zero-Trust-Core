@@ -44,21 +44,45 @@ class LocalStoreUnreadable implements Exception {
 /// the tens of thousands.
 class ZtLocalStore
     implements LocalItemStore, LegacyImportLedger, PullCheckpoint {
-  ZtLocalStore._(this._handle);
+  ZtLocalStore._(this._handle, this._mergeBursts);
 
   final ZtDatabaseHandle _handle;
   CommonDatabase get _db => _handle.db;
   final _changes = StreamController<Set<String>>.broadcast();
   bool _closed = false;
 
+  /// Whether a long run of writes is announced in batches (see [changes]).
+  final bool _mergeBursts;
+  final Stopwatch _clock = Stopwatch()..start();
+  final Set<String> _held = {};
+  Timer? _burstTimer;
+  int _lastWrite = 0;
+  int _run = 0;
+  bool _wroteSinceTick = false;
+
+  /// Writes closer together than this belong to one run.
+  static const _burstGap = Duration(milliseconds: 50);
+
+  /// This many writes in one run make it a burst: an import or a large
+  /// sync, not a screen saving a few items.
+  static const _burstSize = 24;
+
+  /// How often a burst's changes are announced.
+  static const _burstInterval = Duration(milliseconds: 120);
+
   static const _schemaVersion = 1;
 
   /// Opens (creating if needed) the store at [path], or an in-memory one
   /// when [path] is null. Throws [LocalStoreUnreadable] when the file exists
   /// but [appKey] doesn't open it.
+  ///
+  /// [mergeBursts] is whether a long run of writes is announced on [changes]
+  /// in batches. On by default, except under `flutter test`, whose fake
+  /// clock never fires the timer that ends a batch.
   static Future<ZtLocalStore> open({
     required Uint8List appKey,
     String? path,
+    bool? mergeBursts,
   }) async {
     // Copy first: the vault zeroes its key on lock, maybe mid-open.
     final copy = Uint8List.fromList(appKey);
@@ -87,7 +111,7 @@ class ZtLocalStore
         if (handle.supportsWal) db.execute('pragma journal_mode = wal');
       }
       _migrate(db);
-      return ZtLocalStore._(handle);
+      return ZtLocalStore._(handle, mergeBursts ?? !ztInFlutterTest);
     } catch (_) {
       await handle.close();
       rethrow;
@@ -133,7 +157,45 @@ class ZtLocalStore
   static Future<void> moveAside(String path) => ztMoveDatabaseAside(path);
 
   /// Ids of items that changed, after each write. For refreshing lists.
+  ///
+  /// A long run of writes (an import, or a sync that brings hundreds of
+  /// items) is announced in batches a fraction of a second apart instead of
+  /// once per item, so a list that reloads on every event isn't rebuilt
+  /// hundreds of times in a row.
   Stream<Set<String>> get changes => _changes.stream;
+
+  void _changed(String itemId) {
+    if (!_mergeBursts) {
+      _changes.add({itemId});
+      return;
+    }
+    final now = _clock.elapsedMicroseconds;
+    _run = now - _lastWrite <= _burstGap.inMicroseconds ? _run + 1 : 1;
+    _lastWrite = now;
+    if (_burstTimer == null && _run < _burstSize) {
+      _changes.add({itemId});
+      return;
+    }
+    _held.add(itemId);
+    _wroteSinceTick = true;
+    _burstTimer ??= Timer.periodic(_burstInterval, (timer) {
+      _flushHeld();
+      // A tick with no write since the last one: the burst is over.
+      if (!_wroteSinceTick) {
+        timer.cancel();
+        _burstTimer = null;
+        _run = 0;
+      }
+      _wroteSinceTick = false;
+    });
+  }
+
+  void _flushHeld() {
+    if (_held.isEmpty || _closed) return;
+    final ids = Set.of(_held);
+    _held.clear();
+    _changes.add(ids);
+  }
 
   /// Items that aren't deleted, for showing in the app.
   Future<List<LocalItem>> liveItems() async =>
@@ -142,6 +204,9 @@ class ZtLocalStore
   /// Closes the database. The store can't be used afterwards.
   Future<void> close() async {
     if (_closed) return;
+    _burstTimer?.cancel();
+    _burstTimer = null;
+    _flushHeld();
     _closed = true;
     await _handle.close();
     await _changes.close();
@@ -173,7 +238,7 @@ class ZtLocalStore
         item.json == null ? null : jsonEncode(item.json),
       ],
     );
-    _changes.add({item.itemId});
+    _changed(item.itemId);
   }
 
   @override
