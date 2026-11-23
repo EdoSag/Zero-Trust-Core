@@ -140,4 +140,94 @@ void main() {
     await sync().syncNow();
     expect(server.rows['notes/a']!.deleted, isTrue);
   });
+
+  group('watch reads only what changed', () {
+    var decoded = 0;
+    final counted = ZtCollection<Note>(
+      kind: 'counted',
+      fromJson: (id, json, at) {
+        decoded++;
+        return Note(id, json['title'] as String);
+      },
+      toJson: (n) => {'title': n.title},
+      idOf: (n) => n.id,
+    );
+
+    test('one item per change, not the whole collection', () async {
+      for (var i = 0; i < 50; i++) {
+        await counted.save(sync(), store, Note('c$i', 'C$i'));
+      }
+      await notebooks.save(sync(), store, const Notebook('b1', 'Home'));
+      await sync().syncNow();
+      decoded = 0;
+      List<Note>? latest;
+      final sub = counted.watch(store).listen((v) => latest = v);
+      addTearDown(sub.cancel);
+      await pumpEventQueue();
+      expect(latest, hasLength(50));
+      expect(decoded, 50);
+
+      // Each change reads that item once more (and once again when its
+      // upload is recorded), never the other 49.
+      decoded = 0;
+      await counted.save(sync(), store, const Note('c7', 'renamed'));
+      await pumpEventQueue();
+      await sync().syncNow();
+      await pumpEventQueue();
+      expect(decoded, inInclusiveRange(1, 2));
+      expect(latest, hasLength(50));
+      expect(latest!.singleWhere((n) => n.id == 'c7').title, 'renamed');
+
+      decoded = 0;
+      await counted.save(sync(), store, const Note('new', 'New'));
+      await counted.delete(sync(), 'c3');
+      // Another collection's item changes nothing here.
+      await notebooks.save(sync(), store, const Notebook('b2', 'Work'));
+      await pumpEventQueue();
+      await sync().syncNow();
+      await pumpEventQueue();
+      expect(decoded, inInclusiveRange(1, 2));
+      expect(latest, hasLength(50));
+      expect(latest!.any((n) => n.id == 'c3'), isFalse);
+      expect(latest!.any((n) => n.id == 'new'), isTrue);
+    });
+
+    test('lists the same items in the same order as a full read', () async {
+      List<Note>? latest;
+      final sub = counted.watch(store).listen((v) => latest = v);
+      addTearDown(sub.cancel);
+      for (var i = 0; i < 12; i++) {
+        await counted.save(sync(), store, Note('c$i', 'C$i'));
+      }
+      await counted.save(sync(), store, const Note('c4', 'again'));
+      await counted.delete(sync(), 'c9');
+      await counted.save(sync(), store, const Note('c0', 'first, rewritten'));
+      await pumpEventQueue();
+      final full = await counted.list(store);
+      expect([for (final n in latest!) '${n.id}=${n.title}'],
+          [for (final n in full) '${n.id}=${n.title}']);
+    });
+
+    test('an item that cannot be read is reported, then read again in full',
+        () async {
+      final strict = ZtCollection<Note>(
+        kind: 'strict',
+        fromJson: (id, json, at) => Note(id, json['title'] as String),
+        toJson: (n) => {'title': n.title},
+        idOf: (n) => n.id,
+      );
+      final seen = <Object>[];
+      final sub = strict.watch(store).listen((v) => seen.add(v.length),
+          onError: (Object e) => seen.add('error'));
+      addTearDown(sub.cancel);
+      await strict.save(sync(), store, const Note('s1', 'ok'));
+      await pumpEventQueue();
+      await sync().save('bad', {'kind': 'strict', 'title': 42});
+      await pumpEventQueue();
+      expect(seen.last, 'error');
+      await sync().delete('bad');
+      await pumpEventQueue();
+      expect(seen.last, 1);
+    });
+  });
 }
