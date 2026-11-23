@@ -20,6 +20,9 @@ void main() {
       await breather.step();
     }
     expect(pauses, 5);
+    expect(Breather().step(), isNull,
+        reason: 'no pause, and no extra turn of the microtask queue either');
+    expect(Breather().enter(), isNull);
 
     pauses = 0;
     final patient =
