@@ -4,15 +4,18 @@ import '../../l10n/zt_l10n.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../account/account_backend.dart';
+import '../../account/account_handoff.dart';
 import '../../account/account_service.dart';
 import '../../account/password_check.dart';
 import '../../config/zt_app_config.dart';
 import '../../core_providers.dart';
 import '../../config/zt_suite.dart';
+import '../../handoff/zt_sign_in_handoff.dart';
 import '../brand/zt_brand_mark.dart';
 import 'zt_auth_messages.dart';
 import 'zt_keep_account.dart';
 import 'zt_password_strength.dart';
+import 'zt_sign_in_handoff_ui.dart';
 
 /// Sign in or create a Zero-Trust account. Identical in every app.
 ///
@@ -116,6 +119,29 @@ class _ZtSignInScreenState extends ConsumerState<ZtSignInScreen> {
           _canResend = e is EmailNotConfirmed;
         });
       }
+    } finally {
+      if (mounted) setState(() => _busy = false);
+    }
+  }
+
+  /// Another Zero-Trust app on this phone handed its account over (S-2).
+  Future<void> _signInWithGrant(ZtHandoffGrant grant) async {
+    setState(() {
+      _busy = true;
+      _error = null;
+      _info = null;
+      _canResend = false;
+    });
+    final account = ref.read(accountServiceProvider);
+    try {
+      final result = await account.signInWithHandoff(grant);
+      if (widget.offerBiometrics) await _offerBiometrics(result);
+      if (mounted) {
+        ztCheckPendingDeletionAfterUnlock(context, account);
+        widget.onUnlocked(result);
+      }
+    } catch (e) {
+      if (mounted) setState(() => _error = ztAuthErrorMessage(e));
     } finally {
       if (mounted) setState(() => _busy = false);
     }
@@ -300,6 +326,16 @@ class _ZtSignInScreenState extends ConsumerState<ZtSignInScreen> {
                               ? ZtL10n.of(context).createAccount
                               : ZtL10n.of(context).signIn),
                     ),
+                    if (!_creating)
+                      ZtHandoffButton(
+                        mode: ZtHandoffMode.signIn,
+                        enabled: !_busy,
+                        onGrant: _signInWithGrant,
+                        onError: (message) => setState(() {
+                          _info = null;
+                          _error = message;
+                        }),
+                      ),
                     const SizedBox(height: 8),
                     TextButton(
                       onPressed: _busy

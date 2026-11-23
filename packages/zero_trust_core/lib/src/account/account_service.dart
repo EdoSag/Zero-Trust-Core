@@ -4,6 +4,7 @@ import 'dart:typed_data';
 import 'package:zt_crypto/zt_crypto.dart';
 
 import 'account_backend.dart';
+import 'account_handoff.dart';
 import 'account_lifecycle.dart';
 import '../l10n/zt_l10n.dart';
 import 'biometric_key_store.dart';
@@ -536,6 +537,86 @@ class AccountService {
     } finally {
       creds.kek.fillRange(0, creds.kek.length, 0);
     }
+  }
+
+  AccountHandoffBackend? get _handoff {
+    final backend = _backend;
+    return backend is AccountHandoffBackend
+        ? backend as AccountHandoffBackend
+        : null;
+  }
+
+  /// This app can sign another Zero-Trust app on the phone in (S-2).
+  bool get canHandOffSession => _handoff != null;
+
+  /// What another app on this phone needs to open with this account (S-2).
+  /// [proof] is the key from `ztConfirmIdentity`, so the person holding the
+  /// phone just proved it's them; it is copied, not kept. With
+  /// [withSession] the server also makes a one-time sign-in token, so the
+  /// other app gets a session of its own.
+  Future<ZtHandoffGrant> handoffGrant(
+    UnlockResult proof, {
+    required bool withSession,
+    Duration validFor = const Duration(minutes: 2),
+  }) async {
+    final userId = _requireUserId();
+    final email = _backend.currentEmail ?? '';
+    String? token;
+    if (withSession) {
+      final handoff = _handoff;
+      if (handoff == null) throw StateError('Handing off is not available');
+      token = await handoff.handoffToken().timeout(onlineTimeout * 2);
+    }
+    // Signed out, or into another account, while the server answered.
+    if (_backend.currentUserId != userId) throw StateError('Not signed in');
+    return ZtHandoffGrant(
+      userId: userId,
+      email: email,
+      dek: Uint8List.fromList(proof.dek),
+      legacyDek: proof.legacyDek,
+      tokenHash: token,
+      expiresAt: DateTime.now().add(validFor),
+    );
+  }
+
+  /// Signs in with what another app on this phone handed over (S-2) and
+  /// unlocks, without the password. The session is this app's own. The
+  /// server's key row is fetched (and kept for offline unlock) as after a
+  /// password sign-in; if anything fails, this app is left signed out.
+  /// [grant] is left untouched.
+  Future<UnlockResult> signInWithHandoff(ZtHandoffGrant grant) async {
+    final handoff = _handoff;
+    final token = grant.tokenHash;
+    if (handoff == null) throw StateError('Handing off is not available');
+    if (token == null) throw ArgumentError('No sign-in token');
+    await handoff.signInWithHandoffToken(token);
+    try {
+      if (_backend.currentUserId != grant.userId) {
+        throw const ZtHandoffWrongAccount();
+      }
+      final keys = await _fetchKeys();
+      if (keys == null) throw const KeyMismatch();
+      return UnlockResult(
+          dek: Uint8List.fromList(grant.dek), legacyDek: keys.legacyDek);
+    } on Object {
+      try {
+        await _backend.signOut();
+      } on Object {
+        // Best effort: the sign-in screen stays up either way.
+      }
+      rethrow;
+    }
+  }
+
+  /// Unlocks this app, already signed in to the same account, with the key
+  /// another app on this phone handed over (S-2). Works offline. [grant] is
+  /// left untouched.
+  UnlockResult unlockWithHandoff(ZtHandoffGrant grant) {
+    if (_backend.currentUserId != grant.userId) {
+      throw const ZtHandoffWrongAccount();
+    }
+    return UnlockResult(
+        dek: Uint8List.fromList(grant.dek), legacyDek: grant.legacyDek);
   }
 
   Future<UnlockResult> _afterAuth(

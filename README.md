@@ -103,6 +103,40 @@ Each app needs, once:
   `minSdkVersion` is at least 28.
 - iOS: `NSFaceIDUsageDescription` in `Info.plist`.
 
+### Sign in once per phone (S-2)
+
+When another Zero-Trust app on the phone is signed in, `ZtSignInScreen`
+shows **Sign in with ZT Notes** (or "with another ZT app" and a list), and
+`ZtUnlockScreen` shows **Unlock with ZT Notes**. Tapping it opens that app,
+which asks "Sign in to ZT Calendar?", then for the fingerprint or the
+password (`ztConfirmIdentity`), and sends back the account's data key and,
+to sign in, a one-time sign-in token from the `sign-in-handoff` edge
+function. The asking app then has a session of its own; neither app signs
+the other out. Accounts from before the core keep their old key
+(`legacyDek`).
+
+How it stays private: the request carries a fresh random secret and the
+answer is sealed (AES-256-GCM) with a key derived from it. Requests and
+answers go over the apps' launch intents, only between apps signed with the
+same key (`PackageManager.checkSignatures`); the answer always goes to the
+app named as the asker. A made-up request can only make an app ask its
+user; a made-up answer doesn't open. A session made this way doesn't count
+as a password sign-in, so deleting the account or changing the email still
+asks for the password.
+
+Each app needs, once, the answering side around its first screen, inside
+the `MaterialApp`:
+
+```dart
+MaterialApp(home: const ZtSignInHandoffScope(child: AppGate()))
+```
+
+The asking side needs nothing: the buttons appear on their own on Android
+when a sibling app is installed. The Android part lives in this package
+(`android/`, Java, registered by Flutter like any plugin); its manifest
+lists every `ZtSuite` package under `<queries>` (a test keeps them in step).
+Other platforms don't show the buttons.
+
 ### Auto-lock
 
 The vault locks by itself; apps only call `touch()` on user input. It locks

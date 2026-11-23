@@ -3,12 +3,13 @@ import 'dart:typed_data';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 import 'account_backend.dart';
+import 'account_handoff.dart';
 import 'account_lifecycle.dart';
 import '../l10n/zt_l10n.dart';
 
 /// [AccountBackend] over the shared `zerotrust_apps` Supabase project.
 class SupabaseAccountBackend
-    implements AccountBackend, AccountLifecycleBackend {
+    implements AccountBackend, AccountLifecycleBackend, AccountHandoffBackend {
   SupabaseAccountBackend([SupabaseClient? client])
       : _client = client ?? Supabase.instance.client;
 
@@ -201,6 +202,21 @@ class SupabaseAccountBackend
         ? data['email'] as String
         : currentEmail ?? '';
   }
+
+  @override
+  Future<String> handoffToken() async {
+    final response = await _client.functions.invoke('sign-in-handoff');
+    final data = response.data;
+    final token = data is Map ? data['token_hash'] : null;
+    if (token is! String || token.isEmpty) {
+      throw StateError(ZtL10n.current.errGeneric);
+    }
+    return token;
+  }
+
+  @override
+  Future<void> signInWithHandoffToken(String tokenHash) =>
+      _client.auth.verifyOTP(type: OtpType.magiclink, tokenHash: tokenHash);
 
   String _requireUserId() {
     final id = currentUserId;
