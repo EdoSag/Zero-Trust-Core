@@ -208,9 +208,9 @@ Future<SharedSpaces> _sharedSpaces(Ref ref,
     openStore: opener.open,
     deleteStore: opener.delete,
     deviceId: deviceId,
-    policy: family && ownApp != ZtFamilySpace.app
-        ? ZtFamilySpace.policy
-        : ref.watch(ztSpacePolicyProvider),
+    // The family circle has one rule set for every app, ZT Family too, so
+    // no app accepts an item the others reject.
+    policy: family ? ZtFamilySpace.policy : ref.watch(ztSpacePolicyProvider),
   );
   ref.onDispose(spaces.close);
   return spaces;

@@ -1004,6 +1004,10 @@ class ZtLocalizationsHe extends ZtLocalizations {
   String get accountKept => 'החשבון שלך לא יימחק.';
 
   @override
+  String get accountTooLateToKeep =>
+      'כבר מאוחר מדי להשאיר את החשבון: הוא נמחק עכשיו.';
+
+  @override
   String get accountDeletionRequestedTitle => 'מחיקת החשבון תוזמנה';
 
   @override

@@ -12,7 +12,8 @@ abstract interface class AccountLifecycleBackend {
   /// When the signed-in account is set to be deleted, or null.
   Future<DateTime?> pendingDeletion();
 
-  /// Cancels a scheduled deletion. False when none was scheduled.
+  /// Cancels a scheduled deletion. False when none was scheduled, or when
+  /// the deletion has already started ([pendingDeletion] still has a date).
   Future<bool> keepAccount();
 
   /// Emails a 6-digit code to [newEmail] (Z14). Throws [EmailInUse] when the

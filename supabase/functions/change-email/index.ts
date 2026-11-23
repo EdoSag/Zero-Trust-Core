@@ -15,6 +15,7 @@
 //
 // Nothing about the request is logged.
 import { createClient } from "jsr:@supabase/supabase-js@2";
+import { withSessionCors } from "../_shared/cors.ts";
 import {
   EMAIL_CHANGED_HTML,
   EMAIL_CHANGED_SUBJECT,
@@ -34,7 +35,7 @@ import {
 
 const text = (status: number, body: string) => new Response(body, { status });
 
-Deno.serve(async (req) => {
+Deno.serve(withSessionCors(async (req) => {
   if (req.method !== "POST") return text(405, "POST only");
   const jwt = req.headers.get("Authorization")?.replace("Bearer ", "");
   if (!jwt) return text(401, "Unauthorized");
@@ -125,4 +126,4 @@ Deno.serve(async (req) => {
   }
 
   return text(400, "Bad request");
-});
+}));

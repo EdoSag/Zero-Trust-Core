@@ -59,6 +59,8 @@ reset request.jwt.claim.sub;
 do $$ begin
   perform public.zt_schedule_account_deletion('00000000-0000-0000-0000-0000000de102', '\x05');
   assert public.zt_cancel_account_deletion_by_token('\x05'), 'link keeps the account';
+  assert not public.zt_claim_account_deletion('00000000-0000-0000-0000-0000000de102'),
+    'a kept account is never claimed';
   assert not public.zt_cancel_account_deletion_by_token('\x05'), 'only once';
   perform public.zt_schedule_account_deletion('00000000-0000-0000-0000-0000000de102', '\x06');
   update public.zt_account_deletions set delete_after = now() - interval '1 hour';
@@ -66,6 +68,14 @@ do $$ begin
     = array['00000000-0000-0000-0000-0000000de102'::uuid], 'due';
   assert not public.zt_check_account_purge_secret(repeat('x', 40)), 'no Vault, no purge';
   perform public.zt_request_account_purge(); -- warns, does nothing
+  -- Once the purge claims it, it can't be kept, and it isn't due again
+  -- until the claim is 30 minutes old (a purge that failed half way).
+  assert public.zt_claim_account_deletion('00000000-0000-0000-0000-0000000de102'), 'claimed';
+  assert not public.zt_claim_account_deletion('00000000-0000-0000-0000-0000000de102'), 'only once';
+  assert not public.zt_cancel_account_deletion_by_token('\x06'), 'too late to keep';
+  assert (select count(*) from public.zt_due_account_deletions()) = 0, 'not listed while claimed';
+  update public.zt_account_deletions set purging_since = now() - interval '31 minutes';
+  assert (select count(*) from public.zt_due_account_deletions()) = 1, 'a stale claim is due again';
   -- Deleting the auth user (what the function does) removes the row.
   delete from auth.users where id = '00000000-0000-0000-0000-0000000de102';
   assert (select count(*) from public.zt_account_deletions) = 0, 'cascades';
