@@ -1982,6 +1982,12 @@ abstract class ZtLocalizations {
   /// **'Backup saved: {items, plural, =1{1 item} other{{items} items}} from {apps, plural, =1{1 app} other{{apps} apps}}.'**
   String backupSaved(int items, int apps);
 
+  /// No description provided for @backupItemsUnreadable.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 item couldn\'t be opened and isn\'t in it.} other{{count} items couldn\'t be opened and aren\'t in it.}}'**
+  String backupItemsUnreadable(int count);
+
   /// No description provided for @backupFilesMissing.
   ///
   /// In en, this message translates to:

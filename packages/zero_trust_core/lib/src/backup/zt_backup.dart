@@ -245,8 +245,15 @@ abstract final class ZtBackup {
           continue;
         }
         try {
-          stored['$app/${ref.id}'] =
+          final sealed =
               await files.download(ZtBackup._filePath(userId, app, ref.id));
+          // Only a file that opens with its own key, at its own size, is
+          // backed up; a cut or swapped one counts as missing.
+          final plain = await AttachmentCipher.decrypt(sealed,
+              key: ref.key, attachmentId: ref.id);
+          if (plain.length != ref.size) throw const BackupDamaged();
+          plain.fillRange(0, plain.length, 0);
+          stored['$app/${ref.id}'] = sealed;
         } on Object {
           missing++;
         }
@@ -326,8 +333,8 @@ abstract final class ZtBackup {
 
   /// Writes [contents] into the signed-in account whose data key is [dek].
   /// Items keep their dates, so whatever the account changed or deleted
-  /// after the backup was made stays as it is. Files are uploaded before
-  /// the items that refer to them.
+  /// after the backup was made stays as it is. Only the files of items
+  /// being restored are uploaded, before the items that refer to them.
   static Future<ZtRestoreResult> restore({
     required ZtBackupContents contents,
     required Uint8List dek,
@@ -343,16 +350,6 @@ abstract final class ZtBackup {
     for (final MapEntry(key: app, value: list) in contents.items.entries) {
       if (list.isEmpty) continue;
       onApp?.call(app);
-      if (files != null && userId != null) {
-        for (final MapEntry(key: path, value: bytes)
-            in contents.files.entries) {
-          final slash = path.indexOf('/');
-          if (path.substring(0, slash) != app) continue;
-          await files.upload(
-              _filePath(userId, app, path.substring(slash + 1)), bytes);
-          uploaded++;
-        }
-      }
       final codec = await _codec(dek, app);
       try {
         for (var i = 0; i < list.length; i += 200) {
@@ -375,6 +372,19 @@ abstract final class ZtBackup {
           ].nonNulls.toList();
           skipped += candidates.length - batch.length;
           if (batch.isEmpty) continue;
+          // Only the files these items refer to, before the items.
+          if (files != null && userId != null) {
+            final refs = <String, ZtAttachmentRef>{};
+            for (final item in batch) {
+              ZtDataExporter.findAttachmentRefs(item.json, refs);
+            }
+            for (final id in refs.keys) {
+              final bytes = contents.files['$app/$id'];
+              if (bytes == null) continue;
+              await files.upload(_filePath(userId, app, id), bytes);
+              uploaded++;
+            }
+          }
           final rows = [
             for (final item in batch)
               await codec.seal(

@@ -96,6 +96,8 @@ class _ZtBackupTilesState extends ConsumerState<ZtBackupTiles> {
         duration: const Duration(seconds: 8),
         content: Text([
           ZtL10n.current.backupSaved(c.itemCount, c.apps.length),
+          if (backup.unreadableItems > 0)
+            ZtL10n.current.backupItemsUnreadable(backup.unreadableItems),
           if (c.missingFiles > 0)
             ZtL10n.current.backupFilesMissing(c.missingFiles),
         ].join(' ')),

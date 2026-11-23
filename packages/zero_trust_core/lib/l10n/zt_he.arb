@@ -314,6 +314,7 @@
   "enterYourPasswordToBackUp": "יש להזין את סיסמת החשבון כדי לקרוא את המידע שלך מכל האפליקציות.",
   "backingUp": "מגבה את {app}…",
   "backupSaved": "הגיבוי נשמר: {items, plural, =1{פריט אחד} other{{items} פריטים}} {apps, plural, =1{מאפליקציה אחת} other{מ־{apps} אפליקציות}}.",
+  "backupItemsUnreadable": "{count, plural, =1{לא ניתן היה לפתוח פריט אחד והוא לא נכלל.} other{לא ניתן היה לפתוח {count} פריטים והם לא נכללו.}}",
   "backupFilesMissing": "{count, plural, =1{לא ניתן היה לקרוא קובץ מצורף אחד והוא לא נכלל.} other{לא ניתן היה לקרוא {count} קבצים מצורפים והם לא נכללו.}}",
   "enterBackupPassword": "הזנת סיסמת הגיבוי",
   "openBackup": "פתיחה",

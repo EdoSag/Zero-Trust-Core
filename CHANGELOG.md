@@ -14,6 +14,10 @@ an app must change.
   It can be restored into the same account or a new one, on any phone.
   Restoring never overwrites newer changes; a wrong password and a damaged
   or cut file give different messages.
+- Each attached file is checked (opened with its own key, at its own size)
+  before it goes into the backup; a damaged one is reported as missing.
+  Items that can't be opened are left out and the message says how many.
+  A restore uploads only the files of the items it restores.
 - New API: `ZtBackup.create`, `ZtBackup.checkHeader`, `ZtBackup.open`,
   `ZtBackup.restore`, `ZtBackupTiles`, `ZtBackupFiles` and
   `ztBackupFilesProvider`. `ZtDataExport.findAttachmentRefs` is now public.

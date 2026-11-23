@@ -687,6 +687,14 @@
       }
     }
   },
+  "backupItemsUnreadable": "{count, plural, =1{1 item couldn't be opened and isn't in it.} other{{count} items couldn't be opened and aren't in it.}}",
+  "@backupItemsUnreadable": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "backupFilesMissing": "{count, plural, =1{1 attached file couldn't be read and isn't in it.} other{{count} attached files couldn't be read and aren't in it.}}",
   "@backupFilesMissing": {
     "placeholders": {

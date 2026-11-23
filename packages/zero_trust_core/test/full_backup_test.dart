@@ -207,6 +207,36 @@ void main() {
     expect(await read(serverA, dekA, 'notes', 'n2'), isNotNull);
   });
 
+  test('a cut or swapped attached file counts as missing', () async {
+    final good = await filesA.download('user-a/notes/${photo.id}');
+    await filesA.upload('user-a/notes/${photo.id}',
+        Uint8List.sublistView(good, 0, good.length - 1000));
+    final backup = await backUp();
+    expect(backup.contents.files, isEmpty);
+    expect(backup.contents.missingFiles, 1);
+    expect(backup.contents.itemCount, 3, reason: 'the notes are still in it');
+  });
+
+  test('files of items that are not restored are not uploaded', () async {
+    final backup = await backUp();
+    // The photo's note was deleted after the backup was made.
+    await put(serverA, dekA, 'notes', 'n2', null,
+        when: at.add(const Duration(days: 3)));
+    final files = InMemoryAttachmentBackend();
+    final result = await ZtBackup.restore(
+      contents: await ZtBackup.open(backup.bytes, backupPassword),
+      dek: dekA,
+      backend: serverA,
+      deviceId: 'dev-a',
+      files: files,
+      userId: 'user-a',
+    );
+    expect(result.files, 0);
+    await expectLater(
+        files.download('user-a/notes/${photo.id}'), throwsA(anything));
+    expect(await read(serverA, dekA, 'notes', 'n2'), isNull);
+  });
+
   group('settings', () {
     const email = 'edo@example.com';
     const password = 'correct horse battery';
@@ -315,8 +345,12 @@ void main() {
       await tester.tap(find.widgetWithText(FilledButton, 'Back up'));
       await waitFor(tester, () => saved != null);
       expect(savedName, endsWith('.ztbackup'));
-      // Only this account's own note: rows under other keys don't open.
-      expect(find.text('Backup saved: 1 item from 1 app.'), findsOneWidget);
+      // Only this account's own note: rows under other keys don't open,
+      // and the message says some were left out.
+      expect(find.textContaining('Backup saved: 1 item from 1 app.'),
+          findsOneWidget);
+      expect(find.textContaining(RegExp(r"\d+ items? couldn't be opened")),
+          findsOneWidget);
 
       // Restore it: wrong backup password first.
       await tester.pumpAndSettle(const Duration(seconds: 10));

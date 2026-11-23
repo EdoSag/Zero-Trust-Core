@@ -1184,6 +1184,17 @@ class ZtLocalizationsHe extends ZtLocalizations {
   }
 
   @override
+  String backupItemsUnreadable(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'לא ניתן היה לפתוח $count פריטים והם לא נכללו.',
+      one: 'לא ניתן היה לפתוח פריט אחד והוא לא נכלל.',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String backupFilesMissing(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,
