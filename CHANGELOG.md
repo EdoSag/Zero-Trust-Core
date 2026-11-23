@@ -5,6 +5,24 @@ an app must change.
 
 ## Unreleased
 
+### Sync no longer freezes the app after a large import (`zero_trust_core`)
+
+- Every sync re-reads the last 30 seconds before the newest row it has
+  seen. After an import that uploads hundreds of items at once, that window
+  holds the whole import, so every later sync downloaded it again, and the
+  engine checked the signature of and decrypted each row before noticing it
+  already had it. On a phone that blocked the screen for many seconds on
+  every open, resume and edit ("isn't responding"). A row the device
+  already holds, or has a newer version of, is now skipped before any
+  crypto.
+- Fixed: a pull of more than 500 changed rows read the newest 500 twice and
+  never reached the older ones (`order` sorts newest first unless told
+  otherwise). Pulls now page oldest first, for the account's own items and
+  for shared spaces.
+- `bytea` blobs are read and written without making a string per byte.
+
+Upgrade notes: nothing to change in apps. No database change.
+
 ### Encrypted full backup file (S-5; `zero_trust_core`)
 
 - New: Settings, Backup has "Back up everything" and "Restore from a

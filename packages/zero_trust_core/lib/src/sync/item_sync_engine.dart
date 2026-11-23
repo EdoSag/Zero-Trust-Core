@@ -361,6 +361,16 @@ class ItemSyncEngine {
     List<SyncConflict> conflicts,
     List<String> rejected,
   ) async {
+    // A row this device already holds, or has a newer version of, can't
+    // change anything here, so it isn't checked or decrypted. Every pull
+    // re-reads the last [pullOverlap], and after a large import that is
+    // hundreds of rows each time.
+    final held = await store.get(remote.itemId);
+    if (held != null && !_remoteWins(remote, held)) {
+      _sawServerTime(remote);
+      return false;
+    }
+
     final Map<String, Object?>? json;
     try {
       json = await _open(remote);
@@ -369,13 +379,10 @@ class ItemSyncEngine {
       if (!rejected.contains(remote.itemId)) rejected.add(remote.itemId);
       return false;
     }
-    final synced = remote.syncedAt?.toUtc();
-    if (synced != null &&
-        (_serverTime == null || synced.isAfter(_serverTime!))) {
-      _serverTime = synced;
-    }
+    _sawServerTime(remote);
     _observe(remote.updatedAt);
 
+    // Read again: the item may have been edited here while the row opened.
     final local = await store.get(remote.itemId);
     if (local != null && !_remoteWins(remote, local)) return false;
     if (local != null && local.dirty) {
@@ -388,6 +395,14 @@ class ItemSyncEngine {
       deleted: remote.deleted,
     ));
     return true;
+  }
+
+  void _sawServerTime(RemoteItem remote) {
+    final synced = remote.syncedAt?.toUtc();
+    if (synced != null &&
+        (_serverTime == null || synced.isAfter(_serverTime!))) {
+      _serverTime = synced;
+    }
   }
 
   bool _remoteWins(RemoteItem remote, LocalItem local) {
