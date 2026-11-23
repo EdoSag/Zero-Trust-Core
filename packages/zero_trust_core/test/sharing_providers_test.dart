@@ -33,11 +33,13 @@ void main() {
 
   late InMemorySpaceServer server;
 
-  ProviderContainer phone(String userId, int seed) {
+  ProviderContainer phone(String userId, int seed,
+      {String app = 'meds', SpacePolicy? policy}) {
     final opener = _MemoryOpener();
     final c = ProviderContainer(overrides: [
-      ztAppConfigProvider.overrideWithValue(
-          const ZtAppConfig(appId: 'meds', displayName: 'Zero-Trust Meds')),
+      ztAppConfigProvider
+          .overrideWithValue(ZtAppConfig(appId: app, displayName: app)),
+      if (policy != null) ztSpacePolicyProvider.overrideWithValue(policy),
       accountServiceProvider.overrideWithValue(_Account(userId)),
       ztSyncBackendProvider.overrideWithValue(
           FakeSyncBackend()..serverNow = () => DateTime.now().toUtc()),
@@ -107,5 +109,22 @@ void main() {
     // Locking closes everything.
     b.read(vaultControllerProvider.notifier).lock();
     await settled(b, (s) => !s.ready && s.entries.isEmpty);
+  });
+
+  test('the family circle has the same rules in ZT Family as everywhere',
+      () async {
+    // ZT Family's own space rules must not loosen the circle's: a member
+    // could otherwise write another member's family.me/<id>/ items there.
+    for (final app in [ZtFamilySpace.app, 'calendar']) {
+      final c = phone(alice, 1, app: app, policy: const SpacePolicy());
+      await c
+          .read(vaultControllerProvider.notifier)
+          .unlock(Uint8List.fromList(List.filled(32, 1)));
+      final circles = await c.read(ztFamilySharedSpacesProvider.future);
+      expect(circles.policy.adminOnlyKinds, ZtFamilySpace.policy.adminOnlyKinds,
+          reason: app);
+      expect(circles.policy.ownedPrefixes, ZtFamilySpace.policy.ownedPrefixes,
+          reason: app);
+    }
   });
 }

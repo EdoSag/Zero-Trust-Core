@@ -6,6 +6,7 @@
 // Answers 200 {"delete_after": "<ISO time>"}. Older app versions only check
 // for a 2xx and then sign out, which is still right.
 import { createClient } from "jsr:@supabase/supabase-js@2";
+import { withSessionCors } from "../_shared/cors.ts";
 import { hashToken, newToken } from "../_shared/delete_user.ts";
 import { DELETION_HTML, DELETION_SUBJECT } from "../_shared/deletion_email.ts";
 import { secondsSincePasswordSignIn, sendMail } from "../_shared/mail.ts";
@@ -13,7 +14,7 @@ import { secondsSincePasswordSignIn, sendMail } from "../_shared/mail.ts";
 const GRACE_DAYS = 7;
 const KEEP_URL = Deno.env.get("ZT_KEEP_ACCOUNT_URL") ?? "https://zerotrust.bz/account/keep/";
 
-Deno.serve(async (req) => {
+Deno.serve(withSessionCors(async (req) => {
   const jwt = req.headers.get("Authorization")?.replace("Bearer ", "");
   if (!jwt) return new Response("Unauthorized", { status: 401 });
 
@@ -49,7 +50,7 @@ Deno.serve(async (req) => {
     }
   }
   return Response.json({ delete_after: deleteAfter });
-});
+}));
 
 async function sendDeletionEmail(to: string, when: Date, undoUrl: string): Promise<void> {
   const fmt = (locale: string) =>

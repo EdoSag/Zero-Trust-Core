@@ -61,11 +61,24 @@ Deno.serve(async (req) => {
     if (error) return json(500);
     let deleted = 0, failed = 0;
     for (const userId of (due ?? []) as string[]) {
+      // Claimed one at a time, just before deleting: "Keep my account" in
+      // the meantime wins (the claim fails), and once claimed, keeping is
+      // refused, so a kept account is never deleted.
+      const { data: claimed, error: claimError } = await admin.rpc(
+        "zt_claim_account_deletion",
+        { p_user: userId },
+      );
+      if (claimError) {
+        failed++;
+        continue;
+      }
+      if (claimed !== true) continue;
       try {
         await deleteUserNow(admin, userId);
         deleted++;
       } catch (_) {
-        // Stays due; the next hourly run tries again.
+        // Some files may be gone already, so it stays claimed (no longer
+        // keepable) and the next hourly run finishes it.
         failed++;
       }
     }

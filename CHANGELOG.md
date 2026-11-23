@@ -5,6 +5,26 @@ an app must change.
 
 ## Unreleased
 
+### Review fixes for account deletion, crash reports, sessions and families
+
+- Account deletion (Z22): the hourly purge now claims each account just
+  before deleting it (`zt_claim_account_deletion`), so "Keep my account"
+  can no longer race the purge. A claimed account can't be kept; a claim
+  older than 30 minutes (a purge that died) is retried. Migration
+  `20261123130000_core_review_fixes.sql`.
+- Crash reports (Z15): `zt_crash_groups` shows the newest whole stack
+  instead of merging frames across rows, and parallel reports of one bug
+  merge into one row (advisory lock) instead of failing.
+- `change-email` and `delete-account` answer browser preflights
+  (`withSessionCors` in `_shared/cors.ts`), so web and desktop builds can
+  call them.
+- ZT Family uses the shared family circle rules (`ZtFamilySpace.policy`)
+  like every other app, so a member can't write another member's
+  `family.me/<id>/` items there.
+
+No app changes needed. Edge functions `account-deletion`, `change-email`
+and `delete-account` need a redeploy.
+
 ### Release checks follow Z21 (`zt_release_checks`)
 
 - The shared release checks no longer expect a never-upgraded pre-core
