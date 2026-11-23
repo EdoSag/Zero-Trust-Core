@@ -373,6 +373,35 @@ void main() {
       expect((await store.get('n7'))!.json, {'v': 'edited'});
     });
 
+    test('still move the edit clock after a restart with the clock set back',
+        () async {
+      final store = InMemoryItemStore();
+      ItemSyncEngine phone() => ItemSyncEngine(
+            appId: 'notes',
+            appKey: appKey,
+            deviceId: 'phone',
+            store: store,
+            backend: server,
+            signingKeys: signing,
+            clock: () => now,
+          );
+      final first = phone();
+      await first.save('n1', {'v': 'first'});
+      await first.sync();
+
+      // Restarted with the clock an hour back, before it ever pulled its own
+      // row: the stored edit time looks too far ahead to follow until the
+      // server's time is known again.
+      now = now.subtract(const Duration(hours: 1));
+      final restarted = phone();
+      await restarted.sync();
+      await restarted.save('n1', {'v': 'second'});
+      await restarted.sync();
+      expect((await store.get('n1'))!.json, {'v': 'second'},
+          reason: 'the new edit is stamped after the version it replaces');
+      expect((await (await device('laptop')).sync()).applied, 1);
+    });
+
     test('the device that pushed them does not open them either', () async {
       final store = InMemoryItemStore();
       final codec = _CountingCodec(
@@ -415,8 +444,7 @@ void main() {
       expect((await phone.store.get('n1'))!.json, {'v': 'laptop'});
     });
 
-    test('a damaged copy of a row held here is ignored, not applied',
-        () async {
+    test('a damaged copy of a row held here is ignored, not applied', () async {
       final phone = await device('phone');
       final laptop = await device('laptop');
       await phone.save('n1', {'v': 1});

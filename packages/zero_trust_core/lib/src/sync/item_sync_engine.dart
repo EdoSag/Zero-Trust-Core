@@ -5,6 +5,7 @@ import 'dart:typed_data';
 
 import 'package:zt_crypto/zt_crypto.dart';
 
+import 'breather.dart';
 import 'local_item_store.dart';
 import 'sync_backend.dart';
 
@@ -75,6 +76,7 @@ class ItemSyncEngine {
     DateTime Function()? clock,
     Duration pullOverlap = const Duration(seconds: 30),
     int pushBatchSize = 200,
+    Breather? breather,
   }) : this.withCodec(
           appId: appId,
           codec: AppItemCodec(
@@ -85,6 +87,7 @@ class ItemSyncEngine {
           clock: clock,
           pullOverlap: pullOverlap,
           pushBatchSize: pushBatchSize,
+          breather: breather,
         );
 
   /// An engine that seals and checks rows with [codec] instead of the
@@ -98,7 +101,9 @@ class ItemSyncEngine {
     DateTime Function()? clock,
     this.pullOverlap = const Duration(seconds: 30),
     this.pushBatchSize = 200,
-  }) : _clock = clock ?? DateTime.now;
+    Breather? breather,
+  })  : _clock = clock ?? DateTime.now,
+        _breather = breather ?? Breather();
 
   /// An engine for the unlocked vault's [appKey], with the signing keys
   /// derived from it.
@@ -155,6 +160,11 @@ class ItemSyncEngine {
   final ItemCodec codec;
   final DateTime Function() _clock;
 
+  /// Lets the screen draw and take taps during a long pull or push, and
+  /// while an import saves items one after another: the crypto and the
+  /// local store both run on the UI isolate.
+  final Breather _breather;
+
   Future<void> Function()? _cancelLive;
   Future<void> _serial = Future.value();
   DateTime? _latestSeen;
@@ -187,15 +197,31 @@ class ItemSyncEngine {
   /// [at] overrides the edit time. Only for content that must lose to every
   /// real edit, such as an import (see `LegacyImporter`).
   Future<void> save(String itemId, Map<String, Object?> json,
-          {DateTime? at}) async =>
-      store.put(LocalItem(
+      {DateTime? at}) async {
+    await _breather.enter();
+    try {
+      await store.put(LocalItem(
           itemId: itemId,
           updatedAt: at?.toUtc() ?? await _stamp(),
           json: json,
           dirty: true));
+    } finally {
+      _breather.leave();
+    }
+  }
 
-  Future<void> delete(String itemId) async => store.put(LocalItem(
-      itemId: itemId, updatedAt: await _stamp(), deleted: true, dirty: true));
+  Future<void> delete(String itemId) async {
+    await _breather.enter();
+    try {
+      await store.put(LocalItem(
+          itemId: itemId,
+          updatedAt: await _stamp(),
+          deleted: true,
+          dirty: true));
+    } finally {
+      _breather.leave();
+    }
+  }
 
   /// Pull and apply remote changes, then push local ones. Calls are
   /// serialised, so overlapping triggers (resume, timer, realtime) are safe.
@@ -259,7 +285,9 @@ class ItemSyncEngine {
     final onServer = <String>{};
     final pulled = await backend.pull(appId, since: since);
     await codec.prepare(pulled);
+    _breather.start();
     for (final remote in pulled) {
+      await _breather.step();
       onServer.add(remote.itemId);
       if (await _apply(remote, conflicts, rejected)) applied++;
       if (!rejected.contains(remote.itemId)) readable.add(remote.itemId);
@@ -275,6 +303,7 @@ class ItemSyncEngine {
         if (local.deleted || local.dirty || onServer.contains(local.itemId)) {
           continue;
         }
+        await _breather.step();
         await store.put(LocalItem(
           itemId: local.itemId,
           updatedAt: local.updatedAt,
@@ -295,6 +324,7 @@ class ItemSyncEngine {
       final again = await backend.fetch(appId, retry);
       await codec.prepare(again);
       for (final remote in again) {
+        await _breather.step();
         if (await _apply(remote, conflicts, rejected)) applied++;
       }
     }
@@ -311,7 +341,12 @@ class ItemSyncEngine {
     ];
     for (var i = 0; i < ordered.length; i += pushBatchSize) {
       final batch = ordered.sublist(i, min(i + pushBatchSize, ordered.length));
-      final sealed = [for (final item in batch) await _seal(item)];
+      final sealed = <RemoteItem>[];
+      _breather.start();
+      for (final item in batch) {
+        await _breather.step();
+        sealed.add(await _seal(item));
+      }
       Set<String> accepted;
       try {
         accepted = await backend.pushAll(appId, sealed);
@@ -332,10 +367,12 @@ class ItemSyncEngine {
           }
         }
       }
+      _breather.start();
       for (final item in batch) {
         // Not accepted: stays dirty, so the next pull reports the conflict
         // (or the push succeeds later) instead of the edit being dropped.
         if (!accepted.contains(item.itemId)) continue;
+        await _breather.step();
         // Leave it dirty if it was edited again while the push was in flight.
         final current = await store.get(item.itemId);
         if (current != null && current.updatedAt == item.updatedAt) {
@@ -368,6 +405,10 @@ class ItemSyncEngine {
     final held = await store.get(remote.itemId);
     if (held != null && !_remoteWins(remote, held)) {
       _sawServerTime(remote);
+      // The version held here is at least as new as the row and was checked
+      // when it arrived. Seen again now that the server's time is known: a
+      // restart with this device's clock set back skips it when seeding.
+      _observe(held.updatedAt);
       return false;
     }
 

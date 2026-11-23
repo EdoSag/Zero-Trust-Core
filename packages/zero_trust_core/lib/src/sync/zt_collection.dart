@@ -136,23 +136,67 @@ class ZtCollection<T> {
       ];
 
   /// The live values now and again after every change to [store].
+  ///
+  /// After the first read, only the items that changed are read and decoded
+  /// again, so a store that changes item by item (an import, a large sync)
+  /// costs one item per change, not the whole collection.
   Stream<List<T>> watch(ZtLocalStore store) {
     late final StreamController<List<T>> controller;
     StreamSubscription<Set<String>>? changes;
     var closed = false;
-    Future<void> emit() async {
+    // Null until the first read, and again after a failed one.
+    Map<String, T>? values;
+    final pending = <String>{};
+    var reload = true;
+    var running = false;
+
+    Future<void> refresh() async {
+      if (running) return;
+      running = true;
       try {
-        final values = await list(store);
-        if (!closed) controller.add(values);
-      } on Object catch (e, s) {
-        if (!closed) controller.addError(e, s);
+        while (!closed && (reload || pending.isNotEmpty)) {
+          try {
+            final known = values;
+            if (reload || known == null) {
+              reload = false;
+              pending.clear();
+              final fresh = <String, T>{};
+              for (final item in await store.all()) {
+                if (decode(item) case final T value) fresh[item.itemId] = value;
+              }
+              values = fresh;
+            } else {
+              final ids = pending.toList();
+              pending.clear();
+              for (final id in ids) {
+                final item = await store.get(id);
+                final value = item == null ? null : decode(item);
+                // Removed first, so a changed item moves to the end, where
+                // the store lists a rewritten row too.
+                known.remove(id);
+                if (value != null) known[id] = value;
+              }
+            }
+            if (!closed) controller.add(List.of(values!.values));
+          } on Object catch (e, s) {
+            // Read everything again next time rather than trust a half
+            // updated list.
+            values = null;
+            if (!closed) controller.addError(e, s);
+          }
+        }
+      } finally {
+        running = false;
       }
     }
 
     controller = StreamController<List<T>>(
       onListen: () {
-        changes = store.changes.listen((_) => emit());
-        emit();
+        changes = store.changes.listen((ids) {
+          pending.addAll(ids);
+          refresh();
+        });
+        refresh();
       },
       onCancel: () async {
         closed = true;

@@ -43,7 +43,8 @@ class _Table {
         final descending = order.first.split('.')[1] == 'desc';
         out.sort((a, b) {
           final c = _at(a).compareTo(_at(b));
-          final byId = (a['item_id']! as String).compareTo(b['item_id']! as String);
+          final byId =
+              (a['item_id']! as String).compareTo(b['item_id']! as String);
           return descending ? -(c != 0 ? c : byId) : (c != 0 ? c : byId);
         });
         out = out.take(int.parse(q['limit']!)).toList();
@@ -63,8 +64,7 @@ void main() {
         for (var i = 0; i < count; i++)
           {
             'item_id': 'item-${i.toString().padLeft(5, '0')}',
-            'synced_at':
-                start.add(Duration(milliseconds: i)).toIso8601String(),
+            'synced_at': start.add(Duration(milliseconds: i)).toIso8601String(),
           },
       ];
 
@@ -93,7 +93,8 @@ void main() {
 
   test('only rows after the cursor are read', () async {
     final table = _Table(imported(700));
-    final rows = await pull(table, since: start.add(const Duration(milliseconds: 99)));
+    final rows =
+        await pull(table, since: start.add(const Duration(milliseconds: 99)));
     expect(rows, hasLength(600));
     expect(rows.first['item_id'], 'item-00100');
     expect(rows.last['item_id'], 'item-00699');

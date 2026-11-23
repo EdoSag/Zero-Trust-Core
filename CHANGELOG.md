@@ -20,8 +20,29 @@ an app must change.
   otherwise). Pulls now page oldest first, for the account's own items and
   for shared spaces.
 - `bytea` blobs are read and written without making a string per byte.
+- The screen keeps drawing and taking taps during an import and a large
+  sync. Sealing, signing, checking and decrypting run on the UI isolate, and
+  so does the local store; a few hundred items in a row used to run in one
+  piece. `ItemSyncEngine` now lets the event loop run every 8 ms of such
+  work: while it reads a pull, while it seals and records a push, and while
+  an app saves or deletes items one after another (new `Breather`).
+- `ZtCollection.watch` reads and decodes only the items that changed, not
+  the whole collection on every change. Saving 850 events one by one used
+  to decode about 360,000 items along the way.
+- `ZtLocalStore.changes` announces a long run of writes (24 or more with
+  less than 50 ms between them) in batches about 120 ms apart instead of
+  once per item, so an app's own listener that reloads a list isn't run
+  hundreds of times in a row. Single writes are announced at once, as
+  before.
+- A row skipped because the device already holds it still moves the edit
+  clock (found in review): after a restart with the device's clock set
+  back, the next edit could be stamped older than the version it replaces
+  and lose to it.
 
-Upgrade notes: nothing to change in apps. No database change.
+Upgrade notes: nothing to change in apps. No database change. Under
+`flutter test` the pauses and the batching are off (the fake clock never
+fires their timers), so tests behave as before; pass `Breather(enabled:
+true)` or `ZtLocalStore.open(mergeBursts: true)` to test them.
 
 ### Encrypted full backup file (S-5; `zero_trust_core`)
 

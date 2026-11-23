@@ -35,6 +35,7 @@ export 'src/l10n/zt_l10n.dart';
 export 'src/platform/zt_capabilities.dart';
 export 'src/platform/zt_database.dart' show LocalStoreInUse;
 export 'src/platform/zt_platform.dart' show ztWipeBrowserStorage;
+export 'src/sync/breather.dart';
 export 'src/sync/device_id.dart';
 export 'src/sharing/in_memory_space_backend.dart';
 export 'src/sharing/shared_spaces.dart';
