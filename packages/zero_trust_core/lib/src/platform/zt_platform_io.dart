@@ -46,3 +46,8 @@ Future<void> ztMoveDatabaseAside(String path) async {
 /// device, where apps hand the file to the share sheet instead.
 Future<void> ztDownloadFile(String fileName, Uint8List bytes) =>
     throw UnsupportedError('Downloads are for the web build only');
+
+/// Whether this is a `flutter test` run. Tests run on a fake clock that
+/// never fires a real timer, so work that gives the screen a turn (see
+/// `Breather`) stays in one piece there.
+final bool ztInFlutterTest = Platform.environment.containsKey('FLUTTER_TEST');

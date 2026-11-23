@@ -334,6 +334,139 @@ void main() {
     expect((await laptop.store.get('a'))!.json, {'v': 'a'});
   });
 
+  group('rows already on this device', () {
+    // After a large import every pull re-reads the whole batch (it sits
+    // inside the overlap). Checking and decrypting it again each time froze
+    // the apps.
+    test('are not checked or decrypted again', () async {
+      final phone = await device('phone');
+      final store = InMemoryItemStore();
+      final codec = _CountingCodec(
+          AppItemCodec(appId: 'notes', appKey: appKey, signingKeys: signing));
+      final laptop = ItemSyncEngine.withCodec(
+        appId: 'notes',
+        codec: codec,
+        deviceId: 'laptop',
+        store: store,
+        backend: server,
+        clock: () => now,
+      );
+      for (var i = 0; i < 40; i++) {
+        await phone.save('n$i', {'v': i});
+      }
+      await phone.sync();
+
+      expect((await laptop.sync()).applied, 40);
+      expect(codec.opened, 40);
+
+      // The same 40 rows come back with every later pull.
+      expect((await laptop.sync()).applied, 0);
+      expect((await laptop.sync()).applied, 0);
+      expect(codec.opened, 40, reason: 'nothing was opened a second time');
+
+      // A real change among them is still read.
+      now = now.add(const Duration(minutes: 1));
+      await phone.save('n7', {'v': 'edited'});
+      await phone.sync();
+      expect((await laptop.sync()).applied, 1);
+      expect(codec.opened, 41);
+      expect((await store.get('n7'))!.json, {'v': 'edited'});
+    });
+
+    test('still move the edit clock after a restart with the clock set back',
+        () async {
+      final store = InMemoryItemStore();
+      ItemSyncEngine phone() => ItemSyncEngine(
+            appId: 'notes',
+            appKey: appKey,
+            deviceId: 'phone',
+            store: store,
+            backend: server,
+            signingKeys: signing,
+            clock: () => now,
+          );
+      final first = phone();
+      await first.save('n1', {'v': 'first'});
+      await first.sync();
+
+      // Restarted with the clock an hour back, before it ever pulled its own
+      // row: the stored edit time looks too far ahead to follow until the
+      // server's time is known again.
+      now = now.subtract(const Duration(hours: 1));
+      final restarted = phone();
+      await restarted.sync();
+      await restarted.save('n1', {'v': 'second'});
+      await restarted.sync();
+      expect((await store.get('n1'))!.json, {'v': 'second'},
+          reason: 'the new edit is stamped after the version it replaces');
+      expect((await (await device('laptop')).sync()).applied, 1);
+    });
+
+    test('the device that pushed them does not open them either', () async {
+      final store = InMemoryItemStore();
+      final codec = _CountingCodec(
+          AppItemCodec(appId: 'notes', appKey: appKey, signingKeys: signing));
+      final phone = ItemSyncEngine.withCodec(
+        appId: 'notes',
+        codec: codec,
+        deviceId: 'phone',
+        store: store,
+        backend: server,
+        clock: () => now,
+      );
+      for (var i = 0; i < 10; i++) {
+        await phone.save('n$i', {'v': i});
+      }
+      await phone.sync();
+      await phone.sync();
+      await phone.sync();
+      expect(codec.opened, 0);
+    });
+
+    test('an older row than the local edit is left alone, a newer one wins',
+        () async {
+      final phone = await device('phone');
+      final laptop = await device('laptop');
+      await phone.save('n1', {'v': 'phone'});
+      await phone.sync();
+      await laptop.sync();
+
+      now = now.add(const Duration(minutes: 1));
+      await laptop.save('n1', {'v': 'laptop'});
+      // Pulled again before the push: the server's older row changes nothing
+      // and isn't a conflict.
+      final result = await laptop.sync();
+      expect(result.conflicts, isEmpty);
+      expect(result.pushed, 1);
+
+      final back = await phone.sync();
+      expect(back.applied, 1);
+      expect((await phone.store.get('n1'))!.json, {'v': 'laptop'});
+    });
+
+    test('a damaged copy of a row held here is ignored, not applied', () async {
+      final phone = await device('phone');
+      final laptop = await device('laptop');
+      await phone.save('n1', {'v': 1});
+      await phone.sync();
+      await laptop.sync();
+      final good = server.rows['notes/n1']!;
+      server.inject(
+        'notes',
+        RemoteItem(
+            itemId: 'n1',
+            updatedAt: good.updatedAt,
+            deviceId: good.deviceId,
+            dataBlob: Uint8List.fromList([...good.dataBlob!]..[20] ^= 1),
+            signature: good.signature),
+      );
+      final result = await laptop.sync();
+      expect(result.applied, 0);
+      expect(result.rejected, isEmpty);
+      expect((await laptop.store.get('n1'))!.json, {'v': 1});
+    });
+  });
+
   test('rejected rows are retried and read once they verify', () async {
     final phone = await device('phone');
     final laptop = await device('laptop');
@@ -579,4 +712,27 @@ class _CountingBackend implements SyncBackend {
   Future<void> Function() subscribe(
           String app, void Function(RemoteItem) onChange) =>
       _inner.subscribe(app, onChange);
+}
+
+/// Counts the rows an engine actually checks and decrypts.
+class _CountingCodec implements ItemCodec {
+  _CountingCodec(this._inner);
+  final ItemCodec _inner;
+  int opened = 0;
+
+  @override
+  Future<Map<String, Object?>?> open(RemoteItem remote) {
+    opened++;
+    return _inner.open(remote);
+  }
+
+  @override
+  Future<RemoteItem> seal(LocalItem item, String deviceId) =>
+      _inner.seal(item, deviceId);
+
+  @override
+  Future<void> prepare(List<RemoteItem> batch) => _inner.prepare(batch);
+
+  @override
+  void close() => _inner.close();
 }

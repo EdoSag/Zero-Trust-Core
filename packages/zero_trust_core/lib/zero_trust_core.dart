@@ -27,6 +27,7 @@ export 'src/export/zt_data_export.dart';
 export 'src/export/zt_export_data_tile.dart';
 export 'src/l10n/zt_l10n.dart';
 export 'src/platform/zt_database.dart' show LocalStoreInUse;
+export 'src/sync/breather.dart';
 export 'src/sync/device_id.dart';
 export 'src/sharing/in_memory_space_backend.dart';
 export 'src/sharing/shared_spaces.dart';

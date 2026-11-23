@@ -134,4 +134,66 @@ void main() {
     expect((await laptopStore.get('n1'))!.json, {'title': 'Groceries'});
     expect(await laptopStore.lastPulledAt(), isNotNull);
   });
+
+  group('change announcements', () {
+    LocalItem item(int i) => LocalItem(
+        itemId: 'i$i', updatedAt: DateTime.utc(2026, 11, 23), json: {'v': i});
+
+    test('one per write, as before, under flutter test', () async {
+      final store = await ZtLocalStore.open(appKey: appKey);
+      addTearDown(store.close);
+      final events = <Set<String>>[];
+      store.changes.listen(events.add);
+      for (var i = 0; i < 100; i++) {
+        await store.put(item(i));
+      }
+      await pumpEventQueue();
+      expect(events, hasLength(100));
+    });
+
+    test('a long run of writes is announced in batches', () async {
+      final store = await ZtLocalStore.open(appKey: appKey, mergeBursts: true);
+      addTearDown(store.close);
+      final events = <Set<String>>[];
+      store.changes.listen(events.add);
+
+      // A screen saving a few items hears about each one at once.
+      for (var i = 0; i < 5; i++) {
+        await store.put(item(i));
+      }
+      await pumpEventQueue();
+      expect(events, hasLength(5));
+
+      // An import.
+      await Future<void>.delayed(const Duration(milliseconds: 80));
+      events.clear();
+      for (var i = 0; i < 500; i++) {
+        await store.put(item(i));
+      }
+      await Future<void>.delayed(const Duration(milliseconds: 400));
+      expect(events.length, lessThan(40));
+      expect({for (final e in events) ...e}, hasLength(500),
+          reason: 'every changed id is announced');
+
+      // The burst is over: single writes are announced at once again.
+      events.clear();
+      await store.put(item(1000));
+      await pumpEventQueue();
+      expect(events, [
+        {'i1000'}
+      ]);
+    });
+
+    test('closing the store announces what was still held', () async {
+      final store = await ZtLocalStore.open(appKey: appKey, mergeBursts: true);
+      final ids = <String>{};
+      store.changes.listen(ids.addAll);
+      for (var i = 0; i < 100; i++) {
+        await store.put(item(i));
+      }
+      await store.close();
+      await pumpEventQueue();
+      expect(ids, hasLength(100));
+    });
+  });
 }

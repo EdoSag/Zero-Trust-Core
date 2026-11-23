@@ -151,3 +151,7 @@ Future<void> ztDownloadFile(String fileName, Uint8List bytes) async {
   await Future<void>.delayed(const Duration(seconds: 1));
   web.URL.revokeObjectURL(url);
 }
+
+/// Whether this is a `flutter test` run (see the `dart:io` version). Browser
+/// test runs use real timers.
+const bool ztInFlutterTest = false;
