@@ -1297,4 +1297,75 @@ class ZtLocalizationsEn extends ZtLocalizations {
     );
     return 'Restored $_temp0. $_temp1';
   }
+
+  @override
+  String handoffSignInWith(String app) {
+    return 'Sign in with $app';
+  }
+
+  @override
+  String get handoffSignInWithAnother => 'Sign in with another ZT app';
+
+  @override
+  String handoffUnlockWith(String app) {
+    return 'Unlock with $app';
+  }
+
+  @override
+  String get handoffUnlockWithAnother => 'Unlock with another ZT app';
+
+  @override
+  String get handoffPickApp => 'Use the account from';
+
+  @override
+  String handoffWaiting(String app) {
+    return 'Confirm in $app…';
+  }
+
+  @override
+  String handoffAskSignIn(String app) {
+    return 'Sign in to $app?';
+  }
+
+  @override
+  String handoffAskUnlock(String app) {
+    return 'Unlock $app?';
+  }
+
+  @override
+  String handoffAskBody(String app, String email) {
+    return '$app will open with your Zero-Trust account ($email) on this phone, without the password. Only Zero-Trust apps can ask for this.';
+  }
+
+  @override
+  String handoffConfirm(String app) {
+    return 'Confirm it\'s you to share your account with $app.';
+  }
+
+  @override
+  String get handoffAllow => 'Allow';
+
+  @override
+  String handoffDeclined(String app) {
+    return '$app didn\'t share the account.';
+  }
+
+  @override
+  String handoffSignedOut(String app) {
+    return '$app isn\'t signed in. Sign in there first, or use your password here.';
+  }
+
+  @override
+  String handoffFailed(String app) {
+    return '$app couldn\'t share the account. Try again, or use your password.';
+  }
+
+  @override
+  String handoffNoAnswer(String app) {
+    return 'No answer came from $app. Try again.';
+  }
+
+  @override
+  String get handoffWrongAccount =>
+      'That app is signed in to a different account.';
 }

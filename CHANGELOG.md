@@ -3,7 +3,55 @@
 Apps depend on the core by git tag (`ref: vX.Y.Z`). Upgrade notes list what
 an app must change.
 
-## Unreleased
+## 1.0.0
+
+The first stable release. Every app moves to this tag. It holds sign in
+once per phone (S-2), the full backup file (S-5), one family space for the suite (S-10), tablet and
+foldable layouts (S-11), the in-app update check with an Obtainium link
+(S-1), email change (Z14), crash reports (Z15), the 7-day account deletion
+grace (Z22), the retired raw-password sign-in (Z21), every app in the
+suite list, and the fix for sync freezing after a large import. Old and
+pre-core accounts sign in and see their data as before.
+
+Moving an app from 0.13.0, or from a `backport/import-freeze-fix-on-core-*`
+branch, to `ref: v1.0.0`:
+
+- Nothing has to change for the app to build and run. The upgrade notes in
+  each section below are optional improvements.
+- Worth doing in the same bump: pass
+  `sink: ZtHttpCrashReportSink.supabase(supabaseUrl)` for crash reports
+  (Z15), build release APKs with `--dart-define=ZT_CHANNEL=direct` for the
+  update check (S-1), and override `ztBackupFilesProvider` to offer the full
+  backup on phones (S-5), and wrap the first screen in
+  `ZtSignInHandoffScope` so other apps can sign in with this one (S-2).
+- Database: all migrations up to `20261123130000_core_review_fixes` are
+  live. Edge functions `delete-account`, `account-deletion`, `change-email`,
+  `crash-report` and `sign-in-handoff` must be deployed for Z14, Z15, Z22
+  and S-2 sign-in to work (S-2 unlock works without it).
+
+### Sign in once per phone (S-2)
+
+- New: when another Zero-Trust app on the phone is signed in, the sign-in
+  screen offers **Sign in with ZT Notes** and the lock screen **Unlock with
+  ZT Notes**. That app asks its user (fingerprint or password) and hands
+  over the account's key and, to sign in, a one-time token, so the asking
+  app gets a session of its own without the password. Only apps signed
+  with the same key take part, and everything that travels between them is
+  sealed with a secret only the asking app has. Old accounts keep their
+  pre-core key (`legacyDek`).
+- The core now has an Android part (`android/`, plain Java), registered by
+  Flutter like any plugin. Its manifest adds `<queries>` for the suite's
+  packages.
+- New `AccountService.handoffGrant`, `signInWithHandoff` and
+  `unlockWithHandoff`; optional backend interface `AccountHandoffBackend`
+  (the Supabase backend implements it; test fakes don't need to).
+- New edge function `sign-in-handoff` (with the session): a one-time
+  magic-link token for the signed-in account, made without sending email.
+  Deploy with `supabase functions deploy sign-in-handoff`.
+- Upgrade: wrap the app's first screen in `ZtSignInHandoffScope`, inside
+  the `MaterialApp` (`home: const ZtSignInHandoffScope(child: AppGate())`),
+  so it can answer other apps. Without it the app can still ask, but never
+  answers.
 
 ### Every app in the suite list (`ZtSuite`)
 

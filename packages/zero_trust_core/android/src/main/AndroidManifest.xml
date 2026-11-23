@@ -1,0 +1,25 @@
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+    <!-- "Sign in once per phone" (S-2) looks for the other Zero-Trust apps
+         and checks they carry the same signature.
+         Android 11+ only shows an app the packages it names here. Keep in
+         step with ZtSuite.apps (a test checks). -->
+    <queries>
+        <package android:name="dev.sagron.zerotrustnotes" />
+        <package android:name="dev.sagron.zerotrusttasks" />
+        <package android:name="dev.sagron.zerotrustfitness" />
+        <package android:name="dev.sagron.zerotrustcontacts" />
+        <package android:name="dev.sagron.zerotrustclock" />
+        <package android:name="dev.sagron.zerotrusttime" />
+        <package android:name="dev.sagron.zerotrustquests" />
+        <package android:name="dev.sagron.zerotrustcalendar" />
+        <package android:name="dev.sagron.zerotrustbrowser" />
+        <package android:name="dev.sagron.zerotrustphone" />
+        <package android:name="dev.sagron.zerotrustcamera" />
+        <package android:name="dev.sagron.zerotrustgallery" />
+        <package android:name="dev.sagron.zerotrusthome" />
+        <package android:name="dev.sagron.zerotrustfamily" />
+        <package android:name="dev.sagron.zerotrustmeds" />
+        <package android:name="dev.sagron.zerotrustkeyboard" />
+        <package android:name="dev.sagron.zerotrustauthenticator" />
+    </queries>
+</manifest>

@@ -754,5 +754,101 @@
         "type": "int"
       }
     }
-  }
+  },
+  "handoffSignInWith": "Sign in with {app}",
+  "@handoffSignInWith": {
+    "placeholders": {
+      "app": {
+        "type": "String"
+      }
+    }
+  },
+  "handoffSignInWithAnother": "Sign in with another ZT app",
+  "handoffUnlockWith": "Unlock with {app}",
+  "@handoffUnlockWith": {
+    "placeholders": {
+      "app": {
+        "type": "String"
+      }
+    }
+  },
+  "handoffUnlockWithAnother": "Unlock with another ZT app",
+  "handoffPickApp": "Use the account from",
+  "handoffWaiting": "Confirm in {app}…",
+  "@handoffWaiting": {
+    "placeholders": {
+      "app": {
+        "type": "String"
+      }
+    }
+  },
+  "handoffAskSignIn": "Sign in to {app}?",
+  "@handoffAskSignIn": {
+    "placeholders": {
+      "app": {
+        "type": "String"
+      }
+    }
+  },
+  "handoffAskUnlock": "Unlock {app}?",
+  "@handoffAskUnlock": {
+    "placeholders": {
+      "app": {
+        "type": "String"
+      }
+    }
+  },
+  "handoffAskBody": "{app} will open with your Zero-Trust account ({email}) on this phone, without the password. Only Zero-Trust apps can ask for this.",
+  "@handoffAskBody": {
+    "placeholders": {
+      "app": {
+        "type": "String"
+      },
+      "email": {
+        "type": "String"
+      }
+    }
+  },
+  "handoffConfirm": "Confirm it's you to share your account with {app}.",
+  "@handoffConfirm": {
+    "placeholders": {
+      "app": {
+        "type": "String"
+      }
+    }
+  },
+  "handoffAllow": "Allow",
+  "handoffDeclined": "{app} didn't share the account.",
+  "@handoffDeclined": {
+    "placeholders": {
+      "app": {
+        "type": "String"
+      }
+    }
+  },
+  "handoffSignedOut": "{app} isn't signed in. Sign in there first, or use your password here.",
+  "@handoffSignedOut": {
+    "placeholders": {
+      "app": {
+        "type": "String"
+      }
+    }
+  },
+  "handoffFailed": "{app} couldn't share the account. Try again, or use your password.",
+  "@handoffFailed": {
+    "placeholders": {
+      "app": {
+        "type": "String"
+      }
+    }
+  },
+  "handoffNoAnswer": "No answer came from {app}. Try again.",
+  "@handoffNoAnswer": {
+    "placeholders": {
+      "app": {
+        "type": "String"
+      }
+    }
+  },
+  "handoffWrongAccount": "That app is signed in to a different account."
 }

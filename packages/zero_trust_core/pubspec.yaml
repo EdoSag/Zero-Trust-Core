@@ -1,6 +1,6 @@
 name: zero_trust_core
 description: Account, keys, vault lock and shared UI for every Zero-Trust app.
-version: 0.13.0
+version: 1.0.0
 publish_to: none
 
 environment:
@@ -45,3 +45,10 @@ hooks:
 
 flutter:
   generate: true
+  # "Sign in once per phone" (S-2) has an Android part (android/). Other
+  # platforms don't offer it.
+  plugin:
+    platforms:
+      android:
+        package: bz.zerotrust.core
+        pluginClass: ZtSignInHandoffPlugin

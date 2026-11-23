@@ -337,5 +337,21 @@
   "restore": "שחזור",
   "enterYourPasswordToRestore": "יש להזין את סיסמת החשבון כדי לשחזר לחשבון הזה.",
   "restoring": "משחזר את {app}…",
-  "backupRestored": "{restored, plural, =1{שוחזר פריט אחד.} other{שוחזרו {restored} פריטים.}} {skipped, plural, =0{} =1{פריט אחד כבר היה מעודכן.} other{{skipped} כבר היו מעודכנים.}}"
+  "backupRestored": "{restored, plural, =1{שוחזר פריט אחד.} other{שוחזרו {restored} פריטים.}} {skipped, plural, =0{} =1{פריט אחד כבר היה מעודכן.} other{{skipped} כבר היו מעודכנים.}}",
+  "handoffSignInWith": "התחברות עם {app}",
+  "handoffSignInWithAnother": "התחברות דרך אפליקציית ZT אחרת",
+  "handoffUnlockWith": "ביטול נעילה עם {app}",
+  "handoffUnlockWithAnother": "ביטול נעילה דרך אפליקציית ZT אחרת",
+  "handoffPickApp": "להשתמש בחשבון מתוך",
+  "handoffWaiting": "יש לאשר ב-{app}…",
+  "handoffAskSignIn": "להתחבר ל-{app}?",
+  "handoffAskUnlock": "לבטל את הנעילה של {app}?",
+  "handoffAskBody": "{app} תיפתח בטלפון הזה עם חשבון ה-Zero-Trust שלך ({email}), בלי סיסמה. רק אפליקציות Zero-Trust יכולות לבקש את זה.",
+  "handoffConfirm": "יש לאשר שזה באמת את/ה כדי לשתף את החשבון עם {app}.",
+  "handoffAllow": "אישור",
+  "handoffDeclined": "{app} לא שיתפה את החשבון.",
+  "handoffSignedOut": "{app} לא מחוברת. אפשר להתחבר בה קודם, או להזין כאן את הסיסמה.",
+  "handoffFailed": "{app} לא הצליחה לשתף את החשבון. אפשר לנסות שוב, או להזין את הסיסמה.",
+  "handoffNoAnswer": "לא התקבלה תשובה מ-{app}. אפשר לנסות שוב.",
+  "handoffWrongAccount": "האפליקציה הזאת מחוברת לחשבון אחר."
 }

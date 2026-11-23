@@ -266,3 +266,48 @@ class GraceFakeBackend extends FakeBackend implements AccountLifecycleBackend {
     return pending.email;
   }
 }
+
+/// One "server" seen by several apps on the same phone, for "sign in once
+/// per phone" (S-2): accounts and one-time sign-in tokens are shared, each
+/// app has its own session.
+class HandoffServer {
+  final Map<String, String> authPasswords = {};
+  final Map<String, ProfileRecord> profiles = {};
+
+  /// Token -> user. A token works once.
+  final Map<String, String> tokens = {};
+  int tokensMade = 0;
+
+  /// Makes the next [HandoffFakeBackend.handoffToken] fail like an
+  /// undeployed function.
+  bool functionMissing = false;
+}
+
+/// [FakeBackend] that can hand its session to another app (S-2), on a
+/// [HandoffServer] shared with the other apps' backends.
+class HandoffFakeBackend extends FakeBackend implements AccountHandoffBackend {
+  HandoffFakeBackend(this.server);
+  final HandoffServer server;
+
+  @override
+  Map<String, String> get authPasswords => server.authPasswords;
+  @override
+  Map<String, ProfileRecord> get profiles => server.profiles;
+
+  @override
+  Future<String> handoffToken() async {
+    if (server.functionMissing) throw Exception('404 function not found');
+    final user = currentUserId;
+    if (user == null) throw Exception('401');
+    final token = 'token-${server.tokensMade++}';
+    server.tokens[token] = user;
+    return token;
+  }
+
+  @override
+  Future<void> signInWithHandoffToken(String tokenHash) async {
+    final user = server.tokens.remove(tokenHash);
+    if (user == null) throw Exception('token expired or used');
+    _user = user;
+  }
+}
