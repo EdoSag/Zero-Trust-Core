@@ -2221,6 +2221,12 @@ abstract class ZtLocalizations {
   /// In en, this message translates to:
   /// **'That app is signed in to a different account.'**
   String get handoffWrongAccount;
+
+  /// No description provided for @tapToCheckForUpdates.
+  ///
+  /// In en, this message translates to:
+  /// **'Tap to check now.'**
+  String get tapToCheckForUpdates;
 }
 
 class _ZtLocalizationsDelegate extends LocalizationsDelegate<ZtLocalizations> {

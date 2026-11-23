@@ -850,5 +850,6 @@
       }
     }
   },
-  "handoffWrongAccount": "That app is signed in to a different account."
+  "handoffWrongAccount": "That app is signed in to a different account.",
+  "tapToCheckForUpdates": "Tap to check now."
 }

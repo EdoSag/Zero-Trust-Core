@@ -29,6 +29,14 @@ branch, to `ref: v1.0.0`:
   `crash-report` and `sign-in-handoff` must be deployed for Z14, Z15, Z22
   and S-2 sign-in to work (S-2 unlock works without it).
 
+### Review fixes before 1.0.0 (`zero_trust_core`)
+
+- With "Check for updates" off, opening Settings no longer asks GitHub: the
+  row says "Tap to check now." and checks only when tapped (S-1).
+- Restoring a full backup into the same account puts back files the server
+  lost or damaged for items that are unchanged since the backup. Files of
+  items changed or deleted since are still never uploaded (S-5).
+
 ### Sign in once per phone (S-2)
 
 - New: when another Zero-Trust app on the phone is signed in, the sign-in

@@ -237,6 +237,48 @@ void main() {
     expect(await read(serverA, dekA, 'notes', 'n2'), isNull);
   });
 
+  test('restoring into the same account puts back a lost file', () async {
+    final backup = await backUp();
+    final path = 'user-a/notes/${photo.id}';
+    final good = await filesA.download(path);
+    await filesA.remove([path]);
+
+    final result = await ZtBackup.restore(
+      contents: await ZtBackup.open(backup.bytes, backupPassword),
+      dek: dekA,
+      backend: serverA,
+      deviceId: 'dev-a',
+      files: filesA,
+      userId: 'user-a',
+    );
+    expect(result.restored, 0, reason: 'the notes themselves are unchanged');
+    expect(result.files, 1);
+    expect(await filesA.download(path), good);
+  });
+
+  test('a damaged copy is replaced, an intact one left alone', () async {
+    final backup = await backUp();
+    final path = 'user-a/notes/${photo.id}';
+    final good = await filesA.download(path);
+    final contents = await ZtBackup.open(backup.bytes, backupPassword);
+
+    Future<int> restoreFiles() async => (await ZtBackup.restore(
+          contents: contents,
+          dek: dekA,
+          backend: serverA,
+          deviceId: 'dev-a',
+          files: filesA,
+          userId: 'user-a',
+        ))
+            .files;
+
+    expect(await restoreFiles(), 0);
+    await filesA.upload(
+        path, Uint8List.sublistView(good, 0, good.length - 1000));
+    expect(await restoreFiles(), 1);
+    expect(await filesA.download(path), good);
+  });
+
   group('settings', () {
     const email = 'edo@example.com';
     const password = 'correct horse battery';

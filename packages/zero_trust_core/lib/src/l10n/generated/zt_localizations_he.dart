@@ -1367,4 +1367,7 @@ class ZtLocalizationsHe extends ZtLocalizations {
 
   @override
   String get handoffWrongAccount => 'האפליקציה הזאת מחוברת לחשבון אחר.';
+
+  @override
+  String get tapToCheckForUpdates => 'אפשר להקיש כדי לבדוק עכשיו.';
 }
