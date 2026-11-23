@@ -5,8 +5,8 @@ an app must change.
 
 ## 1.0.0
 
-The first stable release. Every app moves to this tag. It holds the full
-backup file (S-5), one family space for the suite (S-10), tablet and
+The first stable release. Every app moves to this tag. It holds sign in
+once per phone (S-2), the full backup file (S-5), one family space for the suite (S-10), tablet and
 foldable layouts (S-11), the in-app update check with an Obtainium link
 (S-1), email change (Z14), crash reports (Z15), the 7-day account deletion
 grace (Z22), the retired raw-password sign-in (Z21), every app in the
@@ -22,10 +22,12 @@ branch, to `ref: v1.0.0`:
   `sink: ZtHttpCrashReportSink.supabase(supabaseUrl)` for crash reports
   (Z15), build release APKs with `--dart-define=ZT_CHANNEL=direct` for the
   update check (S-1), and override `ztBackupFilesProvider` to offer the full
-  backup on phones (S-5).
+  backup on phones (S-5), and wrap the first screen in
+  `ZtSignInHandoffScope` so other apps can sign in with this one (S-2).
 - Database: all migrations up to `20261123130000_core_review_fixes` are
-  live. Edge functions `delete-account`, `account-deletion`, `change-email`
-  and `crash-report` must be deployed for Z14, Z15 and Z22 to work.
+  live. Edge functions `delete-account`, `account-deletion`, `change-email`,
+  `crash-report` and `sign-in-handoff` must be deployed for Z14, Z15, Z22
+  and S-2 sign-in to work (S-2 unlock works without it).
 
 ### Sign in once per phone (S-2)
 
