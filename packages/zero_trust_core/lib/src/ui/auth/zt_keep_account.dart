@@ -73,7 +73,14 @@ Future<bool> ztOfferToKeepAccount(
   if (keep != true) return false;
   final messenger = context.mounted ? ScaffoldMessenger.maybeOf(context) : null;
   try {
-    await account.keepAccount();
+    // False means nothing was cancelled: either it was already kept, or
+    // the deletion has started and can no longer be stopped.
+    if (!await account.keepAccount() &&
+        await account.pendingDeletion() != null) {
+      messenger?.showSnackBar(
+          SnackBar(content: Text(ZtL10n.current.accountTooLateToKeep)));
+      return false;
+    }
     messenger
         ?.showSnackBar(SnackBar(content: Text(ZtL10n.current.accountKept)));
     return true;

@@ -267,6 +267,7 @@
   "keepMyAccount": "השארת החשבון",
   "deleteAsPlanned": "למחוק כמתוכנן",
   "accountKept": "החשבון שלך לא יימחק.",
+  "accountTooLateToKeep": "כבר מאוחר מדי להשאיר את החשבון: הוא נמחק עכשיו.",
   "accountDeletionRequestedTitle": "מחיקת החשבון תוזמנה",
   "accountDeletionRequestedBody": "החשבון שלך יימחק ב-{date}. התחרטת? אפשר להיכנס לאחת מאפליקציות Zero-Trust לפני כן וללחוץ על השארת החשבון, או להשתמש בקישור ששלחנו לך במייל.",
   "ok": "אישור",

@@ -107,6 +107,29 @@ void main() {
     expect(find.text("Your account won't be deleted."), findsOneWidget);
   });
 
+  testWidgets('once the deletion has started, keeping is refused, not faked',
+      (tester) async {
+    await account.signUp(email: email, password: password);
+    backend.scheduled[email] = DateTime.utc(2026, 11, 29, 12);
+    backend.purging.add(email);
+    await tester.pumpWidget(app(Scaffold(
+        body: Builder(
+            builder: (context) => ZtPendingDeletionTile(account: account)))));
+    await settle(tester);
+    await tester.tap(find.text('Your account is set to be deleted'));
+    await settle(tester);
+    await tester.tap(find.widgetWithText(TextButton, 'Keep my account'));
+    await settle(tester);
+    expect(
+        find.text(
+            "It's too late to keep this account: it's being deleted now."),
+        findsOneWidget);
+    expect(find.text("Your account won't be deleted."), findsNothing);
+    expect(find.text('Your account is set to be deleted'), findsOneWidget,
+        reason: 'the warning stays');
+    expect(backend.scheduled, contains(email));
+  });
+
   testWidgets('"Delete as planned" leaves it scheduled', (tester) async {
     await account.signUp(email: email, password: password);
     backend.scheduled[email] = DateTime.utc(2026, 11, 29, 12);

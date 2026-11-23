@@ -37,8 +37,11 @@ begin
                            or new.created_at is distinct from old.created_at) then
     raise exception 'a poll keeps its id and owner' using errcode = '42501';
   end if;
-  if tg_op = 'INSERT' and (select count(*) from public.zt_polls
-                           where owner = new.owner and expires_at > now()) >= 30 then
+  -- At most 30 live polls per account, counted whenever a poll becomes live:
+  -- made live, or an expired one moved into the future.
+  if new.expires_at > now() and (tg_op = 'INSERT' or old.expires_at <= now())
+     and (select count(*) from public.zt_polls
+          where owner = new.owner and expires_at > now() and id <> new.id) >= 30 then
     raise exception using errcode = 'P0001', message = 'zt_poll_limit';
   end if;
   if new.expires_at > now() + interval '400 days' then

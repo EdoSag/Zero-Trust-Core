@@ -1700,6 +1700,12 @@ abstract class ZtLocalizations {
   /// **'Your account won\'t be deleted.'**
   String get accountKept;
 
+  /// No description provided for @accountTooLateToKeep.
+  ///
+  /// In en, this message translates to:
+  /// **'It\'s too late to keep this account: it\'s being deleted now.'**
+  String get accountTooLateToKeep;
+
   /// No description provided for @accountDeletionRequestedTitle.
   ///
   /// In en, this message translates to:

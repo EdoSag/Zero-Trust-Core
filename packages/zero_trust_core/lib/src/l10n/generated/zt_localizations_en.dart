@@ -1004,6 +1004,10 @@ class ZtLocalizationsEn extends ZtLocalizations {
   String get accountKept => 'Your account won\'t be deleted.';
 
   @override
+  String get accountTooLateToKeep =>
+      'It\'s too late to keep this account: it\'s being deleted now.';
+
+  @override
   String get accountDeletionRequestedTitle => 'Account deletion scheduled';
 
   @override
