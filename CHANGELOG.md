@@ -3,6 +3,18 @@
 Apps depend on the core by git tag (`ref: vX.Y.Z`). Upgrade notes list what
 an app must change.
 
+## 1.0.1
+
+Nothing for apps to change: move to `ref: v1.0.1` like to 1.0.0.
+
+### Review fixes (`zero_trust_core`)
+
+- With "Check for updates" off, opening Settings no longer asks GitHub: the
+  row says "Tap to check now." and checks only when tapped (S-1).
+- Restoring a full backup into the same account puts back files the server
+  lost or damaged for items that are unchanged since the backup. Files of
+  items changed or deleted since are still never uploaded (S-5).
+
 ## 1.0.0
 
 The first stable release. Every app moves to this tag. It holds sign in
@@ -28,14 +40,6 @@ branch, to `ref: v1.0.0`:
   live. Edge functions `delete-account`, `account-deletion`, `change-email`,
   `crash-report` and `sign-in-handoff` must be deployed for Z14, Z15, Z22
   and S-2 sign-in to work (S-2 unlock works without it).
-
-### Review fixes before 1.0.0 (`zero_trust_core`)
-
-- With "Check for updates" off, opening Settings no longer asks GitHub: the
-  row says "Tap to check now." and checks only when tapped (S-1).
-- Restoring a full backup into the same account puts back files the server
-  lost or damaged for items that are unchanged since the backup. Files of
-  items changed or deleted since are still never uploaded (S-5).
 
 ### Sign in once per phone (S-2)
 
