@@ -270,6 +270,33 @@ void main() {
       expect(await prefs.read('updates_check'), 'false');
     });
 
+    testWidgets('settings: switched off, GitHub is asked only on a tap',
+        (tester) async {
+      await prefs.write('updates_check', 'false');
+      await tester.pumpWidget(
+          app(ZtSettingsPage(onSignedOut: () {}, accountOptional: true)));
+      await settle(tester);
+      await showAbout(tester);
+      expect(requests, isEmpty);
+      final updateRow = find.byKey(const ValueKey('zt-app-updates'));
+      expect(
+          find.descendant(
+              of: updateRow, matching: find.text('Tap to check now.')),
+          findsOneWidget);
+      expect(
+          tester
+              .widget<SwitchListTile>(
+                  find.byKey(const ValueKey('zt-check-updates')))
+              .value,
+          isFalse);
+
+      await tester.tap(updateRow);
+      await settle(tester);
+      expect(requests, hasLength(1));
+      expect(find.text('Version 0.7.0 is available. Tap to update.'),
+          findsOneWidget);
+    });
+
     testWidgets('settings: up to date says so', (tester) async {
       answer = () => http.Response(jsonEncode(release(tag: 'v0.6.0')), 200);
       await tester.pumpWidget(

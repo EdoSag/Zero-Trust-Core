@@ -17,7 +17,7 @@ class ZtUpdatesTiles extends ConsumerStatefulWidget {
   ConsumerState<ZtUpdatesTiles> createState() => _ZtUpdatesTilesState();
 }
 
-enum _Phase { checking, done, failed }
+enum _Phase { idle, checking, done, failed }
 
 class _ZtUpdatesTilesState extends ConsumerState<ZtUpdatesTiles> {
   _Phase _phase = _Phase.checking;
@@ -27,12 +27,21 @@ class _ZtUpdatesTilesState extends ConsumerState<ZtUpdatesTiles> {
   @override
   void initState() {
     super.initState();
+    unawaited(_start());
+  }
+
+  /// Checks on opening only while "Check for updates" is on: switched off,
+  /// GitHub is asked only when the person taps the row.
+  Future<void> _start() async {
     final updates = ref.read(ztUpdatesProvider);
     if (updates == null) return;
-    unawaited(updates.enabled().then((on) {
-      if (mounted) setState(() => _enabled = on);
-    }));
-    unawaited(_check());
+    final on = await updates.enabled();
+    if (!mounted) return;
+    setState(() {
+      _enabled = on;
+      if (!on) _phase = _Phase.idle;
+    });
+    if (on) await _check();
   }
 
   Future<void> _check() async {
@@ -59,6 +68,7 @@ class _ZtUpdatesTilesState extends ConsumerState<ZtUpdatesTiles> {
     final l = ZtL10n.of(context);
     final update = _status?.update;
     final String subtitle = switch (_phase) {
+      _Phase.idle => l.tapToCheckForUpdates,
       _Phase.checking => l.checkingForUpdates,
       _Phase.failed => l.couldNotCheckForUpdates,
       _Phase.done when update != null =>

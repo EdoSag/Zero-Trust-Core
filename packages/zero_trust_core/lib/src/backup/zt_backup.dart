@@ -360,17 +360,39 @@ abstract final class ZtBackup {
           final there = {
             for (final row in await backend
                 .fetch(app, {for (final item in candidates) item.id}))
-              row.itemId: row.updatedAt,
+              row.itemId: row,
           };
           final batch = [
             for (final item in candidates)
-              if (there[item.id] case final at?
-                  when !item.updatedAt.isAfter(at))
+              if (there[item.id] case final row?
+                  when !item.updatedAt.isAfter(row.updatedAt))
                 null
               else
                 item,
           ].nonNulls.toList();
           skipped += candidates.length - batch.length;
+          // An item the account still has exactly as backed up may have
+          // lost its file on the server: put back the files that are
+          // missing (never those of items changed or deleted since).
+          if (files != null && userId != null) {
+            final refs = <String, ZtAttachmentRef>{};
+            for (final item in candidates) {
+              final row = there[item.id];
+              if (row != null &&
+                  !row.deleted &&
+                  row.updatedAt.isAtSameMomentAs(item.updatedAt)) {
+                ZtDataExporter.findAttachmentRefs(item.json, refs);
+              }
+            }
+            for (final MapEntry(key: id, value: ref) in refs.entries) {
+              final bytes = contents.files['$app/$id'];
+              if (bytes == null) continue;
+              final path = _filePath(userId, app, id);
+              if (await _intact(files, path, ref)) continue;
+              await files.upload(path, bytes);
+              uploaded++;
+            }
+          }
           if (batch.isEmpty) continue;
           // Only the files these items refer to, before the items.
           if (files != null && userId != null) {
@@ -404,6 +426,25 @@ abstract final class ZtBackup {
     }
     return ZtRestoreResult(
         restored: restored, skipped: skipped, files: uploaded);
+  }
+
+  /// The server's copy of a file is there and opens with its key.
+  static Future<bool> _intact(
+      AttachmentBackend files, String path, ZtAttachmentRef ref) async {
+    final Uint8List sealed;
+    try {
+      sealed = await files.download(path);
+    } on AttachmentNotFound {
+      return false;
+    }
+    try {
+      final plain = await AttachmentCipher.decrypt(sealed,
+          key: ref.key, attachmentId: ref.id);
+      plain.fillRange(0, plain.length, 0);
+      return plain.length == ref.size;
+    } on Object {
+      return false; // Cut or swapped: replace it.
+    }
   }
 
   static String _filePath(String userId, String app, String id) {
