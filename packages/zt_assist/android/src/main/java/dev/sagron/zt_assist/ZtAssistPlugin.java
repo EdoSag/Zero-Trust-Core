@@ -74,6 +74,8 @@ public class ZtAssistPlugin implements FlutterPlugin, MethodChannel.MethodCallHa
     private final ArrayList<Message> unsent = new ArrayList<>();
     /** Requests and status questions still waiting for their end. */
     private final Set<String> open = new HashSet<>();
+    /** The app asked to let go while an answer was still on its way. */
+    private boolean releaseWhenIdle = false;
 
     private final Messenger replies = new Messenger(new Handler(Looper.getMainLooper()) {
         @Override
@@ -178,7 +180,11 @@ public class ZtAssistPlugin implements FlutterPlugin, MethodChannel.MethodCallHa
             }
             case "release":
                 result.success(null);
-                if (open.isEmpty()) disconnect();
+                if (open.isEmpty()) {
+                    disconnect();
+                } else {
+                    releaseWhenIdle = true;
+                }
                 break;
             default:
                 result.notImplemented();
@@ -210,6 +216,7 @@ public class ZtAssistPlugin implements FlutterPlugin, MethodChannel.MethodCallHa
             return;
         }
         open.add(id);
+        releaseWhenIdle = false;
         main.removeCallbacks(disconnectWhenIdle);
         if (!post(what, data)) {
             open.remove(id);
@@ -326,12 +333,17 @@ public class ZtAssistPlugin implements FlutterPlugin, MethodChannel.MethodCallHa
     /** Starts the wait after which an unused connection is closed. */
     private void idle() {
         if (!open.isEmpty()) return;
+        if (releaseWhenIdle) {
+            disconnect();
+            return;
+        }
         main.removeCallbacks(disconnectWhenIdle);
         main.postDelayed(disconnectWhenIdle, KEEP_CONNECTED_MS);
     }
 
     private void disconnect() {
         main.removeCallbacks(disconnectWhenIdle);
+        releaseWhenIdle = false;
         unsent.clear();
         service = null;
         if (!bound) return;

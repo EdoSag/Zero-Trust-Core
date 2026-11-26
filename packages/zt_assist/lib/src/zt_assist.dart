@@ -196,7 +196,8 @@ abstract class ZtAssist {
   }
 
   /// Lets ZT Assist give the model's memory back now and not in two
-  /// minutes. Does nothing while an answer is on its way.
+  /// minutes. While an answer is on its way, it lets go as soon as that
+  /// answer has ended.
   Future<void> release();
 }
 
