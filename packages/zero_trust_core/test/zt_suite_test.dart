@@ -16,6 +16,16 @@ void main() {
     expect(ZtSuite.authenticator.androidPackage,
         'dev.sagron.zerotrustauthenticator');
     expect(ZtSuite.authenticator.available, isFalse);
-    expect(ZtSuite.apps.where((a) => !a.available), [ZtSuite.authenticator]);
+    expect(ZtSuite.apps.where((a) => !a.available),
+        [ZtSuite.authenticator, ZtSuite.assist]);
+  });
+
+  test('ZT Assist is listed but not offered yet', () {
+    expect(ZtSuite.byId('assist'), same(ZtSuite.assist));
+    expect(
+        ZtSuite.byPackage('dev.sagron.zerotrustassist'), same(ZtSuite.assist));
+    expect(ZtSuite.assist.available, isFalse);
+    // Its chats are part of a full backup.
+    expect(ZtBackup.apps, contains('assist'));
   });
 }

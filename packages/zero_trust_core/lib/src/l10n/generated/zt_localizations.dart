@@ -1322,6 +1322,12 @@ abstract class ZtLocalizations {
   /// **'Two-step sign-in codes'**
   String get taglineAuthenticator;
 
+  /// No description provided for @taglineAssist.
+  ///
+  /// In en, this message translates to:
+  /// **'A private AI assistant that runs on your phone'**
+  String get taglineAssist;
+
   /// Settings row: the account's plan, e.g. 'Plan: Free'
   ///
   /// In en, this message translates to:

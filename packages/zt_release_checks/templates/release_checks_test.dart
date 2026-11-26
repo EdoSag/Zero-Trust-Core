@@ -7,8 +7,9 @@
 // camera, family and home: core 0.12, 2026-11-18; clock: core 0.12,
 // 2026-11-19; same derivation and format)
 // and checked independently with Python (hashlib, hmac, cryptography). The
-// mail and keyboard values (2026-11-21) and the authenticator values
-// (2026-11-22) went the other way round: made with
+// mail and keyboard values (2026-11-21), the authenticator values
+// (2026-11-22) and the assist values (2026-11-26) went the other way round:
+// made with
 // Python, after the same script reproduced the values of the apps before
 // them, and checked by core 0.13 here. If one
 // fails, a dependency bump or a
@@ -47,6 +48,7 @@ const _suite = [
   'mail',
   'keyboard',
   'authenticator',
+  'assist',
 ];
 
 /// App key and signing public key for DEK = 00 01 .. 1f.
@@ -118,6 +120,10 @@ const _appKeys = {
   'authenticator': (
     '035ad4c357190048d593f3a90d0dafd1695f657241e410e6b4432f9c726229d5',
     'c72fdf1a8fc3b9e424a744479b9f5565ad3802b7e6ea8546de765dd633acbcbe',
+  ),
+  'assist': (
+    'ff408404a156129b4be15f253a6b0693ad9a345c82edc19876cb738e7abecffe',
+    '6fb8c9d71e8e854c1e07483108d18c38ba6c602857fccff153ed670a1b1e7d7a',
   ),
 };
 
@@ -191,6 +197,10 @@ const _syncedItems = {
   'authenticator': (
     'nv+fD4sVSNj+3KaKpLbCAAidpRHSUh9J5dwrFWLOmP4VY6MF6WPbWt8VRlXsw8wD12dXsOaWCZ1G409SmKyT8RyX',
     '9eSFZVpAymcmlo7+rqK+ql60keJ2zBywqHGh78sl4xvhlMgt8blmV5IRRHdJ49XcW48eyuobhdU4Bd5l+YJRBQ==',
+  ),
+  'assist': (
+    'EvgkhQQHm0U5KrWiPW7VlO26DPt4PuCiEr19diJBJgZ5tdGNNUT06pCMYmh6eja3it6/WY1cCYXtjTKWIrauRd9I',
+    '33O1do2xyn6g7B6wQYgJpIqICcVdce/2M8Ulrry2xUpi2gXo2mcoT5bZq4Uml14TR1PN6QbaSwXQuGjXnEmVAg==',
   ),
 };
 

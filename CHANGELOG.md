@@ -3,6 +3,14 @@
 Apps depend on the core by git tag (`ref: vX.Y.Z`). Upgrade notes list what
 an app must change.
 
+## Unreleased
+
+Nothing for apps to change.
+
+- ZT Assist joins the suite list (`ZtSuite.assist`, app id `assist`), not
+  offered in "Other Zero-Trust apps" until it is released. Its chats are
+  part of a full backup. The release checks know its keys.
+
 ## 1.0.1
 
 Nothing for apps to change: move to `ref: v1.0.1` like to 1.0.0.

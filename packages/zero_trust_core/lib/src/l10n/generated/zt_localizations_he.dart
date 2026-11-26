@@ -766,6 +766,9 @@ class ZtLocalizationsHe extends ZtLocalizations {
   String get taglineAuthenticator => 'קודים לכניסה בשני שלבים';
 
   @override
+  String get taglineAssist => 'עוזר AI פרטי שרץ בטלפון עצמו';
+
+  @override
   String planName(String name) {
     return 'תוכנית: $name';
   }
