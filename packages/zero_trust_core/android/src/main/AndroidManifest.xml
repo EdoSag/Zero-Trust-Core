@@ -21,5 +21,6 @@
         <package android:name="dev.sagron.zerotrustmeds" />
         <package android:name="dev.sagron.zerotrustkeyboard" />
         <package android:name="dev.sagron.zerotrustauthenticator" />
+        <package android:name="dev.sagron.zerotrustassist" />
     </queries>
 </manifest>
