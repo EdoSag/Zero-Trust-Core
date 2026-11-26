@@ -17,4 +17,5 @@
 /// else. Tests use `FakeZtAssist` from `package:zt_assist/testing.dart`.
 library;
 
+export 'src/quick_add.dart';
 export 'src/zt_assist.dart';

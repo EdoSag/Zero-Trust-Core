@@ -22,6 +22,11 @@ Nothing for apps to change.
       ref: <the same ref as zero_trust_core>
       path: packages/zt_assist
   ```
+- `zt_assist` 0.2.0: quick add. `ZtAssistTask.quickAdd` has ZT Assist read
+  a typed line ("dentist tomorrow at 9") into a title, a day, a time, a
+  length, a reminder and a place, and `ZtAssistQuickAdd.fromAnswer` checks
+  the answer before an app uses it. A ZT Assist from before this job
+  answers "needs an update".
 
 ## 1.0.1
 

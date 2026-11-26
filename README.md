@@ -432,6 +432,22 @@ job lives in ZT Assist, so it improves for every app with one update of
 ZT Assist. Only apps signed with the suite's key are answered, and the
 package only talks to a ZT Assist signed with that key. Android only.
 
+Quick add: `ZtAssistTask.quickAdd` reads a typed line ("dentist tomorrow at
+9, remind me an hour before") into JSON, and `ZtAssistQuickAdd.fromAnswer`
+checks it: a day that does not exist or is past, a time the line gives no
+reason for and a place the line does not name are dropped. An app keeps its
+own reading of the line and puts the two together: the day from its own
+reading where it found one (code counts days exactly), the title, time,
+length, reminder and place from ZT Assist where it has one. The result is
+shown before anything is saved.
+
+```dart
+final answer = await assist.run(
+    ZtAssistRequest(task: ZtAssistTask.quickAdd, text: line));
+final read = ZtAssistQuickAdd.fromAnswer(answer, text: line, now: DateTime.now());
+if (read == null) { /* not understood: keep the app's own reading */ }
+```
+
 ### Attachments
 
 ```dart

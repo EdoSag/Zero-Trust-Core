@@ -1,8 +1,9 @@
 # zt_assist
 
 Lets a Zero-Trust app ask ZT Assist, the suite's private AI, to summarize,
-rewrite, proofread, translate or title a text, or to follow the app's own
-instruction. The model runs inside ZT Assist on the same phone: the text goes
+rewrite, proofread, translate or title a text, to read a typed line like
+"dentist tomorrow at 9" into a task or an event (`ZtAssistQuickAdd`), or to
+follow the app's own instruction. The model runs inside ZT Assist on the same phone: the text goes
 from one app to the other and nowhere else, and nothing is sent to a server.
 See the "Ask ZT Assist" section of the repository README.
 

@@ -378,6 +378,7 @@ void main() {
       'translate',
       'title',
       'ask',
+      'quickAdd',
     ]);
   });
 }
