@@ -178,16 +178,19 @@ class ZtAssistQuickAdd {
   }
 
   // What a line that names a time of day has in it, other than a digit.
-  static const _timeWords = [
-    // English.
-    'one', 'two', 'three', 'four', 'five', 'six', 'seven', 'eight', 'nine',
-    'ten', 'eleven', 'twelve', 'noon', 'midday', 'midnight', 'morning',
-    'afternoon', 'evening', 'night', "o'clock", 'half past', 'quarter',
-    // Hebrew.
-    'אחת', 'שתיים', 'שתים', 'שלוש', 'ארבע', 'חמש', 'שש', 'שבע', 'שמונה',
-    'תשע', 'עשר', 'בוקר', 'צהריים', 'צהרים', 'ערב', 'לילה', 'חצות', 'וחצי',
-    'ורבע',
-  ];
+  // Whole words only: "honey" has no "one" in it and "tenancy" no "ten".
+  static final _englishTimeWord = RegExp(
+    r"\b(?:one|two|three|four|five|six|seven|eight|nine|ten|eleven|twelve|"
+    r"noon|midday|midnight|morning|afternoon|evening|night|tonight|"
+    r"o'clock|half past|quarter)\b",
+  );
+
+  // Hebrew joins "at", "to", "and" and the like to the word, so up to two
+  // such letters may come first, and nothing may follow.
+  static final _hebrewTimeWord = RegExp(
+    '(?<![א-ת])[ובלהמשכ]{0,2}(?:אחת|שתיים|שתים|שלוש|ארבע|חמש|שש|שבע|שמונה|'
+    'תשע|עשר|עשרה|בוקר|צהריים|צהרים|ערב|לילה|חצות|חצי|רבע)(?![א-ת])',
+  );
 
   static (int, int)? _time(Object? value, String text) {
     final answer = _text(value);
@@ -207,7 +210,9 @@ class ZtAssistQuickAdd {
     if (hour > 23 || minute > 59) return null;
     // A time the line gives no reason for was made up.
     final line = text.toLowerCase();
-    final named = RegExp(r'\d').hasMatch(line) || _timeWords.any(line.contains);
+    final named = RegExp(r'\d').hasMatch(line) ||
+        _englishTimeWord.hasMatch(line) ||
+        _hebrewTimeWord.hasMatch(line);
     return named ? (hour, minute) : null;
   }
 

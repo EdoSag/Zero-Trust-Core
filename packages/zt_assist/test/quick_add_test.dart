@@ -132,6 +132,26 @@ void main() {
       expect(read('{"time":"16:30"}', text: 'פגישה בארבע וחצי')!.hour, 16);
     });
 
+    test('a time word inside another word is no reason', () {
+      bool timed(String text) =>
+          read('{"title":"x","time":"09:00"}', text: text)!.hasTime;
+      // "one" in honey, "ten" in tenancy, "night" in knight.
+      expect(timed('Buy honey tomorrow'), isFalse);
+      expect(timed('Renew tenancy'), isFalse);
+      expect(timed('Chess: move the knight'), isFalse);
+      expect(timed('Call Dana at nine'), isTrue);
+      expect(timed('Dinner tonight'), isTrue);
+      expect(timed("Meet at seven o'clock"), isTrue);
+      // Hebrew: "שש" in ששון and "ערב" in ערבות are other words, while the
+      // joined "at" and "and" stay part of the time.
+      expect(timed('להתקשר לששון'), isFalse);
+      expect(timed('לבדוק ערבות לדירה'), isFalse);
+      expect(timed('פגישה בשש'), isTrue);
+      expect(timed('ארוחה בערב'), isTrue);
+      expect(timed('רופא בשמונה ורבע'), isTrue);
+      expect(timed('טיסה באחת עשרה בלילה'), isTrue);
+    });
+
     test('a length or a reminder out of range', () {
       final result = read(
         '{"title":"x","minutes":2,"remind":-5}',
