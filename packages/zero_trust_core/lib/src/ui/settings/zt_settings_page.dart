@@ -415,6 +415,7 @@ class ZtSettingsPage extends ConsumerWidget {
       'meds' => l.taglineMeds,
       'keyboard' => l.taglineKeyboard,
       'authenticator' => l.taglineAuthenticator,
+      'assist' => l.taglineAssist,
       _ => app.tagline,
     };
   }

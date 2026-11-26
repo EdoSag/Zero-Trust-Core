@@ -43,6 +43,7 @@ const suiteAppIds = {
   'mail',
   'keyboard',
   'authenticator',
+  'assist',
 };
 
 /// Checks that need no device and no network: what went wrong in past

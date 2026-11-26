@@ -56,7 +56,7 @@ jobs:
       - run: flutter test
       - name: The apps' release checks pass against this core, for every app
         run: |
-          for app in notes tasks fitness contacts calendar phone browser time meds quests camera family home clock mail keyboard authenticator; do
+          for app in notes tasks fitness contacts calendar phone browser time meds quests camera family home clock mail keyboard authenticator assist; do
             sed "s/{{APP_ID}}/$app/" ../zt_release_checks/templates/release_checks_test.dart \
               > "test/release_checks_${app}_test.dart"
           done

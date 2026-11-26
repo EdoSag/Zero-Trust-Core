@@ -203,6 +203,16 @@ abstract final class ZtSuite {
     available: false, // not out yet
   );
 
+  static const assist = ZtSuiteApp(
+    appId: 'assist',
+    name: 'Assist',
+    tagline: 'A private AI assistant that runs on your phone',
+    icon: Icons.auto_awesome_outlined,
+    accent: Color(0xFFD946EF), // fuchsia
+    androidPackage: 'dev.sagron.zerotrustassist',
+    available: false, // not out yet
+  );
+
   /// Every app, in the website's order.
   static const List<ZtSuiteApp> apps = [
     notes,
@@ -222,6 +232,7 @@ abstract final class ZtSuite {
     meds,
     keyboard,
     authenticator,
+    assist,
   ];
 
   static ZtSuiteApp? byId(String appId) {
