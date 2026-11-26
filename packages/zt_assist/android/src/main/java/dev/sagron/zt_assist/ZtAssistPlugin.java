@@ -92,7 +92,11 @@ public class ZtAssistPlugin implements FlutterPlugin, MethodChannel.MethodCallHa
             service = new Messenger(binder);
             final ArrayList<Message> waiting = new ArrayList<>(unsent);
             unsent.clear();
-            for (Message message : waiting) deliver(message);
+            for (Message message : waiting) {
+                // A failed delivery has already ended every request and
+                // closed the connection; the rest has nowhere to go.
+                if (!deliver(message)) break;
+            }
         }
 
         @Override
@@ -261,12 +265,17 @@ public class ZtAssistPlugin implements FlutterPlugin, MethodChannel.MethodCallHa
         return true;
     }
 
-    private void deliver(Message message) {
+    /** False when ZT Assist was gone; every open request has then failed. */
+    private boolean deliver(Message message) {
+        final Messenger to = service;
+        if (to == null) return false;
         try {
-            service.send(message);
+            to.send(message);
+            return true;
         } catch (RemoteException gone) {
             failAll("stopped");
             disconnect();
+            return false;
         }
     }
 
