@@ -1,0 +1,8 @@
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+    <!-- Android 11+ only shows an app the packages it names. Without this
+         line the app could neither see that ZT Assist is installed nor
+         reach it. No permission is asked for: nothing leaves the phone. -->
+    <queries>
+        <package android:name="dev.sagron.zerotrustassist" />
+    </queries>
+</manifest>

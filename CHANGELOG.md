@@ -10,6 +10,18 @@ Nothing for apps to change.
 - ZT Assist joins the suite list (`ZtSuite.assist`, app id `assist`), not
   offered in "Other Zero-Trust apps" until it is released. Its chats are
   part of a full backup. The release checks know its keys.
+- New package `packages/zt_assist` (Flutter plugin, Android): an app hands
+  a text to ZT Assist on the same phone and gets a summary, a rewrite, a
+  correction, a translation or a title back, piece by piece. Only apps
+  that want it depend on it:
+
+  ```yaml
+  zt_assist:
+    git:
+      url: https://github.com/EdoSag/Zero-Trust-Core.git
+      ref: <the same ref as zero_trust_core>
+      path: packages/zt_assist
+  ```
 
 ## 1.0.1
 

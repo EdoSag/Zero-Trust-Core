@@ -20,6 +20,7 @@ is forgotten. What this does and doesn't protect against:
 |---|---|
 | `packages/zt_crypto` | Pure Dart: canonical base64, AES-256-GCM sealed boxes, Ed25519, PBKDF2/HKDF, key hierarchy, recovery key |
 | `packages/zt_places` | Flutter plugin: on-device place reminders (arrive / leave) and the shared place picker |
+| `packages/zt_assist` | Flutter plugin: ask ZT Assist, the private AI on the same phone, to summarize, rewrite, proofread, translate or title a text |
 | `packages/zero_trust_core` | Flutter: account service (sign-up, sign-in with legacy upgrade, change password, recovery, delete account), vault lock with auto-lock, shared theme |
 | `packages/zt_sharing_ui` | Flutter: the sharing screens every app uses (space members, invite with QR, join, compare codes), English and Hebrew |
 | `packages/zt_scheduler` | Pure Dart: the planner behind ZT Calendar's Planner. Fits tasks and habits into free time around events, on the device, and says which blocks to add, move and remove (see its README) |
@@ -402,6 +403,34 @@ await places.collect();                         // on unlock and resume
 
 Keep reminders and "My places" in the app's own encrypted store and pass
 the full list to `sync` whenever it changes. iOS is not built yet.
+
+### Ask ZT Assist (`packages/zt_assist`)
+
+ZT Assist holds the suite's AI model and runs it on the phone. Any other
+Zero-Trust app can hand it a text and get the answer back piece by piece.
+The text goes from one app to the other on the same phone and nowhere
+else. A separate package, so only apps that use it can see ZT Assist.
+
+```dart
+final assist = ZtAssist.instance;               // FakeZtAssist in tests
+if (!await assist.isInstalled()) return;        // or offer ZtAssist.installUrl
+final answer = assist.ask(const ZtAssistRequest(
+    task: ZtAssistTask.summarize, text: noteText));
+await for (final event in answer) {
+  switch (event) {
+    case ZtAssistChunk(:final text): shown += text;
+    case ZtAssistDone(:final truncated): /* say so when only the start was read */
+  }
+}
+```
+
+`run` gives the whole answer at once. A failure arrives as a
+`ZtAssistException` whose `error` says what to tell the user (not
+installed, no model downloaded yet, ZT Assist needs an update, out of
+memory). Cancelling the subscription stops the model. The wording of each
+job lives in ZT Assist, so it improves for every app with one update of
+ZT Assist. Only apps signed with the suite's key are answered, and the
+package only talks to a ZT Assist signed with that key. Android only.
 
 ### Attachments
 

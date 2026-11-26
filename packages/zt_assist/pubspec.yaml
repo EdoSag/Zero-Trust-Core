@@ -1,0 +1,24 @@
+name: zt_assist
+description: Lets a Zero-Trust app ask ZT Assist, the private AI that runs on the phone, for a summary, a correction, a translation and the like. Nothing leaves the phone.
+version: 0.1.0
+publish_to: none
+
+environment:
+  sdk: ^3.5.0
+  flutter: ">=3.24.0"
+
+dependencies:
+  flutter:
+    sdk: flutter
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^5.0.0
+
+flutter:
+  plugin:
+    platforms:
+      android:
+        package: dev.sagron.zt_assist
+        pluginClass: ZtAssistPlugin
