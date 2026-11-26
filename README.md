@@ -1,6 +1,20 @@
 # Zero-Trust Core
 
-Shared foundation for every Zero-Trust app (Fitness, Contacts, Tasks, Notes, …): one account, one key hierarchy, one vault lock, one look.
+Shared foundation for every Zero-Trust app: one account, one key hierarchy,
+one vault lock, one look. Part of the [Zero-Trust suite](https://zerotrust.bz).
+
+Apps built on it: [Notes](https://github.com/EdoSag/Zero-Trust-Notes), [Tasks](https://github.com/EdoSag/Zero-Trust-Tasks), [Calendar](https://github.com/EdoSag/Zero-Trust-Calendar), [Contacts](https://github.com/EdoSag/Zero-Trust-Contacts), [Phone](https://github.com/EdoSag/Zero-Trust-Phone), [Fitness](https://github.com/EdoSag/Zero-Trust-Fitness), [Meds](https://github.com/EdoSag/Zero-Trust-Meds), [Time](https://github.com/EdoSag/Zero-Trust-Time), [Quests](https://github.com/EdoSag/Zero-Trust-Quests), [Browser](https://github.com/EdoSag/Zero-Trust-Browser), [Clock](https://github.com/EdoSag/Zero-Trust-Clock), [Camera](https://github.com/EdoSag/Zero-Trust-Camera), [Gallery](https://github.com/EdoSag/Zero-Trust-Gallery), [Home](https://github.com/EdoSag/Zero-Trust-Home), [Family](https://github.com/EdoSag/Zero-Trust-Family), [Keyboard](https://github.com/EdoSag/Zero-Trust-Keyboard), [Authenticator](https://github.com/EdoSag/Zero-Trust-Authenticator),
+and the early [Mail](https://github.com/EdoSag/Zero-Trust-Mail). On the phone
+each is called "ZT <App>"; in stores and on release pages, "Zero-Trust <App>".
+
+**Zero-knowledge.** Everything an app stores is encrypted on the device, with
+keys made from the password, before it is sent. The server holds only
+ciphertext, and the password itself is never sent (see
+[Key hierarchy](#key-hierarchy) and
+[Sign-in never sends the real password](#sign-in-never-sends-the-real-password)).
+The recovery key shown at sign-up is the only way back in when the password
+is forgotten. What this does and doesn't protect against:
+[zerotrust.bz/security](https://zerotrust.bz/security/).
 
 | Path | What |
 |---|---|
@@ -11,7 +25,9 @@ Shared foundation for every Zero-Trust app (Fitness, Contacts, Tasks, Notes, …
 | `packages/zt_scheduler` | Pure Dart: the planner behind ZT Calendar's Planner. Fits tasks and habits into free time around events, on the device, and says which blocks to add, move and remove (see its README) |
 | `packages/zt_release_checks` | Release checks every app runs in CI: key, sync and sign-in vectors, app setup, database rules (see its README) |
 | `supabase/migrations` | The only schema source of truth for the shared Supabase project |
-| `supabase/functions/delete-account` | Edge Function behind in-app account deletion |
+| `supabase/functions` | Edge Functions: `delete-account` and `account-deletion` (account deletion with a 7-day grace and a "Keep my account" link), `change-email`, `sign-in-handoff` (sign in once per phone), `crash-report` (opt-in, not tied to an account) and `planner-ai` (ZT Calendar's optional AI helper, off unless switched on) |
+| `android-widget-kit` | The shared look of every app's Android home screen widgets |
+| `web-kit`, `tool` | What every web build ships (strict Content Security Policy page, manifest, headers) and the scripts that apply it |
 
 ## Key hierarchy
 
@@ -609,6 +625,27 @@ Android widgets in every app use the shared look in
   $(for f in migrations/*.sql; do echo -f "$f"; done) -f tests/key_guard_test.sql \
   -f tests/vault_items_test.sql -f tests/attachments_test.sql)
 ```
+
+## Branches and releases
+
+Work happens on `Dev`: pull requests target `Dev`, never `main`. A release is
+one `Dev` → `main` pull request, tagged `vX.Y.Z` on `main` afterwards. Apps
+depend on the core by tag; [CHANGELOG.md](CHANGELOG.md) says what an app must
+change for each version. CI (`.github/workflows/ci.yml`) runs the tests above
+with Flutter 3.47.9.
+
+Never add `cryptography_flutter` to the core or an app: it breaks the key
+derivation and sign-in fails.
+
+## Support and security
+
+- Help centre: [zerotrust.bz/help](https://zerotrust.bz/help/). Questions and
+  account deletion: support@zerotrust.bz.
+- Security problems: please report them privately to cyber@zerotrust.bz. What
+  the encryption does and doesn't protect against is on
+  [zerotrust.bz/security](https://zerotrust.bz/security/).
+- [Privacy policy](https://zerotrust.bz/privacy/) and
+  [terms](https://zerotrust.bz/terms/).
 
 ## License
 
