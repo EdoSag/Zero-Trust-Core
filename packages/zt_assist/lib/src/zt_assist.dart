@@ -23,6 +23,12 @@ enum ZtAssistTask {
 
   /// The app's own instruction, in [ZtAssistRequest.instruction].
   ask,
+
+  /// A typed line like "dentist tomorrow at 9" read into a title, a day,
+  /// a time, a length, a reminder and a place. The answer is JSON: give it
+  /// to `ZtAssistQuickAdd.fromAnswer`, which checks it. A ZT Assist from
+  /// before this job answers with [ZtAssistError.needsUpdate].
+  quickAdd,
 }
 
 /// One request to ZT Assist.

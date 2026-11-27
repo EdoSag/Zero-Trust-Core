@@ -1,6 +1,6 @@
 name: zt_assist
 description: Lets a Zero-Trust app ask ZT Assist, the private AI that runs on the phone, for a summary, a correction, a translation and the like. Nothing leaves the phone.
-version: 0.1.0
+version: 0.2.0
 publish_to: none
 
 environment:
