@@ -769,6 +769,9 @@ class ZtLocalizationsHe extends ZtLocalizations {
   String get taglineAssist => 'עוזר AI פרטי שרץ בטלפון עצמו';
 
   @override
+  String get taglinePrivacy => 'בדיקת פרטיות לטלפון';
+
+  @override
   String planName(String name) {
     return 'תוכנית: $name';
   }

@@ -213,6 +213,16 @@ abstract final class ZtSuite {
     available: false, // not out yet
   );
 
+  static const privacy = ZtSuiteApp(
+    appId: 'privacy',
+    name: 'Privacy',
+    tagline: 'A privacy check-up for your phone',
+    icon: Icons.shield_outlined,
+    accent: Color(0xFF64748B), // slate
+    androidPackage: 'dev.sagron.zerotrustprivacy',
+    available: false, // not out yet
+  );
+
   /// Every app, in the website's order.
   static const List<ZtSuiteApp> apps = [
     notes,
@@ -233,6 +243,7 @@ abstract final class ZtSuite {
     keyboard,
     authenticator,
     assist,
+    privacy,
   ];
 
   static ZtSuiteApp? byId(String appId) {

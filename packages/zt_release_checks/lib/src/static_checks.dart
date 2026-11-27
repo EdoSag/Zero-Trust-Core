@@ -44,6 +44,7 @@ const suiteAppIds = {
   'keyboard',
   'authenticator',
   'assist',
+  'privacy',
 };
 
 /// Checks that need no device and no network: what went wrong in past

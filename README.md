@@ -4,6 +4,7 @@ Shared foundation for every Zero-Trust app: one account, one key hierarchy,
 one vault lock, one look. Part of the [Zero-Trust suite](https://zerotrust.bz).
 
 Apps built on it: [Notes](https://github.com/EdoSag/Zero-Trust-Notes), [Tasks](https://github.com/EdoSag/Zero-Trust-Tasks), [Calendar](https://github.com/EdoSag/Zero-Trust-Calendar), [Contacts](https://github.com/EdoSag/Zero-Trust-Contacts), [Phone](https://github.com/EdoSag/Zero-Trust-Phone), [Fitness](https://github.com/EdoSag/Zero-Trust-Fitness), [Meds](https://github.com/EdoSag/Zero-Trust-Meds), [Time](https://github.com/EdoSag/Zero-Trust-Time), [Quests](https://github.com/EdoSag/Zero-Trust-Quests), [Browser](https://github.com/EdoSag/Zero-Trust-Browser), [Clock](https://github.com/EdoSag/Zero-Trust-Clock), [Camera](https://github.com/EdoSag/Zero-Trust-Camera), [Gallery](https://github.com/EdoSag/Zero-Trust-Gallery), [Home](https://github.com/EdoSag/Zero-Trust-Home), [Family](https://github.com/EdoSag/Zero-Trust-Family), [Keyboard](https://github.com/EdoSag/Zero-Trust-Keyboard), [Authenticator](https://github.com/EdoSag/Zero-Trust-Authenticator), [Assist](https://github.com/EdoSag/Zero-Trust-Assist),
+[Privacy](https://github.com/EdoSag/Zero-Trust-Privacy),
 and the early [Mail](https://github.com/EdoSag/Zero-Trust-Mail). On the phone
 each is called "ZT <App>"; in stores and on release pages, "Zero-Trust <App>".
 

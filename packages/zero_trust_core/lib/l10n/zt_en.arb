@@ -389,6 +389,7 @@
   "taglineKeyboard": "A private keyboard",
   "taglineAuthenticator": "Two-step sign-in codes",
   "taglineAssist": "A private AI assistant that runs on your phone",
+  "taglinePrivacy": "A privacy check-up for your phone",
   "planName": "Plan: {name}",
   "@planName": {
     "description": "Settings row: the account's plan, e.g. 'Plan: Free'",

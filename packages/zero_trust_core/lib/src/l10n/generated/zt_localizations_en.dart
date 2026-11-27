@@ -760,6 +760,9 @@ class ZtLocalizationsEn extends ZtLocalizations {
   String get taglineAssist => 'A private AI assistant that runs on your phone';
 
   @override
+  String get taglinePrivacy => 'A privacy check-up for your phone';
+
+  @override
   String planName(String name) {
     return 'Plan: $name';
   }

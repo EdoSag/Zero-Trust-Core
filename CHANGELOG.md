@@ -7,6 +7,10 @@ an app must change.
 
 Nothing for apps to change.
 
+- ZT Privacy joins the suite list (`ZtSuite.privacy`, app id `privacy`),
+  not offered in "Other Zero-Trust apps" until it is released. What the
+  user ticked or accepted on each phone is part of a full backup. The
+  release checks know its keys.
 - ZT Assist joins the suite list (`ZtSuite.assist`, app id `assist`), not
   offered in "Other Zero-Trust apps" until it is released. Its chats are
   part of a full backup. The release checks know its keys.

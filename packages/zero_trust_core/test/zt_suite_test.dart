@@ -17,7 +17,7 @@ void main() {
         'dev.sagron.zerotrustauthenticator');
     expect(ZtSuite.authenticator.available, isFalse);
     expect(ZtSuite.apps.where((a) => !a.available),
-        [ZtSuite.authenticator, ZtSuite.assist]);
+        [ZtSuite.authenticator, ZtSuite.assist, ZtSuite.privacy]);
   });
 
   test('ZT Assist is listed but not offered yet', () {
@@ -27,5 +27,15 @@ void main() {
     expect(ZtSuite.assist.available, isFalse);
     // Its chats are part of a full backup.
     expect(ZtBackup.apps, contains('assist'));
+  });
+
+  test('ZT Privacy is listed but not offered yet', () {
+    expect(ZtSuite.byId('privacy'), same(ZtSuite.privacy));
+    expect(ZtSuite.byPackage('dev.sagron.zerotrustprivacy'),
+        same(ZtSuite.privacy));
+    expect(ZtSuite.privacy.available, isFalse);
+    // What the user ticked or accepted on each phone is part of a full
+    // backup. The list of installed apps is never stored, so it is not.
+    expect(ZtBackup.apps, contains('privacy'));
   });
 }
