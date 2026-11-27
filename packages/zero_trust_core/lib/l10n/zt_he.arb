@@ -205,6 +205,7 @@
   "taglineKeyboard": "מקלדת פרטית",
   "taglineAuthenticator": "קודים לכניסה בשני שלבים",
   "taglineAssist": "עוזר AI פרטי שרץ בטלפון עצמו",
+  "taglinePrivacy": "בדיקת פרטיות לטלפון",
   "planName": "תוכנית: {name}",
   "planFree": "חינם",
   "planRenews": "מתחדשת ב-{date}",

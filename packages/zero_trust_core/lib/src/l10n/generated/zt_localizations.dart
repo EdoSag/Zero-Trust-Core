@@ -1328,6 +1328,12 @@ abstract class ZtLocalizations {
   /// **'A private AI assistant that runs on your phone'**
   String get taglineAssist;
 
+  /// No description provided for @taglinePrivacy.
+  ///
+  /// In en, this message translates to:
+  /// **'A privacy check-up for your phone'**
+  String get taglinePrivacy;
+
   /// Settings row: the account's plan, e.g. 'Plan: Free'
   ///
   /// In en, this message translates to:

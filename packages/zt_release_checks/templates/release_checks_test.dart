@@ -8,7 +8,8 @@
 // 2026-11-19; same derivation and format)
 // and checked independently with Python (hashlib, hmac, cryptography). The
 // mail and keyboard values (2026-11-21), the authenticator values
-// (2026-11-22) and the assist values (2026-11-26) went the other way round:
+// (2026-11-22), the assist values (2026-11-26) and the privacy values
+// (2026-11-27) went the other way round:
 // made with
 // Python, after the same script reproduced the values of the apps before
 // them, and checked by core 0.13 here. If one
@@ -49,6 +50,7 @@ const _suite = [
   'keyboard',
   'authenticator',
   'assist',
+  'privacy',
 ];
 
 /// App key and signing public key for DEK = 00 01 .. 1f.
@@ -124,6 +126,10 @@ const _appKeys = {
   'assist': (
     'ff408404a156129b4be15f253a6b0693ad9a345c82edc19876cb738e7abecffe',
     '6fb8c9d71e8e854c1e07483108d18c38ba6c602857fccff153ed670a1b1e7d7a',
+  ),
+  'privacy': (
+    '933967b41afa2ae7b8c299a40becd995a80d61cb03cece835dd4eaa31f389312',
+    '9ceb137fa5ee94695b594dcf84403cdc5cb7c6bc78ed92a4a717a6f4d90bfd8b',
   ),
 };
 
@@ -201,6 +207,10 @@ const _syncedItems = {
   'assist': (
     'EvgkhQQHm0U5KrWiPW7VlO26DPt4PuCiEr19diJBJgZ5tdGNNUT06pCMYmh6eja3it6/WY1cCYXtjTKWIrauRd9I',
     '33O1do2xyn6g7B6wQYgJpIqICcVdce/2M8Ulrry2xUpi2gXo2mcoT5bZq4Uml14TR1PN6QbaSwXQuGjXnEmVAg==',
+  ),
+  'privacy': (
+    'D4CbG8giO8tWmgGuiK0CYNt+KH7B3IDJww2XMTtEaVbeItnlarKnt5FlSVWxrPI/bLFn2PHaTvJmEYXJ6Uckzrl4',
+    'izU0RoCmoD8odzz1fGWK1LEy996MIIIAZ+4vThFSeb8Aspd+dHt+HvGUIo3TjNWOYRZgh76Km41+F6YxGb9oAQ==',
   ),
 };
 
