@@ -7,6 +7,11 @@ an app must change.
 
 Nothing for apps to change.
 
+- `zt_release_checks` 0.2.0: the zero-tracker check. After the release
+  build, `dart run zt_release_checks:zt_tracker_check <app.apk>` reads the
+  class names in the APK (or app bundle) and fails when any is from a
+  tracker on Exodus Privacy's list, the same list and the same rules as ZT
+  Privacy's scan. An app turns it on by adding that step to its workflow.
 - ZT Privacy joins the suite list (`ZtSuite.privacy`, app id `privacy`),
   not offered in "Other Zero-Trust apps" until it is released. What the
   user ticked or accepted on each phone is part of a full backup. The
