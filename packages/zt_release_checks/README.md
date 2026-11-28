@@ -52,6 +52,33 @@ callable by signed-in users. Tables the migrations dropped (the pre-core
 data) must be read by code that treats a missing table as "nothing to
 import", so old users never see an error.
 
+## No tracker code
+
+A Zero-Trust app must not contain code from advertising, analytics or
+similar kits, its own crash reporter included. A dependency can bring one in
+without anyone noticing, so the built app itself is read. Run from the app
+folder after the release build:
+
+```sh
+dart run zt_release_checks:zt_tracker_check build/app/outputs/flutter-apk/app-release.apk
+```
+
+It takes any number of APKs or app bundles (`.aab`). For each it reads the
+class names in the code files and fails when a name is from a tracker on
+[Exodus Privacy](https://exodus-privacy.eu.org/)'s list, naming the tracker
+and a few of the classes so the dependency can be found. A file with no
+readable code fails too: a scan that read nothing has shown nothing.
+
+The list (`data/exodus_trackers.json`) and the way names are matched are the
+same as in ZT Privacy's own scan of the phone's apps, so the app that looks
+for trackers finds none in ours. The list is under the Open Database
+License; see `data/NOTICE.md`. To refresh it, rebuild it in the
+Zero-Trust-Privacy repository (`tool/build_tracker_list.dart`) and copy the
+file here.
+
+It reads names only. Code whose names a build tool scrambled cannot be seen,
+and finding a name does not prove the code runs.
+
 ## Adding it to an app
 
 ```yaml
@@ -67,7 +94,8 @@ The package does not depend on `zero_trust_core`, so it can be newer than
 the app's core pin. Add `test/zt_release_checks_test.dart` to `.gitignore`.
 In `.github/workflows/android-apk.yml`, give the job a Postgres service and
 run the checks plus the app's own tests before the APK is built; see any
-app's workflow for the exact steps.
+app's workflow for the exact steps. After the step that builds the release
+APK, add the tracker check from the section above.
 
 A new app: add its id to `suiteAppIds`, and its vectors to the template,
 made with core and checked independently (see the template's header).

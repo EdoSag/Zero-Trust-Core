@@ -1,6 +1,6 @@
 name: zt_release_checks
-description: Release checks every Zero-Trust app runs in CI before a release (keys, sync, sign-in, config, database).
-version: 0.1.0
+description: Release checks every Zero-Trust app runs in CI before a release (keys, sync, sign-in, config, database, no tracker code).
+version: 0.2.0
 publish_to: none
 
 environment:

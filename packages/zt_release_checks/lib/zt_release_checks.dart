@@ -5,3 +5,4 @@ library;
 export 'src/database_checks.dart';
 export 'src/runner.dart';
 export 'src/static_checks.dart';
+export 'src/tracker_check.dart';

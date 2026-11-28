@@ -1,0 +1,4797 @@
+{
+ "format": 1,
+ "source": "Exodus Privacy tracker database",
+ "sourceUrl": "https://reports.exodus-privacy.eu.org/api/trackers",
+ "license": "ODbL-1.0",
+ "licenseUrl": "https://opendatacommons.org/licenses/odbl/1-0/",
+ "attribution": "Tracker definitions derived from the Exodus Privacy database, licensed under ODbL 1.0. https://exodus-privacy.eu.org/",
+ "newestEntry": "2023-12-05",
+ "trackers": [
+  {
+   "id": 1,
+   "name": "Teemo",
+   "kinds": [
+    "analytics"
+   ],
+   "website": "https://www.teemo.co",
+   "code": [
+    "com.databerries.",
+    "com.geolocstation."
+   ]
+  },
+  {
+   "id": 2,
+   "name": "FidZup",
+   "kinds": [
+    "analytics"
+   ],
+   "website": "https://www.fidzup.com",
+   "code": [
+    "com.fidzup."
+   ]
+  },
+  {
+   "id": 3,
+   "name": "Audience Studio (Krux)",
+   "kinds": [
+    "analytics",
+    "profiling"
+   ],
+   "website": "https://www.salesforce.com/products/marketing-cloud/data-management/?mc=DMP",
+   "code": [
+    "com.krux.androidsdk"
+   ]
+  },
+  {
+   "id": 4,
+   "name": "Ad4Screen",
+   "kinds": [
+    "ads"
+   ],
+   "website": "http://www.ad4screen.com",
+   "code": [
+    "com.ad4screen.sdk"
+   ]
+  },
+  {
+   "id": 6,
+   "name": "Weborama",
+   "kinds": [
+    "analytics"
+   ],
+   "website": "https://www.weborama.com",
+   "code": [
+    "com.weborama."
+   ]
+  },
+  {
+   "id": 7,
+   "name": "Smart",
+   "kinds": [],
+   "website": "http://smartadserver.com/",
+   "code": [
+    "com.smartadserver."
+   ]
+  },
+  {
+   "id": 8,
+   "name": "JW Player",
+   "kinds": [],
+   "website": "https://jwplayer.com",
+   "code": [
+    "com.longtailvideo.jwplayer."
+   ]
+  },
+  {
+   "id": 9,
+   "name": "Loggly",
+   "kinds": [
+    "analytics"
+   ],
+   "website": "http://loggly.com/",
+   "code": [
+    "com.github.tony19.timber.loggly",
+    "com.github.tony19.loggly",
+    "com.visiware.sync2ad.logger.loggly."
+   ]
+  },
+  {
+   "id": 11,
+   "name": "OutBrain",
+   "kinds": [],
+   "website": "http://www.outbrain.com/",
+   "code": [
+    "com.outbrain."
+   ]
+  },
+  {
+   "id": 12,
+   "name": "AppsFlyer",
+   "kinds": [
+    "analytics"
+   ],
+   "website": "http://AppsFlyer.com",
+   "code": [
+    "com.appsflyer."
+   ]
+  },
+  {
+   "id": 13,
+   "name": "Ligatus",
+   "kinds": [],
+   "website": "http://ligatus.com",
+   "code": [
+    ".LigatusManager",
+    ".LigatusViewClient",
+    "com.ligatus.android.adframework"
+   ]
+  },
+  {
+   "id": 14,
+   "name": "Widespace",
+   "kinds": [],
+   "website": "http://widespace.com",
+   "code": [
+    "com.widespace."
+   ]
+  },
+  {
+   "id": 15,
+   "name": "AppNexus",
+   "kinds": [],
+   "website": "https://www.appnexus.com/",
+   "code": [
+    "com.appnexus.opensdk."
+   ]
+  },
+  {
+   "id": 16,
+   "name": "Localytics",
+   "kinds": [
+    "analytics",
+    "profiling"
+   ],
+   "website": "http://localytics.com",
+   "code": [
+    "com.localytics.android.",
+    "com.localytics.androidx",
+    "com.localytics.react."
+   ]
+  },
+  {
+   "id": 17,
+   "name": "Braze (formerly Appboy)",
+   "kinds": [
+    "analytics",
+    "ads",
+    "location"
+   ],
+   "website": "https://www.braze.com",
+   "code": [
+    "com.appboy"
+   ]
+  },
+  {
+   "id": 18,
+   "name": "mParticle",
+   "kinds": [
+    "analytics"
+   ],
+   "website": "http://mparticle.com",
+   "code": [
+    "com.mparticle"
+   ]
+  },
+  {
+   "id": 20,
+   "name": "S4M",
+   "kinds": [
+    "analytics"
+   ],
+   "website": "http://www.s4m.io/",
+   "code": [
+    "com.sam4mobile.",
+    ".S4MAnalytic"
+   ]
+  },
+  {
+   "id": 22,
+   "name": "Sizmek",
+   "kinds": [
+    "analytics"
+   ],
+   "website": "https://www.sizmek.com",
+   "code": [
+    ".sizmek."
+   ]
+  },
+  {
+   "id": 23,
+   "name": "Batch",
+   "kinds": [
+    "analytics",
+    "profiling"
+   ],
+   "website": "https://batch.com",
+   "code": [
+    "com.batch.android."
+   ]
+  },
+  {
+   "id": 24,
+   "name": "Sync2Ad",
+   "kinds": [
+    "analytics"
+   ],
+   "website": "https://www.sync2ad.com/",
+   "code": [
+    "com.visiware.sync2ad.dmp."
+   ]
+  },
+  {
+   "id": 25,
+   "name": "Flurry",
+   "kinds": [
+    "ads",
+    "analytics"
+   ],
+   "website": "http://www.flurry.com",
+   "code": [
+    "com.flurry."
+   ]
+  },
+  {
+   "id": 26,
+   "name": "HockeyApp",
+   "kinds": [
+    "crashReporting"
+   ],
+   "website": "http://hockeyapp.net",
+   "code": [
+    "net.hockeyapp."
+   ]
+  },
+  {
+   "id": 27,
+   "name": "Google CrashLytics",
+   "kinds": [
+    "crashReporting"
+   ],
+   "website": "http://crashlytics.com",
+   "code": [
+    "io.fabric.",
+    "com.crashlytics.",
+    "com.google.firebase.crashlytics",
+    "com.google.firebase.crash.",
+    "io.invertase.firebase.crashlytics."
+   ]
+  },
+  {
+   "id": 28,
+   "name": "LeanPlum",
+   "kinds": [
+    "analytics",
+    "profiling",
+    "location"
+   ],
+   "website": "https://www.leanplum.com/",
+   "code": [
+    "com.leanplum."
+   ]
+  },
+  {
+   "id": 29,
+   "name": "Tinder Analytics",
+   "kinds": [
+    "analytics"
+   ],
+   "website": "http://tinder.com",
+   "code": [
+    "com.tinder.analytics",
+    "com.tinder.ads"
+   ]
+  },
+  {
+   "id": 30,
+   "name": "Schibsted",
+   "kinds": [],
+   "website": "http://www.schibsted.com/en/ir/",
+   "code": [
+    ".schibsted."
+   ]
+  },
+  {
+   "id": 31,
+   "name": "ATInternet",
+   "kinds": [
+    "analytics"
+   ],
+   "website": "https://www.atinternet.com/en/",
+   "code": [
+    "com.atinternet."
+   ]
+  },
+  {
+   "id": 32,
+   "name": "Tealium",
+   "kinds": [
+    "analytics"
+   ],
+   "website": "https://tealium.com/",
+   "code": [
+    ".tealium."
+   ]
+  },
+  {
+   "id": 33,
+   "name": "Nexage",
+   "kinds": [],
+   "website": "http://nexage.com/",
+   "code": [
+    "com.nexage.android.",
+    "org.nexage."
+   ]
+  },
+  {
+   "id": 34,
+   "name": "Ogury Presage",
+   "kinds": [],
+   "website": "http://www.presage.io/",
+   "code": [
+    "io.presage."
+   ]
+  },
+  {
+   "id": 35,
+   "name": "Twitter MoPub",
+   "kinds": [
+    "analytics",
+    "ads"
+   ],
+   "website": "https://www.mopub.com/",
+   "code": [
+    "com.mopub."
+   ]
+  },
+  {
+   "id": 36,
+   "name": "Add Apt Tr",
+   "kinds": [],
+   "website": "https://www.addapptr.com",
+   "code": [
+    "com.intentsoftware.addapptr."
+   ]
+  },
+  {
+   "id": 37,
+   "name": "Vectaury",
+   "kinds": [
+    "analytics",
+    "profiling",
+    "location"
+   ],
+   "website": "http://vectaury.io/",
+   "code": [
+    "io.vectaury."
+   ]
+  },
+  {
+   "id": 38,
+   "name": "Tune",
+   "kinds": [
+    "analytics"
+   ],
+   "website": "https://www.tune.com",
+   "code": [
+    "com.tune",
+    "com.mobileapptracker"
+   ]
+  },
+  {
+   "id": 39,
+   "name": "Pushwoosh",
+   "kinds": [],
+   "website": "https://www.pushwoosh.com/",
+   "code": [
+    "com.pushwoosh"
+   ]
+  },
+  {
+   "id": 40,
+   "name": "Demdex",
+   "kinds": [
+    "analytics"
+   ],
+   "website": "https://www.adobe.com/data-analytics-cloud/audience-manager.html",
+   "code": [
+    "com.adobe.mobile.Analytics",
+    "com.adobe.mobile.Config."
+   ]
+  },
+  {
+   "id": 41,
+   "name": "AdsWizz",
+   "kinds": [],
+   "website": "http://www.adswizz.com/",
+   "code": [
+    ".adswizz."
+   ]
+  },
+  {
+   "id": 42,
+   "name": "ExactTarget",
+   "kinds": [
+    "analytics"
+   ],
+   "website": "http://help.exacttarget.com/en/technical_library/API_Overview/",
+   "code": [
+    "com.exacttarget."
+   ]
+  },
+  {
+   "id": 43,
+   "name": "Omniture",
+   "kinds": [
+    "analytics",
+    "profiling"
+   ],
+   "website": "https://www.adobe.com/analytics/adobe-analytics-features.html",
+   "code": [
+    "com.omniture.",
+    "com.adobe.adms.measurement."
+   ]
+  },
+  {
+   "id": 44,
+   "name": "OpenLocate",
+   "kinds": [
+    "location"
+   ],
+   "website": "https://www.safegraph.com/",
+   "code": [
+    "com.safegraph.",
+    "com.openlocate"
+   ]
+  },
+  {
+   "id": 45,
+   "name": "TagCommander (Commanders Act.)",
+   "kinds": [
+    "analytics"
+   ],
+   "website": "https://www.commandersact.com/",
+   "code": [
+    "com.tagcommander."
+   ]
+  },
+  {
+   "id": 47,
+   "name": "Facebook Audience",
+   "kinds": [
+    "analytics"
+   ],
+   "website": "https://developers.facebook.com/docs/android/",
+   "code": [
+    "com.facebook.audiencenetwork"
+   ]
+  },
+  {
+   "id": 48,
+   "name": "Google Analytics",
+   "kinds": [
+    "analytics"
+   ],
+   "website": "http://www.google.com/analytics/",
+   "code": [
+    "com.google.android.apps.analytics.",
+    "com.google.android.gms.analytics.",
+    "com.google.analytics."
+   ]
+  },
+  {
+   "id": 49,
+   "name": "Google Firebase Analytics",
+   "kinds": [
+    "analytics"
+   ],
+   "website": "https://firebase.google.com/",
+   "code": [
+    "com.google.firebase.analytics.FirebaseAnalytics",
+    "com.google.android.gms.measurement.",
+    "com.google.firebase.firebase_analytics"
+   ]
+  },
+  {
+   "id": 51,
+   "name": "Eulerian",
+   "kinds": [
+    "analytics"
+   ],
+   "website": "https://www.eulerian.com/en/",
+   "code": [
+    "com.eulerian.android.sdk"
+   ]
+  },
+  {
+   "id": 52,
+   "name": "Adjust",
+   "kinds": [
+    "analytics"
+   ],
+   "website": "https://www.adjust.com/",
+   "code": [
+    "com.adjust.sdk.",
+    "com.adjust.android.sdk."
+   ]
+  },
+  {
+   "id": 53,
+   "name": "ChartBoost",
+   "kinds": [],
+   "website": "https://answers.chartboost.com/en-us/",
+   "code": [
+    "com.chartboost.sdk."
+   ]
+  },
+  {
+   "id": 54,
+   "name": "Backelite",
+   "kinds": [
+    "analytics"
+   ],
+   "website": "https://www.backelite.com/",
+   "code": [
+    "com.backelite.android.",
+    "com.backelite.bkdroid."
+   ]
+  },
+  {
+   "id": 55,
+   "name": "Areametrics",
+   "kinds": [
+    "analytics"
+   ],
+   "website": "https://areametrics.com/",
+   "code": [
+    "com.areametrics.areametricssdk",
+    "com.areametrics.nosdkandroid"
+   ]
+  },
+  {
+   "id": 56,
+   "name": "ComScore",
+   "kinds": [
+    "analytics",
+    "ads"
+   ],
+   "website": "https://comscore.com/",
+   "code": [
+    "com.comscore."
+   ]
+  },
+  {
+   "id": 57,
+   "name": "Cuebiq",
+   "kinds": [
+    "analytics",
+    "location"
+   ],
+   "website": "http://www.cuebiq.com/",
+   "code": [
+    "com.cuebiq.cuebiqsdk.model.Collector",
+    "com.cuebiq.cuebiqsdk.receiver.CoverageReceiver"
+   ]
+  },
+  {
+   "id": 58,
+   "name": "HelpShift",
+   "kinds": [],
+   "website": "https://www.helpshift.com",
+   "code": [
+    "com.helpshift"
+   ]
+  },
+  {
+   "id": 59,
+   "name": "Kontakt",
+   "kinds": [
+    "analytics"
+   ],
+   "website": "https://kontakt.io/",
+   "code": [
+    "com.kontakt.sdk.android."
+   ]
+  },
+  {
+   "id": 60,
+   "name": "Locuslabs",
+   "kinds": [],
+   "website": "http://locuslabs.com",
+   "code": [
+    "com.locuslabs.sdk"
+   ]
+  },
+  {
+   "id": 61,
+   "name": "Moat",
+   "kinds": [
+    "analytics",
+    "ads"
+   ],
+   "website": "https://moat.com/analytics",
+   "code": [
+    "com.moat.analytics.mobile."
+   ]
+  },
+  {
+   "id": 62,
+   "name": "Segment",
+   "kinds": [
+    "analytics",
+    "profiling"
+   ],
+   "website": "https://segment.com/",
+   "code": [
+    "com.segment.analytics."
+   ]
+  },
+  {
+   "id": 63,
+   "name": "Mobile Engagement",
+   "kinds": [
+    "analytics"
+   ],
+   "website": "https://docs.microsoft.com/en-us/azure/mobile-engagement/mobile-engagement-android-sdk-overview",
+   "code": [
+    "com.ubikod.capptain.",
+    "com.microsoft.azure.engagement."
+   ]
+  },
+  {
+   "id": 64,
+   "name": "Colocator",
+   "kinds": [
+    "analytics"
+   ],
+   "website": "https://developers.colocator.net",
+   "code": [
+    "net.crowdconnected.androidcolocator"
+   ]
+  },
+  {
+   "id": 65,
+   "name": "Facebook Ads",
+   "kinds": [
+    "ads"
+   ],
+   "website": "https://developers.facebook.com/docs/android",
+   "code": [
+    "com.facebook.ads"
+   ]
+  },
+  {
+   "id": 66,
+   "name": "Facebook Analytics",
+   "kinds": [
+    "analytics"
+   ],
+   "website": "https://developers.facebook.com/docs/android",
+   "code": [
+    "com.facebook.appevents",
+    "com.facebook.marketing.",
+    "com.facebook.CampaignTrackingReceiver"
+   ]
+  },
+  {
+   "id": 67,
+   "name": "Facebook Login",
+   "kinds": [
+    "identification"
+   ],
+   "website": "https://developers.facebook.com/docs/android",
+   "code": [
+    "com.facebook.login"
+   ]
+  },
+  {
+   "id": 68,
+   "name": "Facebook Notifications",
+   "kinds": [],
+   "website": "https://developers.facebook.com/docs/android",
+   "code": [
+    "com.facebook.notifications"
+   ]
+  },
+  {
+   "id": 69,
+   "name": "Facebook Places",
+   "kinds": [],
+   "website": "https://developers.facebook.com/docs/android",
+   "code": [
+    "com.facebook.places"
+   ]
+  },
+  {
+   "id": 70,
+   "name": "Facebook Share",
+   "kinds": [],
+   "website": "https://developers.facebook.com/docs/android",
+   "code": [
+    "com.facebook.share"
+   ]
+  },
+  {
+   "id": 72,
+   "name": "AppLovin (MAX and SparkLabs)",
+   "kinds": [
+    "analytics",
+    "profiling",
+    "identification",
+    "ads"
+   ],
+   "website": "https://www.applovin.com/",
+   "code": [
+    "com.applovin"
+   ]
+  },
+  {
+   "id": 73,
+   "name": "Glispa Connect (Formerly Avocarrot)",
+   "kinds": [],
+   "website": "https://www.glispa.com",
+   "code": [
+    "com.avocarrot.sdk"
+   ]
+  },
+  {
+   "id": 74,
+   "name": "NativeX",
+   "kinds": [],
+   "website": "http://www.nativex.com/",
+   "code": [
+    "com.nativex"
+   ]
+  },
+  {
+   "id": 75,
+   "name": "Baidu Maps",
+   "kinds": [],
+   "website": "https://map.baidu.com",
+   "code": [
+    "com.baidu.BaiduMap"
+   ]
+  },
+  {
+   "id": 76,
+   "name": "WeChat Location",
+   "kinds": [],
+   "website": "https://wechat.com",
+   "code": [
+    "com.tencent.map.geolocation",
+    "com.tencent.mm.plugin.location.",
+    "com.tencent.mm.plugin.location_soso.",
+    "com.tencent.mm.plugin.location_google"
+   ]
+  },
+  {
+   "id": 77,
+   "name": "HyperTrack",
+   "kinds": [
+    "location"
+   ],
+   "website": "http://hypertrack.com",
+   "code": [
+    "com.hypertrack",
+    "com.hypertracklive.",
+    "io.hypertrack"
+   ]
+  },
+  {
+   "id": 78,
+   "name": "Uber Analytics",
+   "kinds": [
+    "analytics"
+   ],
+   "website": "https://uber.com",
+   "code": [
+    "com.ubercab.analytics.",
+    "com.ubercab.library.metrics.analytics.",
+    "com.ubercab.client.core.analytics."
+   ]
+  },
+  {
+   "id": 79,
+   "name": "Lisnr",
+   "kinds": [
+    "analytics"
+   ],
+   "website": "http://lisnr.com",
+   "code": [
+    "com.lisnr."
+   ]
+  },
+  {
+   "id": 80,
+   "name": "SilverPush",
+   "kinds": [
+    "analytics"
+   ],
+   "website": "http://silverpush.co",
+   "code": [
+    "com.silverpush."
+   ]
+  },
+  {
+   "id": 81,
+   "name": "Shopkick",
+   "kinds": [
+    "analytics"
+   ],
+   "website": "https://shopkick.com",
+   "code": [
+    "com.shopkick.sdk.api.",
+    "com.shopkick.fetchers."
+   ]
+  },
+  {
+   "id": 82,
+   "name": "Alphonso",
+   "kinds": [
+    "analytics"
+   ],
+   "website": "http://alphonso.tv",
+   "code": [
+    "tv.alphonso.service"
+   ]
+  },
+  {
+   "id": 83,
+   "name": "Smaato",
+   "kinds": [],
+   "website": "https://smaato.com",
+   "code": [
+    "com.smaato."
+   ]
+  },
+  {
+   "id": 84,
+   "name": "Scandit",
+   "kinds": [
+    "analytics"
+   ],
+   "website": "https://scandit.com",
+   "code": [
+    "com.scandit."
+   ]
+  },
+  {
+   "id": 85,
+   "name": "Inrix",
+   "kinds": [],
+   "website": "http://inrix.com/",
+   "code": [
+    "com.inrix.sdk"
+   ]
+  },
+  {
+   "id": 86,
+   "name": "Signal360",
+   "kinds": [
+    "analytics"
+   ],
+   "website": "http://www.signal360.com",
+   "code": [
+    "com.signal360.sdk.core.",
+    "com.sonicnotify.sdk.core.",
+    "com.rnsignal360"
+   ]
+  },
+  {
+   "id": 87,
+   "name": "TeleQuid",
+   "kinds": [],
+   "website": "http://www.telequid.com/",
+   "code": [
+    "com.telequid."
+   ]
+  },
+  {
+   "id": 88,
+   "name": "Retency",
+   "kinds": [
+    "analytics"
+   ],
+   "website": "http://retency.com",
+   "code": [
+    "com.retency.sdk.android"
+   ]
+  },
+  {
+   "id": 89,
+   "name": "MAdvertise",
+   "kinds": [],
+   "website": "http://madvertise.com",
+   "code": [
+    "com.mngads.sdk",
+    "com.mngads.views",
+    "com.mngads."
+   ]
+  },
+  {
+   "id": 90,
+   "name": "AdColony",
+   "kinds": [
+    "ads"
+   ],
+   "website": "http://adcolony.com/",
+   "code": [
+    "com.adcolony.",
+    "com.jirbo.adcolony."
+   ]
+  },
+  {
+   "id": 91,
+   "name": "AccountKit",
+   "kinds": [
+    "identification"
+   ],
+   "website": "https://www.accountkit.com/",
+   "code": [
+    "com.facebook.accountkit"
+   ]
+  },
+  {
+   "id": 92,
+   "name": "Amazon Advertisement",
+   "kinds": [],
+   "website": "https://developer.amazon.com/public/apis/earn/mobile-ads/docs/quick-start",
+   "code": [
+    "com.amazon.device.ads"
+   ]
+  },
+  {
+   "id": 93,
+   "name": "Amazon Mobile Associates",
+   "kinds": [],
+   "website": "https://developer.amazon.com/mobile-associates",
+   "code": [
+    "com.amazon.device.associates"
+   ]
+  },
+  {
+   "id": 94,
+   "name": "Radius Networks",
+   "kinds": [
+    "analytics"
+   ],
+   "website": "https://www.radiusnetworks.com/",
+   "code": [
+    "com.radiusnetworks"
+   ]
+  },
+  {
+   "id": 95,
+   "name": "Amazon Analytics (Amazon insights)",
+   "kinds": [
+    "analytics"
+   ],
+   "website": "https://developer.amazon.com/docs/apps-and-games/sdk-downloads.html",
+   "code": [
+    "com.amazon.insights",
+    "com.amazonaws.mobileconnectors.pinpoint.analytics.",
+    "com.amazonaws.mobileconnectors.amazonmobileanalytics"
+   ]
+  },
+  {
+   "id": 96,
+   "name": "Baidu APPX",
+   "kinds": [],
+   "website": "https://app.baidu.com/",
+   "code": [
+    "com.baidu.appx"
+   ]
+  },
+  {
+   "id": 97,
+   "name": "Baidu Location",
+   "kinds": [],
+   "website": "https://developer.baidu.com/",
+   "code": [
+    "com.baidu.location"
+   ]
+  },
+  {
+   "id": 99,
+   "name": "Baidu Map",
+   "kinds": [],
+   "website": "http://lbsyun.baidu.com/",
+   "code": [
+    "com.baidu.mapapi"
+   ]
+  },
+  {
+   "id": 100,
+   "name": "Baidu Mobile Ads",
+   "kinds": [],
+   "website": "https://developer.baidu.com/",
+   "code": [
+    "com.baidu.mobads"
+   ]
+  },
+  {
+   "id": 101,
+   "name": "Baidu Mobile Stat",
+   "kinds": [
+    "analytics"
+   ],
+   "website": "https://developer.baidu.com/",
+   "code": [
+    "com.baidu.mobstat"
+   ]
+  },
+  {
+   "id": 102,
+   "name": "Estimote",
+   "kinds": [
+    "analytics",
+    "location"
+   ],
+   "website": "https://estimote.com/",
+   "code": [
+    "com.estimote."
+   ]
+  },
+  {
+   "id": 103,
+   "name": "Baidu Navigation",
+   "kinds": [],
+   "website": "http://lbsyun.baidu.com/index.php?title=android-navsdk",
+   "code": [
+    "com.baidu.navi"
+   ]
+  },
+  {
+   "id": 104,
+   "name": "Fyber",
+   "kinds": [
+    "ads"
+   ],
+   "website": "https://www.fyber.com/",
+   "code": [
+    "com.fyber."
+   ]
+  },
+  {
+   "id": 105,
+   "name": "Google Tag Manager",
+   "kinds": [
+    "analytics"
+   ],
+   "website": "https://www.google.com/analytics/tag-manager/",
+   "code": [
+    "com.google.tagmanager",
+    "com.google.android.gms.tagmanager"
+   ]
+  },
+  {
+   "id": 106,
+   "name": "Inmobi",
+   "kinds": [],
+   "website": "http://inmobi.com",
+   "code": [
+    "com.inmobi",
+    "in.inmobi."
+   ]
+  },
+  {
+   "id": 107,
+   "name": "Millennial Media",
+   "kinds": [],
+   "website": "https://www.millennialmedia.com/",
+   "code": [
+    "com.millennialmedia."
+   ]
+  },
+  {
+   "id": 108,
+   "name": "Snowplow",
+   "kinds": [
+    "analytics"
+   ],
+   "website": "https://snowplowanalytics.com/",
+   "code": [
+    "com.snowplowanalytics."
+   ]
+  },
+  {
+   "id": 109,
+   "name": "Fyber SponsorPay",
+   "kinds": [],
+   "website": "http://www.sponsorpay.com",
+   "code": [
+    "com.sponsorpay"
+   ]
+  },
+  {
+   "id": 110,
+   "name": "Supersonic Ads",
+   "kinds": [],
+   "website": "https://www.supersonic.com/",
+   "code": [
+    "com.supersonic.adapters.supersonicads",
+    "com.supersonicads.sdk"
+   ]
+  },
+  {
+   "id": 111,
+   "name": "Carnival",
+   "kinds": [
+    "analytics"
+   ],
+   "website": "http://carnival.io/",
+   "code": [
+    "com.carnival.sdk",
+    "com.carnivalmobile"
+   ]
+  },
+  {
+   "id": 112,
+   "name": "Tencent Map LBS",
+   "kinds": [],
+   "website": "https://lbs.qq.com/",
+   "code": [
+    "com.tencent.lbs"
+   ]
+  },
+  {
+   "id": 113,
+   "name": "Tencent MobWin",
+   "kinds": [],
+   "website": "https://www.tencent.com/en-us/",
+   "code": [
+    "com.tencent.mobwin"
+   ]
+  },
+  {
+   "id": 114,
+   "name": "Tencent MTA",
+   "kinds": [
+    "analytics"
+   ],
+   "website": "https://mta.qq.com/",
+   "code": [
+    "com.tencent.mta"
+   ]
+  },
+  {
+   "id": 115,
+   "name": "Apptentive",
+   "kinds": [
+    "analytics"
+   ],
+   "website": "https://www.apptentive.com/",
+   "code": [
+    "com.apptentive."
+   ]
+  },
+  {
+   "id": 116,
+   "name": "Tencent Stats",
+   "kinds": [
+    "analytics"
+   ],
+   "website": "http://stat.qq.com/",
+   "code": [
+    "com.tencent.stat",
+    "com.tencent.wxop.stat"
+   ]
+  },
+  {
+   "id": 117,
+   "name": "Tencent Weiyun",
+   "kinds": [],
+   "website": "https://www.weiyun.com",
+   "code": [
+    "com.tencent.weiyun"
+   ]
+  },
+  {
+   "id": 118,
+   "name": "MixPanel",
+   "kinds": [
+    "analytics"
+   ],
+   "website": "https://mixpanel.com/",
+   "code": [
+    "com.mixpanel."
+   ]
+  },
+  {
+   "id": 119,
+   "name": "Umeng Analytics",
+   "kinds": [],
+   "website": "https://www.umeng.com/analytics",
+   "code": [
+    "com.umeng.analytics"
+   ]
+  },
+  {
+   "id": 120,
+   "name": "Umeng Feedback",
+   "kinds": [],
+   "website": "http://dev.umeng.com/feedback",
+   "code": [
+    "com.umeng.fb"
+   ]
+  },
+  {
+   "id": 121,
+   "name": "Unity3d Ads",
+   "kinds": [
+    "ads"
+   ],
+   "website": "https://unity3d.com/",
+   "code": [
+    "com.unity3d.services",
+    "com.unity3d.ads"
+   ]
+  },
+  {
+   "id": 122,
+   "name": "Countly",
+   "kinds": [
+    "analytics",
+    "profiling"
+   ],
+   "website": "https://count.ly/",
+   "code": [
+    "ly.count.android."
+   ]
+  },
+  {
+   "id": 123,
+   "name": "Urbanairship",
+   "kinds": [],
+   "website": "https://www.urbanairship.com/",
+   "code": [
+    "com.urbanairship"
+   ]
+  },
+  {
+   "id": 124,
+   "name": "Yandex Ad",
+   "kinds": [
+    "ads"
+   ],
+   "website": "https://www.yandex.com/",
+   "code": [
+    "com.yandex.mobile.ads"
+   ]
+  },
+  {
+   "id": 125,
+   "name": "Amplitude",
+   "kinds": [
+    "analytics",
+    "profiling"
+   ],
+   "website": "http://www.amplitude.com",
+   "code": [
+    "com.amplitude."
+   ]
+  },
+  {
+   "id": 126,
+   "name": "AppSee",
+   "kinds": [
+    "analytics",
+    "profiling",
+    "identification"
+   ],
+   "website": "https://www.appsee.com/",
+   "code": [
+    "com.appsee."
+   ]
+  },
+  {
+   "id": 127,
+   "name": "Kochava",
+   "kinds": [
+    "analytics",
+    "profiling",
+    "ads"
+   ],
+   "website": "https://www.kochava.com/",
+   "code": [
+    "com.kochava.base.",
+    "com.kochava.android.tracker.",
+    ".kochavaccpa."
+   ]
+  },
+  {
+   "id": 129,
+   "name": "Webtrends",
+   "kinds": [
+    "analytics"
+   ],
+   "website": "https://www.webtrends.com/",
+   "code": [
+    "com.webtrends.mobile.analytics.",
+    "com.webtrends.mobile.android"
+   ]
+  },
+  {
+   "id": 130,
+   "name": "New Relic",
+   "kinds": [
+    "analytics"
+   ],
+   "website": "http://www.newrelic.com",
+   "code": [
+    "com.newrelic.agent.",
+    "com.newrelic.mobile."
+   ]
+  },
+  {
+   "id": 131,
+   "name": "AppAnalytics",
+   "kinds": [
+    "analytics"
+   ],
+   "website": "http://appanalytics.io/",
+   "code": [
+    "io.appanalytics.sdk"
+   ]
+  },
+  {
+   "id": 132,
+   "name": "Applause",
+   "kinds": [
+    "crashReporting",
+    "analytics"
+   ],
+   "website": "http://www.applause.com",
+   "code": [
+    "com.applause.android."
+   ]
+  },
+  {
+   "id": 133,
+   "name": "Quantcast",
+   "kinds": [
+    "analytics",
+    "profiling"
+   ],
+   "website": "http://www.quantcast.com",
+   "code": [
+    "com.quantcast.measurement.service."
+   ]
+  },
+  {
+   "id": 135,
+   "name": "Apptimize",
+   "kinds": [
+    "analytics"
+   ],
+   "website": "http://www.apptimize.com",
+   "code": [
+    "com.apptimize."
+   ]
+  },
+  {
+   "id": 136,
+   "name": "AppBrain",
+   "kinds": [],
+   "website": "https://www.appbrain.com/info/help/sdk/index.html",
+   "code": [
+    "com.appbrain."
+   ]
+  },
+  {
+   "id": 137,
+   "name": "Dynatrace",
+   "kinds": [
+    "analytics"
+   ],
+   "website": "https://www.dynatrace.com",
+   "code": [
+    "com.dynatrace.android.app",
+    "com.dynatrace.agent",
+    "com.dynatrace.tools"
+   ]
+  },
+  {
+   "id": 138,
+   "name": "Matomo (Piwik)",
+   "kinds": [
+    "analytics"
+   ],
+   "website": "https://matomo.org/mobile",
+   "code": [
+    "org.piwik",
+    "org.piwik.mobile",
+    "org.matomo"
+   ]
+  },
+  {
+   "id": 140,
+   "name": "AppMetrica",
+   "kinds": [],
+   "website": "https://tech.yandex.com/metrica-mobile-sdk/",
+   "code": [
+    "com.yandex.metrica."
+   ]
+  },
+  {
+   "id": 142,
+   "name": "Singlespot",
+   "kinds": [
+    "analytics"
+   ],
+   "website": "https://www.singlespot.com/",
+   "code": [
+    "com.sptproximitykit."
+   ]
+  },
+  {
+   "id": 143,
+   "name": "Sensoro",
+   "kinds": [],
+   "website": "https://www.sensoro.com/",
+   "code": [
+    "com.sensoro.beacon.kit.",
+    "com.sensoro.cloud"
+   ]
+  },
+  {
+   "id": 144,
+   "name": "Sense360",
+   "kinds": [
+    "analytics",
+    "location"
+   ],
+   "website": "https://sense360.com/",
+   "code": [
+    "com.sense360.android."
+   ]
+  },
+  {
+   "id": 145,
+   "name": "Rubicon Project",
+   "kinds": [
+    "analytics"
+   ],
+   "website": "https://rubiconproject.com",
+   "code": [
+    "com.rfm.sdk"
+   ]
+  },
+  {
+   "id": 146,
+   "name": "ironSource",
+   "kinds": [
+    "analytics"
+   ],
+   "website": "https://www.ironsrc.com",
+   "code": [
+    "com.ironsource."
+   ]
+  },
+  {
+   "id": 147,
+   "name": "Heyzap (bought by Fyber)",
+   "kinds": [],
+   "website": "https://www.heyzap.com",
+   "code": [
+    "com.heyzap.sdk.ads.",
+    "com.heyzap.mediation."
+   ]
+  },
+  {
+   "id": 148,
+   "name": "SAP CDC (Gigya)",
+   "kinds": [
+    "analytics"
+   ],
+   "website": "https://www.sap.com/products/crm/customer-data-management.html",
+   "code": [
+    "com.gigya."
+   ]
+  },
+  {
+   "id": 149,
+   "name": "Foresee",
+   "kinds": [
+    "analytics"
+   ],
+   "website": "https://www.foresee.com",
+   "code": [
+    "com.foresee.sdk.ForeSee"
+   ]
+  },
+  {
+   "id": 150,
+   "name": "Fiksu",
+   "kinds": [],
+   "website": "https://fiksu.com",
+   "code": [
+    "com.fiksu.asotracking"
+   ]
+  },
+  {
+   "id": 151,
+   "name": "Ensighten",
+   "kinds": [
+    "analytics"
+   ],
+   "website": "https://www.ensighten.com",
+   "code": [
+    "com.ensighten."
+   ]
+  },
+  {
+   "id": 152,
+   "name": "Dynamic Yield",
+   "kinds": [
+    "analytics"
+   ],
+   "website": "https://www.dynamicyield.com",
+   "code": [
+    "com.dynamicyield."
+   ]
+  },
+  {
+   "id": 153,
+   "name": "BlueKai (acquired by Oracle)",
+   "kinds": [
+    "analytics"
+   ],
+   "website": "http://bluekai.com/registry/",
+   "code": [
+    "com.bluekai.sdk."
+   ]
+  },
+  {
+   "id": 154,
+   "name": "BlueConic",
+   "kinds": [
+    "analytics"
+   ],
+   "website": "https://www.blueconic.com",
+   "code": [
+    "com.blueconic"
+   ]
+  },
+  {
+   "id": 155,
+   "name": "Apteligent by VMWare (formerly Crittercism)",
+   "kinds": [],
+   "website": "http://www.apteligent.com",
+   "code": [
+    "com.crittercism.app.Crittercism"
+   ]
+  },
+  {
+   "id": 156,
+   "name": "AdFit (Daum)",
+   "kinds": [],
+   "website": "https://www.daum.net",
+   "code": [
+    "com.kakao.adfit."
+   ]
+  },
+  {
+   "id": 157,
+   "name": "Adform",
+   "kinds": [],
+   "website": "https://site.adform.com",
+   "code": [
+    "com.adform.sdk."
+   ]
+  },
+  {
+   "id": 158,
+   "name": "Adfurikun",
+   "kinds": [
+    "ads"
+   ],
+   "website": "https://adfurikun.jp/adfurikun/",
+   "code": [
+    "jp.tjkapp.adfurikunsdk.",
+    "com.glossomads.sdk."
+   ]
+  },
+  {
+   "id": 159,
+   "name": "Mobvista",
+   "kinds": [
+    "analytics",
+    "profiling"
+   ],
+   "website": "https://www.mobvista.com/",
+   "code": [
+    "com.mobvista."
+   ]
+  },
+  {
+   "id": 160,
+   "name": "Placed",
+   "kinds": [],
+   "website": "http://placed.com/",
+   "code": [
+    "com.placed.client"
+   ]
+  },
+  {
+   "id": 161,
+   "name": "Adot",
+   "kinds": [],
+   "website": "https://we-are-adot.com/",
+   "code": [
+    "com.adotmob"
+   ]
+  },
+  {
+   "id": 162,
+   "name": "Appodeal",
+   "kinds": [],
+   "website": "https://www.appodeal.com",
+   "code": [
+    "com.appodeal.ads.",
+    "com.appodealx."
+   ]
+  },
+  {
+   "id": 163,
+   "name": "AppMonet",
+   "kinds": [],
+   "website": "http://appmonet.com",
+   "code": [
+    "com.monet."
+   ]
+  },
+  {
+   "id": 164,
+   "name": "Soomla",
+   "kinds": [],
+   "website": "https://soomla.com/",
+   "code": [
+    "com.soomla."
+   ]
+  },
+  {
+   "id": 165,
+   "name": "Adincube",
+   "kinds": [],
+   "website": "https://www.adincube.com/",
+   "code": [
+    "com.adincube.sdk."
+   ]
+  },
+  {
+   "id": 166,
+   "name": "Persona.ly",
+   "kinds": [],
+   "website": "http://persona.ly/",
+   "code": [
+    "ly.persona.sdk"
+   ]
+  },
+  {
+   "id": 167,
+   "name": "Branch",
+   "kinds": [
+    "analytics"
+   ],
+   "website": "https://branch.io/",
+   "code": [
+    "io.branch."
+   ]
+  },
+  {
+   "id": 168,
+   "name": "Cheetah Ads",
+   "kinds": [],
+   "website": "https://www.cmcm.com/",
+   "code": [
+    "com.cmcm."
+   ]
+  },
+  {
+   "id": 169,
+   "name": "Vungle",
+   "kinds": [
+    "ads"
+   ],
+   "website": "https://vungle.com",
+   "code": [
+    "com.vungle.publisher.",
+    "com.vungle.warren."
+   ]
+  },
+  {
+   "id": 170,
+   "name": "Criteo",
+   "kinds": [],
+   "website": "https://www.criteo.com/",
+   "code": [
+    "com.criteo."
+   ]
+  },
+  {
+   "id": 171,
+   "name": "Mapbox",
+   "kinds": [],
+   "website": "https://www.mapbox.com/",
+   "code": [
+    "com.mapbox.mapboxsdk.module.telemetry",
+    "com.mapbox.mapboxsdk.maps.TelemetryDefinition",
+    "com.mapbox.android.telemetry."
+   ]
+  },
+  {
+   "id": 172,
+   "name": "Optimizely",
+   "kinds": [
+    "analytics"
+   ],
+   "website": "https://www.optimizely.com/",
+   "code": [
+    "com.optimizely."
+   ]
+  },
+  {
+   "id": 173,
+   "name": "Taboola",
+   "kinds": [],
+   "website": "https://www.taboola.com/",
+   "code": [
+    "com.taboola."
+   ]
+  },
+  {
+   "id": 174,
+   "name": "CleverTap",
+   "kinds": [
+    "analytics",
+    "profiling",
+    "location"
+   ],
+   "website": "https://clevertap.com/",
+   "code": [
+    "com.clevertap."
+   ]
+  },
+  {
+   "id": 175,
+   "name": "myTracker",
+   "kinds": [],
+   "website": "https://tracker.my.com/",
+   "code": [
+    "com.my.tracker."
+   ]
+  },
+  {
+   "id": 176,
+   "name": "Cloudmobi",
+   "kinds": [],
+   "website": "http://www.cloudmobi.net/",
+   "code": [
+    "com.cloudtech."
+   ]
+  },
+  {
+   "id": 177,
+   "name": "ADLIB",
+   "kinds": [],
+   "website": "https://adlibr.com",
+   "code": [
+    "com.mocoplex.adlib."
+   ]
+  },
+  {
+   "id": 178,
+   "name": "Brightcove",
+   "kinds": [],
+   "website": "https://www.brightcove.com",
+   "code": [
+    "com.brightcove"
+   ]
+  },
+  {
+   "id": 179,
+   "name": "DOV-E",
+   "kinds": [
+    "ads"
+   ],
+   "website": "https://www.dov-e.com/",
+   "code": [
+    "com.dv.DVSDK"
+   ]
+  },
+  {
+   "id": 180,
+   "name": "InMarket",
+   "kinds": [],
+   "website": "https://inmarket.com/",
+   "code": [
+    "com.inmarket"
+   ]
+  },
+  {
+   "id": 181,
+   "name": "Pilgrim by Foursquare",
+   "kinds": [
+    "location"
+   ],
+   "website": "https://enterprise.foursquare.com/products/pilgrim",
+   "code": [
+    "com.foursquare.pilgrim",
+    "com.foursquare.pilgrimsdk.android"
+   ]
+  },
+  {
+   "id": 182,
+   "name": "OtherLevels",
+   "kinds": [],
+   "website": "https://www.otherlevels.com/",
+   "code": [
+    "com.otherlevels."
+   ]
+  },
+  {
+   "id": 183,
+   "name": "PubNative",
+   "kinds": [
+    "ads"
+   ],
+   "website": "https://pubnative.net/",
+   "code": [
+    "net.pubnative"
+   ]
+  },
+  {
+   "id": 184,
+   "name": "Appnext",
+   "kinds": [],
+   "website": "https://www.appnext.com/",
+   "code": [
+    "com.appnext.sdk"
+   ]
+  },
+  {
+   "id": 185,
+   "name": "MobFox",
+   "kinds": [
+    "analytics",
+    "profiling",
+    "ads"
+   ],
+   "website": "https://www.mobfox.com/",
+   "code": [
+    "com.mobfox.",
+    "com.adsdk.sdk."
+   ]
+  },
+  {
+   "id": 186,
+   "name": "ShallWeAD",
+   "kinds": [],
+   "website": "http://www.shallwead.com",
+   "code": [
+    "com.jm.co.shallwead.sdk.",
+    "com.co.shallwead.sdk."
+   ]
+  },
+  {
+   "id": 187,
+   "name": "deltaDNA",
+   "kinds": [
+    "analytics"
+   ],
+   "website": "https://deltadna.com/",
+   "code": [
+    "com.deltadna"
+   ]
+  },
+  {
+   "id": 188,
+   "name": "Display",
+   "kinds": [],
+   "website": "https://www.display.io/en/",
+   "code": [
+    "io.display."
+   ]
+  },
+  {
+   "id": 189,
+   "name": "HyprMX",
+   "kinds": [
+    "ads"
+   ],
+   "website": "https://www.hyprmx.com",
+   "code": [
+    "com.hyprmx.android.sdk."
+   ]
+  },
+  {
+   "id": 190,
+   "name": "Bugly",
+   "kinds": [],
+   "website": "https://bugly.qq.com/v2/",
+   "code": [
+    "com.tencent.bugly."
+   ]
+  },
+  {
+   "id": 191,
+   "name": "Duapps",
+   "kinds": [],
+   "website": "http://ad.duapps.com/",
+   "code": [
+    "com.duapps."
+   ]
+  },
+  {
+   "id": 192,
+   "name": "Swrve",
+   "kinds": [
+    "analytics",
+    "profiling",
+    "location"
+   ],
+   "website": "https://www.swrve.com/",
+   "code": [
+    "com.swrve.sdk"
+   ]
+  },
+  {
+   "id": 193,
+   "name": "OneSignal",
+   "kinds": [],
+   "website": "https://onesignal.com/",
+   "code": [
+    "com.onesignal."
+   ]
+  },
+  {
+   "id": 194,
+   "name": "Appdynamics",
+   "kinds": [
+    "analytics",
+    "profiling"
+   ],
+   "website": "https://www.appdynamics.com/",
+   "code": [
+    "com.appdynamics."
+   ]
+  },
+  {
+   "id": 195,
+   "name": "Startapp",
+   "kinds": [
+    "analytics",
+    "ads"
+   ],
+   "website": "https://www.startapp.com",
+   "code": [
+    "com.startapp."
+   ]
+  },
+  {
+   "id": 196,
+   "name": "AerServ",
+   "kinds": [
+    "ads"
+   ],
+   "website": "https://www.aerserv.com/",
+   "code": [
+    "com.aerserv.sdk."
+   ]
+  },
+  {
+   "id": 197,
+   "name": "INFOnline",
+   "kinds": [],
+   "website": "https://www.infonline.de",
+   "code": [
+    "de.infonline."
+   ]
+  },
+  {
+   "id": 198,
+   "name": "myTarget",
+   "kinds": [
+    "ads"
+   ],
+   "website": "https://target.my.com/",
+   "code": [
+    "com.my.target."
+   ]
+  },
+  {
+   "id": 199,
+   "name": "Tapjoy",
+   "kinds": [],
+   "website": "https://www.tapjoy.com/",
+   "code": [
+    "com.tapjoy."
+   ]
+  },
+  {
+   "id": 200,
+   "name": "Mintegral",
+   "kinds": [
+    "analytics",
+    "ads"
+   ],
+   "website": "https://www.mintegral.com/en/",
+   "code": [
+    "com.mintegral.",
+    "com.mbridge.msdk."
+   ]
+  },
+  {
+   "id": 201,
+   "name": "Gimbal",
+   "kinds": [],
+   "website": "https://gimbal.com/",
+   "code": [
+    "com.gimbal.android"
+   ]
+  },
+  {
+   "id": 202,
+   "name": "Conviva",
+   "kinds": [],
+   "website": "https://www.conviva.com/",
+   "code": [
+    "com.conviva."
+   ]
+  },
+  {
+   "id": 203,
+   "name": "Auditude",
+   "kinds": [],
+   "website": "https://www.adobe.com/privacy/policies/auditude.html",
+   "code": [
+    "com.auditude.ads"
+   ]
+  },
+  {
+   "id": 204,
+   "name": "Instreamatic (Adman)",
+   "kinds": [
+    "analytics",
+    "ads"
+   ],
+   "website": "http://instreamatic.com/",
+   "code": [
+    "com.instreamatic"
+   ]
+  },
+  {
+   "id": 205,
+   "name": "GameAnalytics",
+   "kinds": [
+    "analytics",
+    "profiling"
+   ],
+   "website": "https://gameanalytics.com/features",
+   "code": [
+    "com.gameanalytics.sdk"
+   ]
+  },
+  {
+   "id": 206,
+   "name": "Instabug",
+   "kinds": [
+    "crashReporting"
+   ],
+   "website": "https://instabug.com/crash-reporting",
+   "code": [
+    "com.instabug."
+   ]
+  },
+  {
+   "id": 207,
+   "name": "Bugsnag",
+   "kinds": [
+    "crashReporting"
+   ],
+   "website": "https://www.bugsnag.com/",
+   "code": [
+    "com.bugsnag."
+   ]
+  },
+  {
+   "id": 208,
+   "name": "Moodmedia",
+   "kinds": [
+    "ads",
+    "location"
+   ],
+   "website": "https://us.moodmedia.com/",
+   "code": [
+    "com.moodmedia"
+   ]
+  },
+  {
+   "id": 209,
+   "name": "Houndify",
+   "kinds": [
+    "identification",
+    "location"
+   ],
+   "website": "https://www.houndify.com/",
+   "code": [
+    "com.hound"
+   ]
+  },
+  {
+   "id": 210,
+   "name": "OpenX",
+   "kinds": [
+    "analytics",
+    "ads",
+    "location"
+   ],
+   "website": "https://www.openx.com/",
+   "code": [
+    "com.openx.view.plugplay",
+    "com.openx.android_sdk_openx"
+   ]
+  },
+  {
+   "id": 211,
+   "name": "Taplytics",
+   "kinds": [
+    "analytics",
+    "ads"
+   ],
+   "website": "https://taplytics.com",
+   "code": [
+    "com.taplytics.sdk"
+   ]
+  },
+  {
+   "id": 212,
+   "name": "Yinzcam Sobek",
+   "kinds": [
+    "analytics",
+    "ads",
+    "location"
+   ],
+   "website": "http://www.yinzcam.com/",
+   "code": [
+    "com.yinzcam.sobek"
+   ]
+  },
+  {
+   "id": 213,
+   "name": "Ooyala",
+   "kinds": [
+    "ads"
+   ],
+   "website": "https://www.ooyala.com/",
+   "code": [
+    "com.ooyala"
+   ]
+  },
+  {
+   "id": 214,
+   "name": "Kiip",
+   "kinds": [
+    "ads"
+   ],
+   "website": "https://www.ninthdecimal.com/",
+   "code": [
+    "me.kiip.sdk"
+   ]
+  },
+  {
+   "id": 215,
+   "name": "MobPower",
+   "kinds": [
+    "ads"
+   ],
+   "website": "https://home.mobpowertech.com/",
+   "code": [
+    "com.mobpower."
+   ]
+  },
+  {
+   "id": 216,
+   "name": "AdBuddiz",
+   "kinds": [
+    "ads"
+   ],
+   "website": "http://www.adbuddiz.com/abuse?hl=fr",
+   "code": [
+    "com.purplebrain.adbuddiz.sdk."
+   ]
+  },
+  {
+   "id": 218,
+   "name": "Integral Ad Science",
+   "kinds": [],
+   "website": "https://integralads.com",
+   "code": [
+    "com.integralads.avid.library"
+   ]
+  },
+  {
+   "id": 219,
+   "name": "AltBeacon",
+   "kinds": [],
+   "website": "https://altbeacon.org",
+   "code": [
+    "org.altbeacon.beacon.",
+    "com.altbeacon.beacon.",
+    "org.altbeacon.bluetooth."
+   ]
+  },
+  {
+   "id": 220,
+   "name": "Salesforce Marketing Cloud",
+   "kinds": [],
+   "website": "https://www.salesforce.com/products/marketing-cloud/",
+   "code": [
+    "com.salesforce.marketingcloud"
+   ]
+  },
+  {
+   "id": 221,
+   "name": "Mozilla Telemetry",
+   "kinds": [],
+   "website": "https://wiki.mozilla.org/Telemetry",
+   "code": [
+    "org.mozilla.telemetry",
+    "org.mozilla.gecko.telemetry",
+    "mozilla.telemetry.glean.",
+    "org.mozilla.fenix.GleanMetrics",
+    "org.mozilla.fenix.components.metrics"
+   ]
+  },
+  {
+   "id": 222,
+   "name": "nend",
+   "kinds": [
+    "ads"
+   ],
+   "website": "https://nend.net/en/",
+   "code": [
+    "net.nend.android",
+    "net.nend.unity."
+   ]
+  },
+  {
+   "id": 223,
+   "name": "Pusher",
+   "kinds": [],
+   "website": "https://pusher.com/",
+   "code": [
+    "com.pusher.client."
+   ]
+  },
+  {
+   "id": 224,
+   "name": "FreeWheel",
+   "kinds": [
+    "ads"
+   ],
+   "website": "http://freewheel.tv/",
+   "code": [
+    "tv.freewheel.ad."
+   ]
+  },
+  {
+   "id": 225,
+   "name": "TNK Factory",
+   "kinds": [
+    "ads"
+   ],
+   "website": "http://www.tnkfactory.com",
+   "code": [
+    "com.tnkfactory.ad"
+   ]
+  },
+  {
+   "id": 226,
+   "name": "Axonix",
+   "kinds": [],
+   "website": "http://axonix.com/",
+   "code": [
+    "com.axonix.android.sdk",
+    "com.mobclix.android.sdk"
+   ]
+  },
+  {
+   "id": 227,
+   "name": "Gemius HeatMap",
+   "kinds": [],
+   "website": "https://heatmap.gemius.com",
+   "code": [
+    "com.gemius.sdk"
+   ]
+  },
+  {
+   "id": 228,
+   "name": "YouAppi",
+   "kinds": [],
+   "website": "https://www.youappi.com",
+   "code": [
+    "com.youappi.sdk."
+   ]
+  },
+  {
+   "id": 229,
+   "name": "Adobe Experience Cloud",
+   "kinds": [],
+   "website": "https://www.adobe.com/experience-cloud.html",
+   "code": [
+    "com.adobe.marketing.mobile"
+   ]
+  },
+  {
+   "id": 230,
+   "name": "Teads",
+   "kinds": [
+    "ads"
+   ],
+   "website": "https://www.teads.tv",
+   "code": [
+    "tv.teads.",
+    "teads.tv."
+   ]
+  },
+  {
+   "id": 231,
+   "name": "In Loco",
+   "kinds": [],
+   "website": "https://inloco.com.br",
+   "code": [
+    "com.inlocomedia.android"
+   ]
+  },
+  {
+   "id": 232,
+   "name": "IQzone",
+   "kinds": [
+    "ads"
+   ],
+   "website": "https://iqzone.com",
+   "code": [
+    "com.iqzone"
+   ]
+  },
+  {
+   "id": 233,
+   "name": "Bugfender",
+   "kinds": [
+    "crashReporting",
+    "analytics"
+   ],
+   "website": "https://bugfender.com/",
+   "code": [
+    "com.bugfender.sdk."
+   ]
+  },
+  {
+   "id": 234,
+   "name": "Wootric",
+   "kinds": [
+    "analytics"
+   ],
+   "website": "http://wootric.com",
+   "code": [
+    "com.wootric.androidsdk."
+   ]
+  },
+  {
+   "id": 235,
+   "name": "KIDOZ",
+   "kinds": [
+    "ads"
+   ],
+   "website": "https://kidoz.net/kidoz-sdk/",
+   "code": [
+    "com.kidoz.sdk"
+   ]
+  },
+  {
+   "id": 236,
+   "name": "PubMatic",
+   "kinds": [
+    "ads"
+   ],
+   "website": "https://pubmatic.com/",
+   "code": [
+    "com.pubmatic.sdk"
+   ]
+  },
+  {
+   "id": 237,
+   "name": "Kissmetrics",
+   "kinds": [
+    "analytics"
+   ],
+   "website": "https://www.kissmetricshq.com/",
+   "code": [
+    "com.kissmetrics"
+   ]
+  },
+  {
+   "id": 238,
+   "name": "Microsoft Visual Studio App Center Crashes",
+   "kinds": [
+    "crashReporting"
+   ],
+   "website": "https://appcenter.ms/",
+   "code": [
+    "com.microsoft.appcenter.crashes"
+   ]
+  },
+  {
+   "id": 239,
+   "name": "Webtrekk",
+   "kinds": [
+    "analytics"
+   ],
+   "website": "https://www.webtrekk.com/",
+   "code": [
+    "com.webtrekk.webtrekksdk"
+   ]
+  },
+  {
+   "id": 240,
+   "name": "Google Analytics Plugin (Cordova)",
+   "kinds": [
+    "analytics"
+   ],
+   "website": "https://analytics.withgoogle.com/",
+   "code": [
+    "com.danielcwilson.plugins.analytics"
+   ]
+  },
+  {
+   "id": 241,
+   "name": "Bugsee",
+   "kinds": [
+    "crashReporting"
+   ],
+   "website": "https://www.bugsee.com/",
+   "code": [
+    "com.bugsee.library.Bugsee"
+   ]
+  },
+  {
+   "id": 242,
+   "name": "Splunk MINT",
+   "kinds": [
+    "analytics"
+   ],
+   "website": "https://mint.splunk.com/",
+   "code": [
+    "com.splunk.mint"
+   ]
+  },
+  {
+   "id": 243,
+   "name": "Microsoft Visual Studio App Center Analytics",
+   "kinds": [
+    "analytics"
+   ],
+   "website": "https://appcenter.ms/",
+   "code": [
+    "com.microsoft.appcenter.analytics",
+    "com.microsoft.azure.mobile.analytics"
+   ]
+  },
+  {
+   "id": 244,
+   "name": "Nielsen",
+   "kinds": [
+    "analytics"
+   ],
+   "website": "https://www.nielsen.com",
+   "code": [
+    "com.nielsen.app"
+   ]
+  },
+  {
+   "id": 245,
+   "name": "Reveal Mobile",
+   "kinds": [
+    "analytics",
+    "location"
+   ],
+   "website": "https://revealmobile.com/",
+   "code": [
+    "com.stepleaderdigital.reveal"
+   ]
+  },
+  {
+   "id": 246,
+   "name": "Metrics",
+   "kinds": [
+    "analytics"
+   ],
+   "website": "https://metrics.dropwizard.io",
+   "code": [
+    "com.codahale.metrics"
+   ]
+  },
+  {
+   "id": 247,
+   "name": "Repro",
+   "kinds": [
+    "analytics"
+   ],
+   "website": "https://repro.io/",
+   "code": [
+    "io.repro.android."
+   ]
+  },
+  {
+   "id": 248,
+   "name": "Sensors Analytics",
+   "kinds": [
+    "analytics"
+   ],
+   "website": "https://www.sensorsdata.cn",
+   "code": [
+    "com.sensorsdata.analytics.android.sdk"
+   ]
+  },
+  {
+   "id": 249,
+   "name": "Tenjin",
+   "kinds": [
+    "analytics"
+   ],
+   "website": "https://www.tenjin.com/",
+   "code": [
+    "com.tenjin.android."
+   ]
+  },
+  {
+   "id": 250,
+   "name": "Tapstream",
+   "kinds": [
+    "analytics"
+   ],
+   "website": "https://www.tapstream.com/",
+   "code": [
+    "com.tapstream.sdk"
+   ]
+  },
+  {
+   "id": 251,
+   "name": "Singular",
+   "kinds": [
+    "analytics"
+   ],
+   "website": "https://singular.net/",
+   "code": [
+    "com.singular.sdk"
+   ]
+  },
+  {
+   "id": 252,
+   "name": "CallDorado",
+   "kinds": [
+    "ads"
+   ],
+   "website": "http://calldorado.com",
+   "code": [
+    "com.calldorado.android"
+   ]
+  },
+  {
+   "id": 253,
+   "name": "UXCam",
+   "kinds": [
+    "analytics",
+    "profiling"
+   ],
+   "website": "https://uxcam.com/",
+   "code": [
+    "com.uxcam."
+   ]
+  },
+  {
+   "id": 254,
+   "name": "Upsight",
+   "kinds": [
+    "analytics",
+    "profiling",
+    "ads"
+   ],
+   "website": "https://www.upsight.com/",
+   "code": [
+    "com.upsight.android"
+   ]
+  },
+  {
+   "id": 255,
+   "name": "Appcelerator Analytics",
+   "kinds": [
+    "analytics"
+   ],
+   "website": "https://www.appcelerator.com",
+   "code": [
+    "com.appcelerator.aps.",
+    "org.appcelerator.titanium.analytics"
+   ]
+  },
+  {
+   "id": 256,
+   "name": "Adbrix",
+   "kinds": [
+    "analytics",
+    "profiling"
+   ],
+   "website": "http://ad-brix.com/",
+   "code": [
+    "com.igaworks.adbrix"
+   ]
+  },
+  {
+   "id": 257,
+   "name": "Cauly",
+   "kinds": [
+    "ads"
+   ],
+   "website": "https://www.cauly.net",
+   "code": [
+    "com.fsn.cauly",
+    "com.trid.tridad",
+    "com.cauly.android.ad."
+   ]
+  },
+  {
+   "id": 258,
+   "name": "Tapdaq",
+   "kinds": [
+    "ads"
+   ],
+   "website": "https://www.tapdaq.com/",
+   "code": [
+    "com.tapdaq.sdk.",
+    "com.tapdaq.adapters."
+   ]
+  },
+  {
+   "id": 259,
+   "name": "Verve",
+   "kinds": [
+    "ads"
+   ],
+   "website": "https://www.verve.com",
+   "code": [
+    "com.vervewireless.advert."
+   ]
+  },
+  {
+   "id": 260,
+   "name": "Apsalar",
+   "kinds": [
+    "analytics",
+    "profiling",
+    "ads"
+   ],
+   "website": "https://singular.net",
+   "code": [
+    "com.apsalar.sdk."
+   ]
+  },
+  {
+   "id": 261,
+   "name": "PingStart",
+   "kinds": [
+    "ads"
+   ],
+   "website": "http://pingstart.com",
+   "code": [
+    "com.pingstart.adsdk."
+   ]
+  },
+  {
+   "id": 262,
+   "name": "Keen",
+   "kinds": [
+    "analytics"
+   ],
+   "website": "https://keen.io",
+   "code": [
+    "io.keen.client."
+   ]
+  },
+  {
+   "id": 263,
+   "name": "Revmob",
+   "kinds": [
+    "ads"
+   ],
+   "website": "https://www.crunchbase.com/organization/revmob",
+   "code": [
+    "com.revmob.ads."
+   ]
+  },
+  {
+   "id": 264,
+   "name": "Emarsys Predict",
+   "kinds": [],
+   "website": "https://help.emarsys.com/hc/categories/115000670425-Predict",
+   "code": [
+    "com.emarsys.predict"
+   ]
+  },
+  {
+   "id": 265,
+   "name": "Lotame",
+   "kinds": [],
+   "website": "https://www.lotame.com/",
+   "code": [
+    "com.lotame.android"
+   ]
+  },
+  {
+   "id": 266,
+   "name": "FollowAnalytics",
+   "kinds": [],
+   "website": "https://www.followanalytics.com",
+   "code": [
+    "com.followanalytics."
+   ]
+  },
+  {
+   "id": 267,
+   "name": "Chartbeat",
+   "kinds": [
+    "analytics"
+   ],
+   "website": "https://chartbeat.com/",
+   "code": [
+    "com.chartbeat.androidsdk"
+   ]
+  },
+  {
+   "id": 268,
+   "name": "MoEngage",
+   "kinds": [
+    "analytics"
+   ],
+   "website": "https://www.moengage.com/",
+   "code": [
+    "com.moengage."
+   ]
+  },
+  {
+   "id": 269,
+   "name": "Altamob",
+   "kinds": [
+    "ads"
+   ],
+   "website": "https://www.altamob.com/en/index.html",
+   "code": [
+    "com.altamob.sdk"
+   ]
+  },
+  {
+   "id": 270,
+   "name": "Tealeaf",
+   "kinds": [
+    "analytics"
+   ],
+   "website": "https://acoustic.co/products/experience-analytics/",
+   "code": [
+    "com.tl.uic.Tealeaf"
+   ]
+  },
+  {
+   "id": 271,
+   "name": "AMoAd",
+   "kinds": [],
+   "website": "https://www.amoad.com",
+   "code": [
+    "com.amoad."
+   ]
+  },
+  {
+   "id": 272,
+   "name": "AdAdapted",
+   "kinds": [
+    "analytics",
+    "ads"
+   ],
+   "website": "https://www.adadapted.com",
+   "code": [
+    "com.adadapted.android.sdk."
+   ]
+  },
+  {
+   "id": 273,
+   "name": "AdMuing",
+   "kinds": [
+    "ads"
+   ],
+   "website": "https://github.com/admuing",
+   "code": [
+    "com.admuing.danmaku."
+   ]
+  },
+  {
+   "id": 274,
+   "name": "Adcash",
+   "kinds": [
+    "ads"
+   ],
+   "website": "https://adcash.com",
+   "code": [
+    "com.adcash.mobileads."
+   ]
+  },
+  {
+   "id": 275,
+   "name": "Admixer",
+   "kinds": [
+    "ads"
+   ],
+   "website": "http://admixer.co.kr/",
+   "code": [
+    "com.admixer",
+    "net.admixer.sdk"
+   ]
+  },
+  {
+   "id": 276,
+   "name": "Admost",
+   "kinds": [
+    "ads"
+   ],
+   "website": "https://admost.com/",
+   "code": [
+    "admost.sdk.",
+    "admost.adserver."
+   ]
+  },
+  {
+   "id": 277,
+   "name": "Alohalytics",
+   "kinds": [
+    "analytics"
+   ],
+   "website": "https://github.com/biodranik/Alohalytics",
+   "code": [
+    "org.alohalytics."
+   ]
+  },
+  {
+   "id": 278,
+   "name": "Amobee",
+   "kinds": [],
+   "website": "https://amobee.com",
+   "code": [
+    "com.amobee."
+   ]
+  },
+  {
+   "id": 279,
+   "name": "Anagog",
+   "kinds": [
+    "analytics",
+    "location"
+   ],
+   "website": "https://anagog.com",
+   "code": [
+    "com.anagog.jedai"
+   ]
+  },
+  {
+   "id": 280,
+   "name": "Bazaarvoice",
+   "kinds": [
+    "analytics",
+    "location"
+   ],
+   "website": "https://www.bazaarvoice.com/",
+   "code": [
+    "com.bazaarvoice.bvandroidsdk"
+   ]
+  },
+  {
+   "id": 281,
+   "name": "BeaconsInSpace (Fysical)",
+   "kinds": [
+    "location"
+   ],
+   "website": "https://beaconsinspace.com",
+   "code": [
+    "com.beaconsinspace.android.beacon.detector."
+   ]
+  },
+  {
+   "id": 282,
+   "name": "Conversant",
+   "kinds": [],
+   "website": "https://www.conversantmedia.com",
+   "code": [
+    "com.conversantmedia",
+    "com.greystripe.android."
+   ]
+  },
+  {
+   "id": 283,
+   "name": "Glympse",
+   "kinds": [
+    "location"
+   ],
+   "website": "https://glympse.com",
+   "code": [
+    "com.glympse.android."
+   ]
+  },
+  {
+   "id": 284,
+   "name": "Herow",
+   "kinds": [
+    "analytics",
+    "profiling",
+    "location"
+   ],
+   "website": "https://herow.io/",
+   "code": [
+    "com.connecthings.herow"
+   ]
+  },
+  {
+   "id": 285,
+   "name": "Placer",
+   "kinds": [
+    "analytics",
+    "profiling",
+    "location"
+   ],
+   "website": "https://placer.io/",
+   "code": [
+    "com.placer.client.Placer"
+   ]
+  },
+  {
+   "id": 286,
+   "name": "PushSpring",
+   "kinds": [],
+   "website": "http://www.pushspring.com/",
+   "code": [
+    "com.pushspring.sdk.PushSpring"
+   ]
+  },
+  {
+   "id": 287,
+   "name": "Pyze",
+   "kinds": [
+    "analytics"
+   ],
+   "website": "https://pyze.com/",
+   "code": [
+    "com.pyze."
+   ]
+  },
+  {
+   "id": 288,
+   "name": "Radar",
+   "kinds": [],
+   "website": "https://radar.io/",
+   "code": [
+    "io.radar.sdk.Radar"
+   ]
+  },
+  {
+   "id": 289,
+   "name": "Roximity",
+   "kinds": [
+    "location"
+   ],
+   "website": "http://roximity.com/",
+   "code": [
+    "com.roximity.sdk."
+   ]
+  },
+  {
+   "id": 290,
+   "name": "Sentiance",
+   "kinds": [],
+   "website": "https://www.sentiance.com/",
+   "code": [
+    "com.sentiance.sdk."
+   ]
+  },
+  {
+   "id": 291,
+   "name": "SmartLook",
+   "kinds": [
+    "profiling",
+    "location"
+   ],
+   "website": "https://www.smartlook.com/",
+   "code": [
+    "com.smartlook.sdk.smartlook."
+   ]
+  },
+  {
+   "id": 292,
+   "name": "Square Metrics",
+   "kinds": [],
+   "website": "https://www.squaremetrics.com",
+   "code": [
+    "com.beaconinside.proximitysdk.ProximityService"
+   ]
+  },
+  {
+   "id": 293,
+   "name": "TalkingData",
+   "kinds": [
+    "analytics",
+    "ads"
+   ],
+   "website": "https://www.talkingdata.com/",
+   "code": [
+    "com.talkingdata.sdk.",
+    "com.tendcloud.tenddata.",
+    "com.talkingdata.appanalytics.",
+    "com.talkingdata.adtracking.",
+    "com.tendcloud.appcpa.",
+    "com.apptalkingdata.push.",
+    "com.gametalkingdata.push."
+   ]
+  },
+  {
+   "id": 294,
+   "name": "flymob",
+   "kinds": [],
+   "website": "https://flymob.com/",
+   "code": [
+    "com.flymob.sdk."
+   ]
+  },
+  {
+   "id": 295,
+   "name": "AdFalcon",
+   "kinds": [
+    "ads"
+   ],
+   "website": "http://adfalcon.com",
+   "code": [
+    "com.noqoush.adfalcon.android.sdk"
+   ]
+  },
+  {
+   "id": 296,
+   "name": "Bitly",
+   "kinds": [],
+   "website": "https://bitly.com/",
+   "code": [
+    "com.bitly.Bitly"
+   ]
+  },
+  {
+   "id": 297,
+   "name": "Enhance",
+   "kinds": [],
+   "website": "https://enhance.co",
+   "code": [
+    "co.enhance.Enhance"
+   ]
+  },
+  {
+   "id": 298,
+   "name": "Esri ArcGIS",
+   "kinds": [
+    "location"
+   ],
+   "website": "https://www.arcgis.com/",
+   "code": [
+    "com.esri.arcgisruntime."
+   ]
+  },
+  {
+   "id": 299,
+   "name": "GIPHY Analytics",
+   "kinds": [
+    "analytics"
+   ],
+   "website": "https://giphy.com/",
+   "code": [
+    "com.giphy.sdk.analytics",
+    "com.giphy.sdk.tracking"
+   ]
+  },
+  {
+   "id": 300,
+   "name": "Heap",
+   "kinds": [
+    "analytics"
+   ],
+   "website": "https://heap.io/",
+   "code": [
+    "com.heapanalytics"
+   ]
+  },
+  {
+   "id": 301,
+   "name": "Inneractive",
+   "kinds": [
+    "ads"
+   ],
+   "website": "https://www.crunchbase.com/organization/inneractive",
+   "code": [
+    "com.inneractive.api.ads"
+   ]
+  },
+  {
+   "id": 302,
+   "name": "MDOTM",
+   "kinds": [
+    "ads"
+   ],
+   "website": "http://mdotm.com/",
+   "code": [
+    "com.mdotm.android"
+   ]
+  },
+  {
+   "id": 303,
+   "name": "Metaps",
+   "kinds": [
+    "ads"
+   ],
+   "website": "http://www.metaps.com",
+   "code": [
+    "com.metaps"
+   ]
+  },
+  {
+   "id": 304,
+   "name": "Parse.ly",
+   "kinds": [
+    "analytics"
+   ],
+   "website": "https://www.parse.ly/",
+   "code": [
+    "com.parsely.parselyandroid"
+   ]
+  },
+  {
+   "id": 305,
+   "name": "Pollfish",
+   "kinds": [
+    "profiling"
+   ],
+   "website": "https://www.pollfish.com",
+   "code": [
+    "com.pollfish"
+   ]
+  },
+  {
+   "id": 306,
+   "name": "Qualtrics",
+   "kinds": [],
+   "website": "http://www.qualtrics.com/",
+   "code": [
+    "com.qualtrics.digital."
+   ]
+  },
+  {
+   "id": 307,
+   "name": "Tamoco",
+   "kinds": [
+    "location",
+    "analytics"
+   ],
+   "website": "https://www.tamoco.com/",
+   "code": [
+    "com.tamoco.sdk"
+   ]
+  },
+  {
+   "id": 308,
+   "name": "Vpon",
+   "kinds": [
+    "analytics",
+    "profiling",
+    "ads"
+   ],
+   "website": "https://www.vpon.com/",
+   "code": [
+    "com.vpon.ads",
+    "com.vpadn.analytics",
+    "com.vpadn.ads.",
+    "com.vpadn.widget."
+   ]
+  },
+  {
+   "id": 309,
+   "name": "YuMe",
+   "kinds": [
+    "ads"
+   ],
+   "website": "https://www.appbrain.com/stats/libraries/details/yume/yume",
+   "code": [
+    "com.yume.android"
+   ]
+  },
+  {
+   "id": 310,
+   "name": "Zapr",
+   "kinds": [
+    "analytics",
+    "ads",
+    "location"
+   ],
+   "website": "https://www.zapr.in/",
+   "code": [
+    "com.redbricklane.zapr"
+   ]
+  },
+  {
+   "id": 311,
+   "name": "mediba",
+   "kinds": [
+    "ads"
+   ],
+   "website": "https://www.mediba.jp",
+   "code": [
+    "com.mediba.jp",
+    "mediba.ad.sdk.android.openx"
+   ]
+  },
+  {
+   "id": 312,
+   "name": "Google AdMob",
+   "kinds": [
+    "ads"
+   ],
+   "website": "https://admob.google.com",
+   "code": [
+    "com.google.ads.",
+    "com.google.android.gms.ads.AdView",
+    "com.google.android.gms.ads.AdActivity",
+    "com.google.android.gms.ads.AdRequest",
+    "com.google.android.gms.ads.mediation",
+    "com.google.android.gms.ads.doubleclick",
+    "com.google.android.ads.",
+    "com.google.unity.ads.",
+    "com.google.android.gms.admob",
+    "com.google.firebase.firebase_ads."
+   ]
+  },
+  {
+   "id": 313,
+   "name": "Unacast Pure",
+   "kinds": [
+    "location"
+   ],
+   "website": "https://www.unacast.com/",
+   "code": [
+    "com.pure.internal.",
+    "com.pure.sdk."
+   ]
+  },
+  {
+   "id": 314,
+   "name": "Factual",
+   "kinds": [],
+   "website": "https://www.factual.com",
+   "code": [
+    "com.factual.engine",
+    "com.factual.Factual"
+   ]
+  },
+  {
+   "id": 315,
+   "name": "Footmarks",
+   "kinds": [
+    "location"
+   ],
+   "website": "https://www.footmarks.com",
+   "code": [
+    "com.footmarks.footmarkssdkm2"
+   ]
+  },
+  {
+   "id": 316,
+   "name": "OzTAM",
+   "kinds": [
+    "analytics"
+   ],
+   "website": "https://oztam.com.au/",
+   "code": [
+    "au.com.oztam."
+   ]
+  },
+  {
+   "id": 317,
+   "name": "Receptiv (formerly Mediabrix)",
+   "kinds": [
+    "ads"
+   ],
+   "website": "https://www.receptiv.com/",
+   "code": [
+    "com.mediabrix.android"
+   ]
+  },
+  {
+   "id": 318,
+   "name": "Tutela",
+   "kinds": [],
+   "website": "https://www.tutela.com/",
+   "code": [
+    "com.tutelatechnologies.sdk"
+   ]
+  },
+  {
+   "id": 319,
+   "name": "Twine Data",
+   "kinds": [],
+   "website": "https://www.truedata.co/",
+   "code": [
+    "com.twine.sdk"
+   ]
+  },
+  {
+   "id": 320,
+   "name": "Verizon Ads",
+   "kinds": [
+    "analytics",
+    "profiling",
+    "identification",
+    "ads",
+    "location"
+   ],
+   "website": "https://www.verizonmedia.com/",
+   "code": [
+    "com.verizon.ads",
+    "com.verizondigitalmedia.mobile.",
+    "com.oath.mobile."
+   ]
+  },
+  {
+   "id": 321,
+   "name": "adPOPcorn",
+   "kinds": [
+    "ads"
+   ],
+   "website": "https://adpopcorn.com/",
+   "code": [
+    "com.igaworks.adpopcorn",
+    "com.igaworks.ssp."
+   ]
+  },
+  {
+   "id": 322,
+   "name": "maio by i-mobile",
+   "kinds": [],
+   "website": "https://adpf-info.i-mobile.co.jp/en/",
+   "code": [
+    "jp.maio.sdk."
+   ]
+  },
+  {
+   "id": 323,
+   "name": "360Dialog",
+   "kinds": [
+    "analytics",
+    "profiling",
+    "identification",
+    "ads",
+    "location"
+   ],
+   "website": "https://www.360dialog.com",
+   "code": [
+    "com.threesixtydialog.sdk."
+   ]
+  },
+  {
+   "id": 324,
+   "name": "ABTasty",
+   "kinds": [
+    "analytics"
+   ],
+   "website": "https://www.abtasty.com",
+   "code": [
+    "com.abtasty"
+   ]
+  },
+  {
+   "id": 325,
+   "name": "ACRCloud",
+   "kinds": [
+    "analytics"
+   ],
+   "website": "https://acrcloud.com/",
+   "code": [
+    "com.acrcloud"
+   ]
+  },
+  {
+   "id": 326,
+   "name": "Aarki",
+   "kinds": [
+    "analytics",
+    "profiling",
+    "identification",
+    "ads"
+   ],
+   "website": "https://www.aarki.com",
+   "code": [
+    "com.aarki"
+   ]
+  },
+  {
+   "id": 327,
+   "name": "Actv8me",
+   "kinds": [
+    "profiling",
+    "identification",
+    "ads",
+    "location"
+   ],
+   "website": "https://www.actv8me.com/",
+   "code": [
+    "me.actv8"
+   ]
+  },
+  {
+   "id": 328,
+   "name": "IAB Open Measurement",
+   "kinds": [
+    "identification",
+    "ads"
+   ],
+   "website": "https://iabtechlab.com/",
+   "code": [
+    "com.iab.omid.library",
+    "com.prime31.util.IabHelperImpl",
+    "com.prime31.IAB."
+   ]
+  },
+  {
+   "id": 333,
+   "name": "Huawei Mobile Services (HMS) Core",
+   "kinds": [
+    "analytics",
+    "ads",
+    "location"
+   ],
+   "website": "https://developer.huawei.com/consumer/en/hms",
+   "code": [
+    "com.huawei.hms.analytics",
+    "com.huawei.hms.location",
+    "com.huawei.hms.plugin.analytics",
+    "com.huawei.hms.plugin.ads",
+    "com.huawei.updatesdk.",
+    "com.huawei.agconnect.",
+    "com.huawei.hms.support.api.push.",
+    "com.huawei.hms.flutter.analytics."
+   ]
+  },
+  {
+   "id": 334,
+   "name": "Akamai MAP",
+   "kinds": [
+    "analytics"
+   ],
+   "website": "https://www.akamai.com/",
+   "code": [
+    "com.akamai.android.sdk.AkaMap"
+   ]
+  },
+  {
+   "id": 336,
+   "name": "Mail.ru",
+   "kinds": [],
+   "website": "http://mail.ru",
+   "code": [
+    "ru.mail.mrgservice.advertising",
+    "ru.mail.mrgservice.analytics"
+   ]
+  },
+  {
+   "id": 337,
+   "name": "Airpush",
+   "kinds": [
+    "ads"
+   ],
+   "website": "https://airpush.com/",
+   "code": [
+    "com.airpush."
+   ]
+  },
+  {
+   "id": 338,
+   "name": "Alimama (formerly AdsMogo)",
+   "kinds": [
+    "ads"
+   ],
+   "website": "https://www.alimama.com/",
+   "code": [
+    "com.adsmogo.",
+    "com.alimama."
+   ]
+  },
+  {
+   "id": 339,
+   "name": "AnySDK",
+   "kinds": [
+    "analytics",
+    "ads"
+   ],
+   "website": "http://www.anysdk.com/",
+   "code": [
+    "com.anysdk.framework.AnalyticsWrapper",
+    "com.anysdk.framework.AdsWrapper"
+   ]
+  },
+  {
+   "id": 340,
+   "name": "Button",
+   "kinds": [
+    "analytics",
+    "profiling",
+    "identification"
+   ],
+   "website": "https://www.usebutton.com",
+   "code": [
+    "com.usebutton.sdk."
+   ]
+  },
+  {
+   "id": 341,
+   "name": "Carto (formerly Nutiteq)",
+   "kinds": [
+    "ads",
+    "location"
+   ],
+   "website": "https://carto.com",
+   "code": [
+    "com.nutiteq",
+    "com.carto"
+   ]
+  },
+  {
+   "id": 342,
+   "name": "Didomi",
+   "kinds": [
+    "analytics"
+   ],
+   "website": "https://www.didomi.io/",
+   "code": [
+    "io.didomi.sdk."
+   ]
+  },
+  {
+   "id": 343,
+   "name": "JiGuang Aurora Mobile JPush",
+   "kinds": [
+    "analytics"
+   ],
+   "website": "https://ir.jiguang.cn/corporate-profile",
+   "code": [
+    "cn.jpush.android"
+   ]
+  },
+  {
+   "id": 344,
+   "name": "Jumio",
+   "kinds": [
+    "identification"
+   ],
+   "website": "https://www.jumio.com/",
+   "code": [
+    "com.jumio.MobileSDK"
+   ]
+  },
+  {
+   "id": 345,
+   "name": "Lenddo",
+   "kinds": [
+    "analytics",
+    "identification",
+    "location"
+   ],
+   "website": "https://www.lenddo.com/",
+   "code": [
+    "com.lenddo.mobile"
+   ]
+  },
+  {
+   "id": 346,
+   "name": "POKKT",
+   "kinds": [
+    "ads"
+   ],
+   "website": "https://www.pokkt.com",
+   "code": [
+    "com.pokkt.sdk."
+   ]
+  },
+  {
+   "id": 347,
+   "name": "Prebid Mobile",
+   "kinds": [
+    "ads"
+   ],
+   "website": "https://prebid.org",
+   "code": [
+    "org.prebid.mobile"
+   ]
+  },
+  {
+   "id": 348,
+   "name": "SK planet Tad",
+   "kinds": [
+    "ads"
+   ],
+   "website": "https://www.skplanet.com/eng",
+   "code": [
+    "com.skplanet.tad"
+   ]
+  },
+  {
+   "id": 349,
+   "name": "Split",
+   "kinds": [
+    "analytics"
+   ],
+   "website": "https://www.split.io/",
+   "code": [
+    "io.split.android."
+   ]
+  },
+  {
+   "id": 350,
+   "name": "Exponea",
+   "kinds": [
+    "analytics"
+   ],
+   "website": "https://exponea.com",
+   "code": [
+    "com.infinario.android.infinariosdk.",
+    "com.exponea.sdk",
+    "com.sygic.aura."
+   ]
+  },
+  {
+   "id": 351,
+   "name": "IPQualityScore",
+   "kinds": [
+    "profiling",
+    "location"
+   ],
+   "website": "https://www.ipqualityscore.com",
+   "code": [
+    "com.ipqualityscore."
+   ]
+  },
+  {
+   "id": 352,
+   "name": "Opensignal",
+   "kinds": [
+    "analytics",
+    "location"
+   ],
+   "website": "https://www.opensignal.com",
+   "code": [
+    "com.opensignal.datacollection."
+   ]
+  },
+  {
+   "id": 353,
+   "name": "SignalFrame",
+   "kinds": [
+    "location"
+   ],
+   "website": "https://signalframe.com/",
+   "code": [
+    "com.wirelessregistry.observersdk."
+   ]
+  },
+  {
+   "id": 354,
+   "name": "X-Mode",
+   "kinds": [
+    "analytics",
+    "location"
+   ],
+   "website": "https://xmode.io/",
+   "code": [
+    "io.xmode.BcnConfig",
+    "io.xmode.locationsdk",
+    "io.mysdk."
+   ]
+  },
+  {
+   "id": 355,
+   "name": "OneAudience",
+   "kinds": [
+    "analytics",
+    "profiling"
+   ],
+   "website": "http://www.oneaudience.com/",
+   "code": [
+    "com.oneaudience.sdk."
+   ]
+  },
+  {
+   "id": 356,
+   "name": "OpenBack",
+   "kinds": [],
+   "website": "https://www.openback.com",
+   "code": [
+    "com.openback"
+   ]
+  },
+  {
+   "id": 357,
+   "name": "PredicIO",
+   "kinds": [
+    "identification",
+    "location",
+    "analytics",
+    "ads"
+   ],
+   "website": "https://www.predic.io/",
+   "code": [
+    "com.telescope.android",
+    "io.predic.tracker"
+   ]
+  },
+  {
+   "id": 358,
+   "name": "AdLocus",
+   "kinds": [
+    "profiling",
+    "identification",
+    "ads",
+    "location"
+   ],
+   "website": "https://adlocus.com",
+   "code": [
+    "com.adlocus."
+   ]
+  },
+  {
+   "id": 359,
+   "name": "Adcenix",
+   "kinds": [
+    "ads"
+   ],
+   "website": "http://adcenix.com",
+   "code": [
+    "com.adcenix."
+   ]
+  },
+  {
+   "id": 360,
+   "name": "Admitad",
+   "kinds": [
+    "ads"
+   ],
+   "website": "https://www.admitad.com",
+   "code": [
+    "ru.tachos.admitadstatisticsdk"
+   ]
+  },
+  {
+   "id": 361,
+   "name": "AutoNavi / Amap",
+   "kinds": [
+    "location"
+   ],
+   "website": "https://mobile.amap.com/",
+   "code": [
+    "com.amap.api"
+   ]
+  },
+  {
+   "id": 362,
+   "name": "IBM Digital Analytics",
+   "kinds": [
+    "analytics"
+   ],
+   "website": "https://www.ibm.com/customer-engagement/coremetrics-software",
+   "code": [
+    "com.digitalanalytics."
+   ]
+  },
+  {
+   "id": 363,
+   "name": "Pangle",
+   "kinds": [
+    "ads"
+   ],
+   "website": "https://www.pangleglobal.com",
+   "code": [
+    "com.bytedance",
+    "com.pgl",
+    "com.pangle.global"
+   ]
+  },
+  {
+   "id": 364,
+   "name": "YOC VIS.X",
+   "kinds": [
+    "ads"
+   ],
+   "website": "https://yoc.com",
+   "code": [
+    "com.yoc.visx"
+   ]
+  },
+  {
+   "id": 365,
+   "name": "Ad Generation",
+   "kinds": [
+    "ads"
+   ],
+   "website": "https://supership.jp/business/adgeneration/",
+   "code": [
+    "com.socdm.d.adgeneration."
+   ]
+  },
+  {
+   "id": 366,
+   "name": "Adjoe",
+   "kinds": [
+    "ads"
+   ],
+   "website": "https://adjoe.io/",
+   "code": [
+    "io.adjoe.sdk.",
+    "io.adjoe.protection."
+   ]
+  },
+  {
+   "id": 367,
+   "name": "AppVador",
+   "kinds": [
+    "ads"
+   ],
+   "website": "http://www.appvador.com/",
+   "code": [
+    "com.appvador.ads."
+   ]
+  },
+  {
+   "id": 368,
+   "name": "Appodeal Stack",
+   "kinds": [
+    "analytics",
+    "ads"
+   ],
+   "website": "https://appodealstack.com/about/",
+   "code": [
+    "com.explorestack."
+   ]
+  },
+  {
+   "id": 369,
+   "name": "AppsGeyser",
+   "kinds": [
+    "ads"
+   ],
+   "website": "https://appsgeyser.com/",
+   "code": [
+    "com.appsgeyser.sdk",
+    "com.appsgeyser.multiTabApp.VideoPlayerActivity"
+   ]
+  },
+  {
+   "id": 370,
+   "name": "BidMachine",
+   "kinds": [
+    "ads"
+   ],
+   "website": "https://bidmachine.io/",
+   "code": [
+    "io.bidmachine."
+   ]
+  },
+  {
+   "id": 371,
+   "name": "BugSense",
+   "kinds": [
+    "crashReporting"
+   ],
+   "website": "http://www.bugsense.com/",
+   "code": [
+    "com.bugsense.trace."
+   ]
+  },
+  {
+   "id": 372,
+   "name": "BuzzAd Benefit",
+   "kinds": [
+    "ads"
+   ],
+   "website": "https://buzzvil.atlassian.net/wiki/spaces/BDG/pages/486834313/BuzzAd-Benefit+Android+SDK",
+   "code": [
+    "com.buzzvil."
+   ]
+  },
+  {
+   "id": 373,
+   "name": "GOM Factory AdPie",
+   "kinds": [
+    "ads"
+   ],
+   "website": "http://www.gomfactory.com",
+   "code": [
+    "com.gomfactory.adpie."
+   ]
+  },
+  {
+   "id": 374,
+   "name": "JumpTap",
+   "kinds": [
+    "ads"
+   ],
+   "website": "http://www.millennialmedia.com",
+   "code": [
+    "com.jumptap.adtag."
+   ]
+  },
+  {
+   "id": 375,
+   "name": "LoopMe",
+   "kinds": [
+    "ads"
+   ],
+   "website": "https://loopme.com/",
+   "code": [
+    "com.loopme."
+   ]
+  },
+  {
+   "id": 376,
+   "name": "Raygun",
+   "kinds": [
+    "crashReporting",
+    "analytics"
+   ],
+   "website": "https://raygun.com",
+   "code": [
+    "com.mindscapehq.android.raygun4android"
+   ]
+  },
+  {
+   "id": 377,
+   "name": "RjFun",
+   "kinds": [
+    "ads"
+   ],
+   "website": "https://rjfun.github.io/",
+   "code": [
+    "com.rjfun.cordova.ad",
+    "com.rjfun.cordova.admob"
+   ]
+  },
+  {
+   "id": 378,
+   "name": "SuperAwesome",
+   "kinds": [
+    "ads"
+   ],
+   "website": "https://www.superawesome.com/",
+   "code": [
+    "tv.superawesome.sdk",
+    "tv.superawesome.lib."
+   ]
+  },
+  {
+   "id": 379,
+   "name": "TapResearch",
+   "kinds": [
+    "analytics",
+    "profiling"
+   ],
+   "website": "https://www.tapresearch.com/",
+   "code": [
+    "com.tapr.sdk.",
+    "com.tapr.internal.",
+    "com.tapr.helpers."
+   ]
+  },
+  {
+   "id": 380,
+   "name": "Tappx",
+   "kinds": [
+    "ads"
+   ],
+   "website": "https://www.tappx.com/",
+   "code": [
+    "com.tappx.sdk.android"
+   ]
+  },
+  {
+   "id": 381,
+   "name": "ThinkingData Analytics",
+   "kinds": [
+    "analytics",
+    "identification"
+   ],
+   "website": "http://www.thinkingdata.cn/",
+   "code": [
+    "cn.thinkingdata."
+   ]
+  },
+  {
+   "id": 382,
+   "name": "VKontakte SDK",
+   "kinds": [
+    "identification"
+   ],
+   "website": "https://vksdk.github.io/vk-sdk-android/",
+   "code": [
+    "com.vk.sdk.",
+    "com.vk.api.sdk."
+   ]
+  },
+  {
+   "id": 383,
+   "name": "Virgo Mobile",
+   "kinds": [
+    "ads"
+   ],
+   "website": "http://virgomobile.com/",
+   "code": [
+    "com.virgo.ads."
+   ]
+  },
+  {
+   "id": 384,
+   "name": "Zoho Analytics",
+   "kinds": [
+    "analytics"
+   ],
+   "website": "http://analytics.zoho.com/",
+   "code": [
+    "com.zoho.zanalytics."
+   ]
+  },
+  {
+   "id": 385,
+   "name": "fineboost",
+   "kinds": [
+    "analytics",
+    "ads"
+   ],
+   "website": "http://www.yifants.cn/",
+   "code": [
+    "com.fineboost."
+   ]
+  },
+  {
+   "id": 386,
+   "name": "Acuant",
+   "kinds": [
+    "profiling"
+   ],
+   "website": "https://www.acuantcorp.com",
+   "code": [
+    "com.acuant.acuantcamera"
+   ]
+  },
+  {
+   "id": 387,
+   "name": "Anvato (A Google Company)",
+   "kinds": [
+    "analytics",
+    "profiling",
+    "identification",
+    "ads",
+    "location"
+   ],
+   "website": "https://cloud.google.com/solutions/media-entertainment/?a=2",
+   "code": [
+    "com.anvato.androidsdk."
+   ]
+  },
+  {
+   "id": 388,
+   "name": "Blesh",
+   "kinds": [
+    "location"
+   ],
+   "website": "https://www.blesh.com/",
+   "code": [
+    "com.blesh.sdk."
+   ]
+  },
+  {
+   "id": 389,
+   "name": "Bluecats",
+   "kinds": [
+    "location"
+   ],
+   "website": "https://www.bluecats.com/",
+   "code": [
+    "com.bluecats.sdk"
+   ]
+  },
+  {
+   "id": 390,
+   "name": "CoolaData",
+   "kinds": [
+    "analytics",
+    "profiling"
+   ],
+   "website": "https://www.cooladata.com/",
+   "code": [
+    "com.cooladata.android."
+   ]
+  },
+  {
+   "id": 391,
+   "name": "FLUZO",
+   "kinds": [
+    "analytics"
+   ],
+   "website": "https://www.fluzo.com/",
+   "code": [
+    "com.fluzo.sdk."
+   ]
+  },
+  {
+   "id": 392,
+   "name": "Facebook Flipper",
+   "kinds": [
+    "analytics"
+   ],
+   "website": "https://fbflipper.com",
+   "code": [
+    "com.facebook.flipper"
+   ]
+  },
+  {
+   "id": 393,
+   "name": "GPShopper",
+   "kinds": [
+    "analytics"
+   ],
+   "website": "https://www.crunchbase.com/organization/gpshopper",
+   "code": [
+    "com.gpshopper"
+   ]
+  },
+  {
+   "id": 394,
+   "name": "IndoorAtlas",
+   "kinds": [
+    "analytics",
+    "location"
+   ],
+   "website": "http://www.indooratlas.com/",
+   "code": [
+    "com.indooratlas.android.sdk"
+   ]
+  },
+  {
+   "id": 395,
+   "name": "Janrain",
+   "kinds": [
+    "identification"
+   ],
+   "website": "https://en.wikipedia.org/wiki/Janrain",
+   "code": [
+    "com.janrain.android",
+    "com.janrain.android.engage",
+    "com.janrain.android.capture"
+   ]
+  },
+  {
+   "id": 396,
+   "name": "MOCA",
+   "kinds": [
+    "analytics",
+    "profiling",
+    "location"
+   ],
+   "website": "https://www.mocaplatform.com/",
+   "code": [
+    "com.innoquant.moca"
+   ]
+  },
+  {
+   "id": 397,
+   "name": "Point Inside",
+   "kinds": [
+    "analytics",
+    "location"
+   ],
+   "website": "https://www.pointinside.com/",
+   "code": [
+    "com.pointinside"
+   ]
+  },
+  {
+   "id": 398,
+   "name": "Proximi.io",
+   "kinds": [
+    "analytics",
+    "location"
+   ],
+   "website": "https://proximi.io/",
+   "code": [
+    "io.proximi.proximiiolibrary"
+   ]
+  },
+  {
+   "id": 399,
+   "name": "ScoreLoop",
+   "kinds": [],
+   "website": "https://www.scoreloop.com",
+   "code": [
+    "com.scoreloop.client.android"
+   ]
+  },
+  {
+   "id": 400,
+   "name": "Alooma",
+   "kinds": [
+    "analytics"
+   ],
+   "website": "https://www.alooma.com",
+   "code": [
+    "com.github.aloomaio.androidsdk"
+   ]
+  },
+  {
+   "id": 401,
+   "name": "Analytics by NPAW (Youbora Suite)",
+   "kinds": [
+    "analytics",
+    "profiling",
+    "location"
+   ],
+   "website": "https://nicepeopleatwork.com/",
+   "code": [
+    "com.npaw.youbora."
+   ]
+  },
+  {
+   "id": 402,
+   "name": "Beintoo",
+   "kinds": [
+    "analytics",
+    "profiling",
+    "ads",
+    "location"
+   ],
+   "website": "https://beintoo.com/",
+   "code": [
+    "com.beintoo.nucleon"
+   ]
+  },
+  {
+   "id": 403,
+   "name": "Bolts",
+   "kinds": [
+    "analytics"
+   ],
+   "website": "https://github.com/BoltsFramework/Bolts-Android",
+   "code": [
+    "com.parse.bolts"
+   ]
+  },
+  {
+   "id": 404,
+   "name": "Cedexis Radar",
+   "kinds": [
+    "location"
+   ],
+   "website": "https://www.cedexis.com/",
+   "code": [
+    "com.cedexis"
+   ]
+  },
+  {
+   "id": 405,
+   "name": "Cifrasoft",
+   "kinds": [
+    "identification",
+    "ads",
+    "location"
+   ],
+   "website": "http://cifrasoft.com",
+   "code": [
+    "com.cifrasoft."
+   ]
+  },
+  {
+   "id": 406,
+   "name": "Flowsense",
+   "kinds": [
+    "analytics",
+    "profiling",
+    "location"
+   ],
+   "website": "https://flowsense.com.br/",
+   "code": [
+    "com.flowsense.flowsensesdk."
+   ]
+  },
+  {
+   "id": 407,
+   "name": "Geniee",
+   "kinds": [
+    "ads"
+   ],
+   "website": "https://geniee.co.jp/",
+   "code": [
+    "jp.co.geniee.gnadsdk."
+   ]
+  },
+  {
+   "id": 408,
+   "name": "Huq Sourcekit",
+   "kinds": [
+    "analytics",
+    "location"
+   ],
+   "website": "https://huq.io/",
+   "code": [
+    "io.huq.sourcekit."
+   ]
+  },
+  {
+   "id": 409,
+   "name": "Insider",
+   "kinds": [
+    "analytics"
+   ],
+   "website": "https://useinsider.com/",
+   "code": [
+    "com.useinsider.insider"
+   ]
+  },
+  {
+   "id": 410,
+   "name": "Mopinion",
+   "kinds": [
+    "analytics",
+    "profiling"
+   ],
+   "website": "https://mopinion.com",
+   "code": [
+    "com.mopinion.mopinionsdk"
+   ]
+  },
+  {
+   "id": 411,
+   "name": "OfferToro",
+   "kinds": [
+    "ads"
+   ],
+   "website": "http://www.offertoro.com/",
+   "code": [
+    "com.offertoro.sdk."
+   ]
+  },
+  {
+   "id": 412,
+   "name": "OpenTelemetry (OpenCensus, OpenTracing)",
+   "kinds": [
+    "analytics"
+   ],
+   "website": "https://opentelemetry.io/",
+   "code": [
+    "io.opencensus",
+    "io.opentelemetry"
+   ]
+  },
+  {
+   "id": 413,
+   "name": "Snapchat Login Kit",
+   "kinds": [
+    "identification"
+   ],
+   "website": "https://kit.snapchat.com/docs/login-kit",
+   "code": [
+    "com.snapchat.kit.sdk.SnapLogin"
+   ]
+  },
+  {
+   "id": 414,
+   "name": "Zendrive",
+   "kinds": [
+    "analytics",
+    "profiling",
+    "location"
+   ],
+   "website": "https://www.zendrive.com/",
+   "code": [
+    "com.zendrive.sdk."
+   ]
+  },
+  {
+   "id": 415,
+   "name": "fullstory",
+   "kinds": [
+    "analytics"
+   ],
+   "website": "https://www.fullstory.com/",
+   "code": [
+    "com.fullstory.instrumentation.",
+    "com.fullstory.util.",
+    "com.fullstory.jni.",
+    "com.fullstory.FS",
+    "com.fullstory.rust.",
+    "com.fullstory.FSSessionData"
+   ]
+  },
+  {
+   "id": 416,
+   "name": "Pendo",
+   "kinds": [
+    "analytics"
+   ],
+   "website": "https://www.pendo.io",
+   "code": [
+    "sdk.insert.io.",
+    "sdk.pendo.io."
+   ]
+  },
+  {
+   "id": 417,
+   "name": "Plexure",
+   "kinds": [
+    "analytics"
+   ],
+   "website": "https://www.plexure.com/",
+   "code": [
+    "co.vmob.sdk"
+   ]
+  },
+  {
+   "id": 418,
+   "name": "Swirl",
+   "kinds": [],
+   "website": "http://swirl.com/",
+   "code": [
+    "com.swirl"
+   ]
+  },
+  {
+   "id": 419,
+   "name": "Treasure Data",
+   "kinds": [
+    "analytics",
+    "profiling"
+   ],
+   "website": "https://www.treasuredata.com/product/",
+   "code": [
+    "com.treasuredata"
+   ]
+  },
+  {
+   "id": 420,
+   "name": "IBM Mobile Marketing (Acoustic)",
+   "kinds": [
+    "analytics",
+    "ads"
+   ],
+   "website": "https://acoustic.co/",
+   "code": [
+    "com.ibm.mce.sdk.",
+    "co.acoustic.mobile.push.sdk.",
+    "com.xtify.mce.sdk.",
+    "com.xtify.android.sdk."
+   ]
+  },
+  {
+   "id": 422,
+   "name": "Solar2D (Corona)",
+   "kinds": [
+    "analytics",
+    "ads"
+   ],
+   "website": "https://solar2d.com/",
+   "code": [
+    "com.ansca.corona"
+   ]
+  },
+  {
+   "id": 423,
+   "name": "Amazon Mobile Analytics (Amplify)",
+   "kinds": [
+    "analytics"
+   ],
+   "website": "https://aws.amazon.com/amplify/",
+   "code": [
+    "com.amplifyframework.analytics."
+   ]
+  },
+  {
+   "id": 424,
+   "name": "AD(X)",
+   "kinds": [
+    "ads"
+   ],
+   "website": "https://adxcorp.kr/",
+   "code": [
+    "com.adxcorp.ads",
+    "com.adxcorp.nativead"
+   ]
+  },
+  {
+   "id": 425,
+   "name": "AdGateMedia",
+   "kinds": [
+    "ads"
+   ],
+   "website": "https://adgatemedia.com/",
+   "code": [
+    "com.adgatemedia."
+   ]
+  },
+  {
+   "id": 426,
+   "name": "AdMarvel",
+   "kinds": [
+    "ads"
+   ],
+   "website": "https://www.crunchbase.com/organization/admarvel",
+   "code": [
+    "com.admarvel."
+   ]
+  },
+  {
+   "id": 427,
+   "name": "AdTiming",
+   "kinds": [
+    "ads"
+   ],
+   "website": "https://www.adtiming.com/",
+   "code": [
+    "com.aiming.mdt.",
+    "com.adtiming."
+   ]
+  },
+  {
+   "id": 428,
+   "name": "Adjust Unbotify",
+   "kinds": [
+    "analytics"
+   ],
+   "website": "https://www.adjust.com/product/unbotify/",
+   "code": [
+    "com.unbotify.mobile.sdk."
+   ]
+  },
+  {
+   "id": 429,
+   "name": "LotaData",
+   "kinds": [
+    "analytics",
+    "profiling",
+    "location"
+   ],
+   "website": "http://lotadata.com",
+   "code": [
+    "com.lotadata.moments."
+   ]
+  },
+  {
+   "id": 430,
+   "name": "Marketo (an Adobe Company)",
+   "kinds": [
+    "analytics"
+   ],
+   "website": "https://marketo.com",
+   "code": [
+    "com.marketo."
+   ]
+  },
+  {
+   "id": 431,
+   "name": "PlaytestCloud Event Tracking",
+   "kinds": [
+    "analytics"
+   ],
+   "website": "https://www.playtestcloud.com",
+   "code": [
+    "com.playtestcloud.Analytics"
+   ]
+  },
+  {
+   "id": 432,
+   "name": "Rollbar",
+   "kinds": [
+    "crashReporting"
+   ],
+   "website": "https://rollbar.com",
+   "code": [
+    "com.rollbar.android."
+   ]
+  },
+  {
+   "id": 433,
+   "name": "Snap Ad Kit",
+   "kinds": [
+    "ads"
+   ],
+   "website": "https://kit.snapchat.com/docs/ad-kit",
+   "code": [
+    "com.snap.adkit",
+    "com.snap.appadskit"
+   ]
+  },
+  {
+   "id": 434,
+   "name": "Synerise",
+   "kinds": [
+    "profiling",
+    "identification",
+    "ads"
+   ],
+   "website": "https://synerise.com",
+   "code": [
+    "com.synerise.sdk"
+   ]
+  },
+  {
+   "id": 435,
+   "name": "UserExperior",
+   "kinds": [
+    "crashReporting",
+    "analytics",
+    "profiling",
+    "location"
+   ],
+   "website": "https://www.userexperior.com/",
+   "code": [
+    "com.userexperior"
+   ]
+  },
+  {
+   "id": 436,
+   "name": "Vdopia",
+   "kinds": [
+    "ads"
+   ],
+   "website": "https://chocolateplatform.com/",
+   "code": [
+    "com.vdopia.client.android.",
+    "com.vdopia.ads."
+   ]
+  },
+  {
+   "id": 437,
+   "name": "AdGem",
+   "kinds": [
+    "ads"
+   ],
+   "website": "https://adgem.com/",
+   "code": [
+    "com.adgem.android."
+   ]
+  },
+  {
+   "id": 438,
+   "name": "AdTrial",
+   "kinds": [
+    "ads"
+   ],
+   "website": "https://adtrial.com/",
+   "code": [
+    "com.adtrial.sdk."
+   ]
+  },
+  {
+   "id": 439,
+   "name": "Pincrux",
+   "kinds": [
+    "ads"
+   ],
+   "website": "https://www.pincrux.com/",
+   "code": [
+    "com.pincrux."
+   ]
+  },
+  {
+   "id": 440,
+   "name": "Tutucloud",
+   "kinds": [],
+   "website": "https://tutucloud.com",
+   "code": [
+    "org.lasque.tusdk.core",
+    "org.lasque.tusdkpulse.core"
+   ]
+  },
+  {
+   "id": 441,
+   "name": "Veloxity",
+   "kinds": [
+    "ads"
+   ],
+   "website": "http://www.veloxity.net/",
+   "code": [
+    "net.veloxity."
+   ]
+  },
+  {
+   "id": 442,
+   "name": "Yoadx",
+   "kinds": [
+    "ads"
+   ],
+   "website": "https://yoadx.com/",
+   "code": [
+    "com.yoadx.yoadx."
+   ]
+  },
+  {
+   "id": 443,
+   "name": "Coulus Coelib",
+   "kinds": [
+    "ads"
+   ],
+   "website": "https://measurementsys.com/index.php#appdev",
+   "code": [
+    "coelib.c.couluslibrary"
+   ]
+  },
+  {
+   "id": 444,
+   "name": "ACRA",
+   "kinds": [
+    "crashReporting"
+   ],
+   "website": "https://www.acra.ch/",
+   "code": [
+    "org.acra.",
+    "ch.acra."
+   ]
+  },
+  {
+   "id": 445,
+   "name": "Backtrace",
+   "kinds": [
+    "crashReporting"
+   ],
+   "website": "https://backtrace.io",
+   "code": [
+    "com.github.backtrace-labs.",
+    "backtraceio.library."
+   ]
+  },
+  {
+   "id": 447,
+   "name": "Sentry",
+   "kinds": [
+    "crashReporting"
+   ],
+   "website": "https://sentry.io/",
+   "code": [
+    "io.sentry.",
+    "com.joshdholtz.sentry"
+   ]
+  },
+  {
+   "id": 448,
+   "name": "Yueying Crash SDK",
+   "kinds": [
+    "crashReporting",
+    "analytics"
+   ],
+   "website": "https://yueying-docs.effirst.com/",
+   "code": [
+    "com.uc.crashsdk",
+    "com.uc2.crashsdk"
+   ]
+  }
+ ]
+}
