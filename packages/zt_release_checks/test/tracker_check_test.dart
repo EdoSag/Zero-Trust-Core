@@ -156,6 +156,17 @@ void main() {
           ['empty.apk: no code (classes.dex) was found in it.']);
     });
 
+    test('code with no class names in it', () {
+      final file = apk('hollow.apk', {'classes.dex': []});
+      final seen = <ApkTrackerScan>[];
+      final result =
+          checkNoTrackers([file], trackers, read: (_, scan) => seen.add(scan));
+      expect(seen.single.codeFiles, 1);
+      expect(seen.single.classNames, 0);
+      expect(result.problems,
+          ['hollow.apk: its code has no class names to read.']);
+    });
+
     test('a code file that is not code', () {
       final file = File(writeFile(
         folder,

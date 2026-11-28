@@ -194,6 +194,9 @@ CheckResult checkNoTrackers(
     }
     if (scan.codeFiles == 0 && scan.errors.isEmpty) {
       problems.add('$name: no code (classes.dex) was found in it.');
+    } else if (scan.classNames == 0 && scan.errors.isEmpty) {
+      // A code file with an empty table of names: not what a build makes.
+      problems.add('$name: its code has no class names to read.');
     }
     final found = scan.found.values.toList()
       ..sort((a, b) => a.tracker.name.compareTo(b.tracker.name));
